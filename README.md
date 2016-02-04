@@ -1,2 +1,2 @@
 # SciScript-Python
-Python libraries for SciDrive, Jupyter Notebooks
+Python libraries for SciScript, Jupyter Notebooks
