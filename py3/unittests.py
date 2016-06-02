@@ -2,44 +2,44 @@ __author__ = 'gerard'
 
 # unit tests
 
-from SciServer import CasJobs, LoginPortal, SciDrive
-import Turbulence.Config
+from random import randint
 
 import pandas
-from random import randint
+
+from py3.SciServer import SciDrive, LoginPortal, CasJobs
 
 
 def testLoginPortal(user,password):
-    token=LoginPortal.getToken(user,password)
+    token= LoginPortal.getToken(user,password)
     print("token=",token)
-    user=LoginPortal.getKeystoneUserWithToken(token)
+    user= LoginPortal.getKeystoneUserWithToken(token)
     print("user=",user.id,user.userName)
     return token
 
 def testCasJobsQuery(token):
     sql="""select top 10 galaxyId,snapnum,stellarmass from MRIIscPlanck1"""
 
-    queryResponse=CasJobs.executeQuery(sql,context="Henriques2015a",token=token)
+    queryResponse= CasJobs.executeQuery(sql,context="Henriques2015a",token=token)
     gals= pandas.read_csv(queryResponse,index_col=None)
     print(gals)
     return gals
 
 def testCasJobsTables():
-    schema=CasJobs.getSchemaName()
+    schema= CasJobs.getSchemaName()
     print("schema=",schema)
-    tables=CasJobs.getTables("MyDB")
+    tables= CasJobs.getTables("MyDB")
     print(tables)
 
 def testCasJobsSubmit(token):
     sql="""select top 10 galaxyId,snapnum,stellarmass into mriiscplanck1_a from MRIIscPlanck1"""
 
-    jobId=CasJobs.submitJob(sql,context="Henriques2015a",token=token)
+    jobId= CasJobs.submitJob(sql,context="Henriques2015a",token=token)
     print("jobId=",jobId)
     jobDesc = CasJobs.waitForJob(jobId)
     print( jobDesc)
 
 def testUploadDataFrame(df,token, tablename):
-    response=CasJobs.uploadPandasDataFrameToTable(df,tablename,token=token)
+    response= CasJobs.uploadPandasDataFrameToTable(df,tablename,token=token)
 
 
 def testSciDrive(df,file_name, token):
@@ -57,23 +57,23 @@ def testSciDrive(df,file_name, token):
     print(data1.read())
 
 def testTurbulenceToken():
-    token = LoginPortal.getToken(Turbulence.Config.CasJobsTurbulenceUser, Turbulence.Config.CasJobsTurbulencePassword)
+    token = LoginPortal.getToken(py3.Turbulence.Config.CasJobsTurbulenceUser, py3.Turbulence.Config.CasJobsTurbulencePassword)
     return token
 
 
 
 
 def testSciServer():
-    user=""
-    password="*****"
-#    token=testLoginPortal()
-#    testCasJobsTables()
-#    gals=testCasJobsQuery(token)
-#    r=testSciDrive(gals,"galaxies.csv",token)
-#    print(r)
-#    i=randint(0,1000000)
-#    testUploadDataFrame(gals, token,"FooBar_"+str(i))
-#    testCasJobsSubmit(token)
+    user="xxxxxx"
+    password="******"
+    token=testLoginPortal(user,password)
+    testCasJobsTables()
+    gals=testCasJobsQuery(token)
+    r=testSciDrive(gals,"galaxies.csv",token)
+    print(r)
+    i=randint(0,1000000)
+    testUploadDataFrame(gals, token,"FooBar_"+str(i))
+    testCasJobsSubmit(token)
 
 def testTurbulence():
     token=testTurbulenceToken()
@@ -83,8 +83,8 @@ def testTurbulence():
 
 
 def main():
-#    testSciServer()
-    testTurbulence()
+    testSciServer()
+#    testTurbulence()
 
 
 

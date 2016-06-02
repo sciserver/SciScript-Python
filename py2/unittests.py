@@ -62,8 +62,8 @@ def testTurbulenceToken():
 
 
 def testSciServer():
-    user="GerardLemson"
-    password="scic1137"
+    user="xxxxxx"
+    password="******"
     token=testLoginPortal(user,password)
     testCasJobsTables()
     gals=testCasJobsQuery(token)

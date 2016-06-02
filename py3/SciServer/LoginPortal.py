@@ -2,10 +2,11 @@ __author__ = 'gerard'
 #Python v3.4
 
 import json
-from io import StringIO
-from SciServer import Config,Session
 
 import requests
+
+from py3.SciServer import Session, Config
+
 
 class KeystoneUser:
     id = "KeystoneID"

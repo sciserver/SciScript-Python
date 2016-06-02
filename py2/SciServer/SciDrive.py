@@ -1,8 +1,9 @@
-import requests
 import json
 from io import StringIO
 
-from SciServer import Session, Config
+import requests
+
+from py3.SciServer import Session, Config
 
 
 def createContainer(path, token=""):

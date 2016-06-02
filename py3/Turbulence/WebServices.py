@@ -1,19 +1,20 @@
 #Python v3.4
 
-import SciServer.Session
-import SciServer.Config
-import urllib
-import json
+import requests
+
 import tables
-import pandas
 import numpy as np
 
+from py3 import SciServer
+
+import py3.SciServer.Session
+from py3.Turbulence import Config
+
+
 def getCutout(dataset, fields, ti, nt, xi, nx, yi, ny, zi, nz, turbAuthToken):
-    cutoutUrl = "http://turbulence.pha.jhu.edu/cutout/download.aspx/edu.jhu.pha.turbulence.testing-201311/" + dataset+ "/" + fields +"/" + str(ti) + "," + str(nt) +"/" + str(xi) + "," + str(nx) + "/" + str(yi) + "," + str(ny) + "/" + str(zi) + "," + str(nz)
+    cutoutUrl = Config.TurbulenceCutoutRootURL + dataset+ "/" + fields +"/" + str(ti) + "," + str(nt) +"/" + str(xi) + "," + str(nx) + "/" + str(yi) + "," + str(ny) + "/" + str(zi) + "," + str(nz)
 
-    req = urllib.request.Request(cutoutUrl, method='GET')
-
-    getResponse = urllib.request.urlopen(req)
+    getResponse = requests.get(cutoutUrl)
 
     return getResponse
 
@@ -33,14 +34,13 @@ def callTurbulenceRESTService(dataset, operation, parameters, data, token):
     if(data is None):
         data=b""
 
-    req = urllib.request.Request(TurbUrl, data=data, method='POST')
-    req.add_header('X-Auth-Token', token)
+    headers = {'X-Auth-Token': token}
 
     try:
-        postResponse = urllib.request.urlopen(req)
-        print("getReaderFromMyDB POST response: ", postResponse.status, postResponse.reason)
+        postResponse = requests.post(TurbUrl,data=data,headers=headers)
+        print("getReaderFromMyDB POST response: ", postResponse.status_code, postResponse.reason)
 
-        return postResponse
+        return postResponse.content
     
     except Exception as e:
         print("Exeption message: ", e)
@@ -50,7 +50,7 @@ def getRawResponse(dataset, function, time, x, y, z, xwidth, ywidth, zwidth, tok
     #sciServerUser = SciServer.Session.getSciServerUser()
 
     if token == "":
-        token = SciServer.Session.getKeystoneToken()
+        token = py3.SciServer.Session.getKeystoneToken()
 
     parameters = "time=" + str(time) +"&x=" + str(x) + "&xwidth=" + str(xwidth) + "&y=" + str(y) + "&ywidth=" + str(ywidth) + "&z=" + str(z) + "&zwidth=" + str(zwidth)
 

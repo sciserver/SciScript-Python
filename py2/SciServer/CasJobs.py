@@ -1,12 +1,13 @@
-from base64 import b64encode
 import json
-import requests
-import pandas
 import time
+
 import sys
 from io import StringIO
 
-from SciServer import Config,Session,LoginPortal
+import requests
+import pandas
+
+from py3.SciServer import Session, LoginPortal, Config
 
 
 def getSchemaName(token=""):
@@ -187,7 +188,7 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
 
     headers={}
     if (token == ""):
-        headers['X-Auth-Token']=Session.getKeystoneToken()
+        headers['X-Auth-Token']= Session.getKeystoneToken()
     else:
         headers['X-Auth-Token']= token
 
