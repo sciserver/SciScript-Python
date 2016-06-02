@@ -14,8 +14,6 @@ import tables
 import pandas as pd
 
 import Turbulence.zindex as zi
-from py3 import Turbulence
-
 
 ATOMLENGTH = 8
 

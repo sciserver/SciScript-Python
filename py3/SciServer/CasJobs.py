@@ -6,18 +6,18 @@ from io import StringIO
 import requests
 import pandas
 
-from py3.SciServer import LoginPortal, Config
+from SciServer import LoginPortal, Config
 
 
 def getSchemaName(token=""):
     if (token == ""):
         userToken = LoginPortal.getToken()
     else:
-        userToken = token;
+        userToken = token
     keystoneUserId = LoginPortal.getKeystoneUserWithToken(userToken).id
     usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId
-    headers={'X-Auth-Token': userToken,'Content-Type': 'application/json'}
-    getResponse = requests.get(usersUrl,headers=headers)
+    headers = {'X-Auth-Token': userToken, 'Content-Type': 'application/json'}
+    getResponse = requests.get(usersUrl, headers=headers)
     jsonResponse = json.loads(getResponse.content.decode())
     return "wsid_" + str(jsonResponse["WebServicesId"])
 
@@ -28,7 +28,7 @@ def getTables(context="MyDB"):
 
     TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables"
 
-    headers={'X-Auth-Token': LoginPortal.getToken(),'Content-Type': 'application/json'}
+    headers={'X-Auth-Token': LoginPortal.getToken(), 'Content-Type': 'application/json'}
 
     getResponse = requests.get(TablesUrl,headers=headers)
 
@@ -47,11 +47,11 @@ def executeQuery(queryString, context="MyDB", acceptHeader="text/plain", token="
 
     data = json.dumps(query).encode()
 
-    headers = {'Content-Type': 'application/json','Accept': acceptHeader}
+    headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
     if (token == ""):
-        headers['X-Auth-Token']= LoginPortal.getToken()
+        headers['X-Auth-Token'] = LoginPortal.getToken()
     else:
-        headers['X-Auth-Token']=  token
+        headers['X-Auth-Token'] = token
 
 
     try:

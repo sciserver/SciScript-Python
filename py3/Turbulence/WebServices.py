@@ -5,18 +5,17 @@ import requests
 import tables
 import numpy as np
 
-from py3 import SciServer
-
-import py3.SciServer.Session
-from py3.Turbulence import Config
+from Turbulence import Config
+import SciServer.LoginPortal
 
 
 def getCutout(dataset, fields, ti, nt, xi, nx, yi, ny, zi, nz, turbAuthToken):
-    cutoutUrl = Config.TurbulenceCutoutRootURL + dataset+ "/" + fields +"/" + str(ti) + "," + str(nt) +"/" + str(xi) + "," + str(nx) + "/" + str(yi) + "," + str(ny) + "/" + str(zi) + "," + str(nz)
+    cutoutUrl = Config.TurbulenceCutoutRootURL + dataset + "/" + fields + "/" + str(ti) + "," + str(nt) + "/" + str(xi) + "," + str(nx) + "/" + str(yi) + "," + str(ny) + "/" + str(zi) + "," + str(nz)
 
     getResponse = requests.get(cutoutUrl)
 
     return getResponse
+
 
 def getPyTablesCutout(dataset, fields, ti, nt, xi, nx, yi, ny, zi, nz, turbAuthToken):
 
@@ -26,18 +25,19 @@ def getPyTablesCutout(dataset, fields, ti, nt, xi, nx, yi, ny, zi, nz, turbAuthT
 
     return h5file
 
+
 #data should be bytes
 def callTurbulenceRESTService(dataset, operation, parameters, data, token):
     
     TurbUrl = SciServer.Config.TurbulenceRESTUri + "/" + dataset + "/" + operation + "?" + parameters
 
     if(data is None):
-        data=b""
+        data = b""
 
     headers = {'X-Auth-Token': token}
 
     try:
-        postResponse = requests.post(TurbUrl,data=data,headers=headers)
+        postResponse = requests.post(TurbUrl, data=data,headers=headers)
         print("getReaderFromMyDB POST response: ", postResponse.status_code, postResponse.reason)
 
         return postResponse.content
@@ -47,16 +47,15 @@ def callTurbulenceRESTService(dataset, operation, parameters, data, token):
         return -1
 
 def getRawResponse(dataset, function, time, x, y, z, xwidth, ywidth, zwidth, token=""):
-    #sciServerUser = SciServer.Session.getSciServerUser()
-
     if token == "":
-        token = py3.SciServer.Session.getKeystoneToken()
+        token = SciServer.LoginPOrtal.getToken()
 
-    parameters = "time=" + str(time) +"&x=" + str(x) + "&xwidth=" + str(xwidth) + "&y=" + str(y) + "&ywidth=" + str(ywidth) + "&z=" + str(z) + "&zwidth=" + str(zwidth)
+    parameters = "time=" + str(time) + "&x=" + str(x) + "&xwidth=" + str(xwidth) + "&y=" + str(y) + "&ywidth=" + str(ywidth) + "&z=" + str(z) + "&zwidth=" + str(zwidth)
 
     postResponse = callTurbulenceRESTService(dataset, function, parameters, None, token)
 
     return postResponse
+
 
 def getNumpyArrayFromRawResponse(dataset, function, time, x, y, z, xwidth, ywidth, zwidth, dimensions, token=""):
     response = getRawResponse(dataset, function, time, x, y, z, xwidth, ywidth, zwidth)
@@ -65,7 +64,7 @@ def getNumpyArrayFromRawResponse(dataset, function, time, x, y, z, xwidth, ywidt
         #arr = np.empty([xwidth , ywidth , zwidth, dimensions], dtype = np.float32)
 
         #response.readinto(arr)
-        arr = np.frombuffer(response.read(),dtype = np.float32).reshape([xwidth , ywidth , zwidth, dimensions])
+        arr = np.frombuffer(response.read(), dtype = np.float32).reshape([xwidth, ywidth, zwidth, dimensions])
         
         return arr
     else:
