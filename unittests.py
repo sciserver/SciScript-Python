@@ -3,6 +3,8 @@ __author__ = 'gerard'
 # unit tests
 
 from SciServer import CasJobs, LoginPortal, SciDrive
+import Turbulence.Config
+
 import pandas
 from random import randint
 
@@ -54,18 +56,37 @@ def testSciDrive(df,file_name, token):
     data1 = SciDrive.download(sdFile,token)
     print(data1.read())
 
-def main():
+def testTurbulenceToken():
+    token = LoginPortal.getToken(Turbulence.Config.CasJobsTurbulenceUser, Turbulence.Config.CasJobsTurbulencePassword)
+    return token
+
+
+
+
+def testSciServer():
     user=""
     password="*****"
+#    token=testLoginPortal()
+#    testCasJobsTables()
+#    gals=testCasJobsQuery(token)
+#    r=testSciDrive(gals,"galaxies.csv",token)
+#    print(r)
+#    i=randint(0,1000000)
+#    testUploadDataFrame(gals, token,"FooBar_"+str(i))
+#    testCasJobsSubmit(token)
 
-    token=testLoginPortal()
-    testCasJobsTables()
-    gals=testCasJobsQuery(token)
-    r=testSciDrive(gals,"galaxies.csv",token)
-    print(r)
-    i=randint(0,1000000)
-    testUploadDataFrame(gals, token,"FooBar_"+str(i))
-    testCasJobsSubmit(token)
+def testTurbulence():
+    token=testTurbulenceToken()
+    print("turbulence token = ",token)
+    schemaName = CasJobs.getSchemaName(token)
+    print("schemaname=",schemaName)
+
+
+def main():
+#    testSciServer()
+    testTurbulence()
+
+
 
 if __name__ == "__main__":
     main()
