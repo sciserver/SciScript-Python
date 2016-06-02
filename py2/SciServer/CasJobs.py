@@ -7,12 +7,12 @@ from io import StringIO
 import requests
 import pandas
 
-from py3.SciServer import Session, LoginPortal, Config
+from SciServer import LoginPortal, Config
 
 
 def getSchemaName(token=""):
     if (token == ""):
-        userToken = Session.getKeystoneToken()
+        userToken = LoginPortal.getToken()
     else:
         userToken = token;
     keystoneUserId = LoginPortal.getKeystoneUserWithToken(userToken).id
@@ -29,7 +29,7 @@ def getTables(context="MyDB"):
 
     TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables"
 
-    headers={'X-Auth-Token': Session.getKeystoneToken(),'Content-Type': 'application/json'}
+    headers={'X-Auth-Token': LoginPortal.getToken(),'Content-Type': 'application/json'}
 
     getResponse = requests.get(TablesUrl,headers=headers)
 
@@ -50,7 +50,7 @@ def executeQuery(queryString, context="MyDB", acceptHeader="text/plain", token="
 
     headers = {'Content-Type': 'application/json','Accept': acceptHeader}
     if (token == ""):
-        headers['X-Auth-Token']= Session.getKeystoneToken()
+        headers['X-Auth-Token']= LoginPortal.getToken()
     else:
         headers['X-Auth-Token']=  token
 
@@ -75,7 +75,7 @@ def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
 
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
     if (token == ""):
-        headers['X-Auth-Token']= Session.getKeystoneToken()
+        headers['X-Auth-Token']= LoginPortal.getToken()
     else:
         headers['X-Auth-Token']=  token
 
@@ -93,7 +93,7 @@ def getJobStatus(jobid):
 
     QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobid)
 
-    headers={'X-Auth-Token': Session.getKeystoneToken(),'Content-Type': 'application/json'}
+    headers={'X-Auth-Token': LoginPortal.getToken(),'Content-Type': 'application/json'}
 
     try:
         postResponse =requests.get(QueryUrl,headers=headers)
@@ -120,6 +120,8 @@ def waitForJob(jobid):
         jobStatus = int(jobDesc["Status"])
         if jobStatus in (3, 4, 5):
             complete = True
+            print back,
+            print "Done!"
         else:
             time.sleep(2)
 
@@ -188,7 +190,7 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
 
     headers={}
     if (token == ""):
-        headers['X-Auth-Token']= Session.getKeystoneToken()
+        headers['X-Auth-Token']= LoginPortal.getToken()
     else:
         headers['X-Auth-Token']= token
 

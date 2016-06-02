@@ -1,9 +1,6 @@
 #Python v2.7
 
-#import SciServer.py2.Session as Session
-#import SciServer.py2.Config as Config
-import Session
-import Config
+from Turbulence import Config
 
 import requests
 import json

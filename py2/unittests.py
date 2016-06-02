@@ -10,7 +10,7 @@ from random import randint
 
 
 def testLoginPortal(user,password):
-    token=LoginPortal.getToken(user,password)
+    token=LoginPortal.login(user,password)
     print "token=",token
     user=LoginPortal.getKeystoneUserWithToken(token)
     print "user=",user.id,user.userName
@@ -31,12 +31,14 @@ def testCasJobsTables():
     print tables
 
 def testCasJobsSubmit(token):
-    sql="""select top 10 galaxyId,snapnum,stellarmass into mriiscplanck1_a from MRIIscPlanck1"""
+    tbl="mriiscplanck1_"+str(randint(0,1000000))
+
+    sql="""select top 10 galaxyId,snapnum,stellarmass into """+tbl+""" from MRIIscPlanck1"""
 
     jobId=CasJobs.submitJob(sql,context="Henriques2015a",token=token)
     print "jobId=",jobId
     jobDesc = CasJobs.waitForJob(jobId)
-    print( jobDesc)
+    print jobDesc
 
 def testUploadDataFrame(df,token, tablename):
     response=CasJobs.uploadPandasDataFrameToTable(df,tablename,token=token)
@@ -62,8 +64,8 @@ def testTurbulenceToken():
 
 
 def testSciServer():
-    user="xxxxxx"
-    password="******"
+    user=""
+    password="********"
     token=testLoginPortal(user,password)
     testCasJobsTables()
     gals=testCasJobsQuery(token)

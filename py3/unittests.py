@@ -6,11 +6,11 @@ from random import randint
 
 import pandas
 
-from py3.SciServer import SciDrive, LoginPortal, CasJobs
+from SciServer import SciDrive, LoginPortal, CasJobs
 
 
 def testLoginPortal(user,password):
-    token= LoginPortal.getToken(user,password)
+    token= LoginPortal.login(user,password)
     print("token=",token)
     user= LoginPortal.getKeystoneUserWithToken(token)
     print("user=",user.id,user.userName)
@@ -31,7 +31,9 @@ def testCasJobsTables():
     print(tables)
 
 def testCasJobsSubmit(token):
-    sql="""select top 10 galaxyId,snapnum,stellarmass into mriiscplanck1_a from MRIIscPlanck1"""
+    tbl="mriiscplanck1_"+str(randint(0,1000000))
+
+    sql="""select top 10 galaxyId,snapnum,stellarmass into """+tbl+""" from MRIIscPlanck1"""
 
     jobId= CasJobs.submitJob(sql,context="Henriques2015a",token=token)
     print("jobId=",jobId)
@@ -49,6 +51,7 @@ def testSciDrive(df,file_name, token):
     f.close()
 
     container="test_"+str(randint(0,1000000))
+
     SciDrive.createContainer(container,token=token)
     sdFile= container+"/"+file_name
     SciDrive.upload(sdFile, data)
@@ -64,8 +67,8 @@ def testTurbulenceToken():
 
 
 def testSciServer():
-    user="xxxxxx"
-    password="******"
+    user=""
+    password="*******"
     token=testLoginPortal(user,password)
     testCasJobsTables()
     gals=testCasJobsQuery(token)
