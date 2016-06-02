@@ -67,7 +67,7 @@ def download(path, token=""):
     Download the file identified by the path as a read()-able stream.
     I.e. to get contents call read() on the resulting object
     """
-    fileUrl=publicUrl(path,token)a
+    fileUrl=publicUrl(path,token)
     try:
         res = requests.get(fileUrl,stream=True)
         return StringIO(res.content.decode())
