@@ -15,7 +15,10 @@ class KeystoneUser:
 
 def getKeystoneUserWithToken(token):
 
-    loginURL = Config.LoginPortalURL +token
+    loginURL = Config.LoginPortalURL
+    if ~loginURL.endswith("/"):
+        loginURL = loginURL + "/"
+    loginURL = loginURL + token
 
     try:
         getResponse = requests.get(loginURL)
