@@ -19,8 +19,21 @@ def testLoginPortal(user,password):
 def testCasJobsQuery(token):
     sql="""select top 10 galaxyId,snapnum,stellarmass from MRIIscPlanck1"""
 
-    queryResponse= CasJobs.executeQuery(sql,context="Henriques2015a",token=token)
-    gals= pandas.read_csv(queryResponse,index_col=None)
+    gals= CasJobs.executeQuery(sql,context="Henriques2015a",format="pandas", token=token)
+    print("PANDAS")
+    print(gals)
+    gals= CasJobs.executeQuery(sql,context="Henriques2015a",format="csv", token=token)
+    print("CSV")
+    print(gals)
+    gals= CasJobs.executeQuery(sql,context="Henriques2015a",format="json", token=token)
+    print("JSON")
+    print(gals)
+    gals= CasJobs.executeQuery(sql,context="Henriques2015a",format="readable", token=token)
+    print("READABLE")
+    gals=pandas.read_csv(gals)
+    print(gals)
+    gals= CasJobs.executeQuery(sql,context="Henriques2015a",format="blabal", token=token)
+    print("ERROR")
     print(gals)
     return gals
 
@@ -67,16 +80,17 @@ def testTurbulenceToken():
 
 
 def testSciServer():
-    user=""
-    password="*******"
+    user="GerardLemson"
+    password="scic1137"
     token=testLoginPortal(user,password)
-    testCasJobsTables()
-    gals=testCasJobsQuery(token)
-    r=testSciDrive(gals,"galaxies.csv",token)
-    print(r)
-    i=randint(0,1000000)
-    testUploadDataFrame(gals, token,"FooBar_"+str(i))
-    testCasJobsSubmit(token)
+    # testCasJobsTables()
+    testCasJobsQuery(token)
+
+    # r=testSciDrive(gals,"galaxies.csv",token)
+    # print(r)
+    # i=randint(0,1000000)
+    # testUploadDataFrame(gals, token,"FooBar_"+str(i))
+    # testCasJobsSubmit(token)
 
 def testTurbulence():
     token=testTurbulenceToken()

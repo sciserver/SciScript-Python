@@ -38,9 +38,21 @@ def getTables(context="MyDB"):
     return jsonResponse
 
 
-def executeQuery(queryString, context="MyDB", acceptHeader="text/plain", token=""):
+def executeQuery(queryString, context="MyDB", acceptHeader="application/json+array", token="", format="pandas"):
     """Executes a casjob query.  If a token is supplied then it will execute on behalf of the token's user.
-    Returns a http.client.HTTPResponse (https://docs.python.org/3.4/library/http.client.html#httpresponse-objects) object."""
+    format parameter specifies the return type:
+    'pandas': pandas.DataFrame
+    'csv': a csv string
+    'readable' : a StringIO, readable object wrapping a csv string that can be passed into pandas.read_csv for example.
+    'json': a dict created from a JSON string with the Query, a Result consisting of a Columns and a Data field.
+    """
+
+    if (format == "pandas") or (format =="json"):
+        acceptHeader="application/json+array"
+    elif (format == "csv") or (format == "readable"):
+        acceptHeader = "text/plain"
+    else:
+        return {"Error":{"Message":"Illegal format specification '"+format+"'"}}
 
     QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"
 
@@ -48,17 +60,29 @@ def executeQuery(queryString, context="MyDB", acceptHeader="text/plain", token="
 
     data = json.dumps(query).encode()
 
-    headers = {'Content-Type': 'application/json','Accept': acceptHeader}
+    headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
     if (token == ""):
-        headers['X-Auth-Token']= LoginPortal.getToken()
+        headers['X-Auth-Token'] = LoginPortal.getToken()
     else:
-        headers['X-Auth-Token']=  token
+        headers['X-Auth-Token'] = token
 
 
     try:
-        postResponse = requests.post(QueryUrl,data=data,headers=headers)\
-        # return a 'read'-able object
-        return StringIO(postResponse.content.decode())
+        postResponse = requests.post(QueryUrl,data=data,headers=headers)
+        if postResponse.status_code != 200:
+            return {"Error":{"ErrorCode":postResponse.status_code,"Message":postResponse.content.decode()}}
+        r=postResponse.content.decode()
+        if (format == "readable"):
+            return StringIO(r)
+        elif format == "pandas":
+            r=json.loads(r)
+            return pandas.DataFrame(r['Result'][0]['Data'],columns=r['Result'][0]['Columns'])
+        elif format == "csv":
+            return r
+        elif format == "json":
+            return json.loads(r)
+        else: # should not occur
+            return {"Error":{"Message":"Illegal format specification '"+format+"'"}}
     except requests.exceptions.RequestException as e:
         return e
 
