@@ -44,14 +44,37 @@ def sqlSearch(sql, limit="10", token=""):
         return e
 
 
-def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, token = ""):
-    """Gets a rectangular image cutout from a region of the sky in SDSS, centered at (ra,dec).
+def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", token = ""):
+    """Gets a rectangular image cutout from a region of the sky in SDSS, centered at (ra,dec). Return type is numpy.ndarray.
     'ra': Right Ascension of the image's center.
     'dec': Declination of the image's center.
     'scale': scale of the image, measured in [arcsec/pix]
     'width': Right Ascension of the image's center.
     'ra': Right Ascension of the image's center.
     'height': Height of the image, measured in [pix].
+    'opt': Optional drawing options, expressed as concatenation of letters (string). The letters options are
+    "G": Grid. Draw a N-S E-W grid through the center
+    "L": Label. Draw the name, scale, ra, and dec on image.
+    "P PhotoObj. Draw a small cicle around each primary photoObj.
+    "S: SpecObj. Draw a small square around each specObj.
+    "O": Outline. Draw the outline of each photoObj.
+    "B": Bounding Box. Draw the bounding box of each photoObj.
+    "F": Fields. Draw the outline of each field.
+    "M": Masks. Draw the outline of each mask considered to be important.
+    "Q": Plates. Draw the outline of each plate.
+    "I": Invert. Invert the image (B on W).
+    (see http://skyserver.sdss.org/dr12/en/tools/chart/chartinfo.aspx)
+    'query': Optional string. Marks with inverted triangles on the image the position of user defined objects. The (RA,Dec) coordinates of these object can be given by three means:
+    1) query is a SQL command of format "SELECT Id, RA, Dec, FROM Table".
+    2) query is list of objects. A header with RA and DEC columns must be included. Columns must be separated by tabs, spaces, commas or semicolons. The list may contain as many columns as wished.
+    3) aquery is a string following the pattern: ObjType Band (low_mag, high_mag).
+    ObjType: S | G | P marks Stars, Galaxies or PhotoPrimary objects.
+    Band: U | G | R | I | Z | A restricts marks to objects with Band BETWEEN low_mag AND high_mag Band 'A' will mark all objects within the specified magnitude range in any band (ORs composition).
+    Examples:
+    S
+    S R (0.0, 23.5)
+    G A (20, 30)
+    (see http://skyserver.sdss.org/dr12/en/tools/chart/chartinfo.aspx)
     'token': Sciserver's authentication token for the user.
     """
     url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/ImgCutout/getjpeg?'
@@ -60,7 +83,9 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, token = ""):
     url = url + 'scale=' + str(scale) + '&'
     url = url + 'width=' + str(width) + '&'
     url = url + 'height=' + str(height) + '&'
-    #url = urllib.quote_plus(url)
+    url = url + 'opt=' + opt + '&'
+    url = url + 'query=' + query + '&'
+    url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
