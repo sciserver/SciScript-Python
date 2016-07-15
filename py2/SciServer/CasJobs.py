@@ -62,7 +62,10 @@ def executeQuery(queryString, context="MyDB", acceptHeader="application/json+arr
 
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
     if (token == ""):
-        headers['X-Auth-Token'] = LoginPortal.getToken()
+        try:
+            headers['X-Auth-Token'] = LoginPortal.getToken()
+        except:
+            pass
     else:
         headers['X-Auth-Token'] = token
 
