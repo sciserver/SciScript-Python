@@ -12,27 +12,26 @@ SciServer.CasJobs module
     :undoc-members:
     :show-inheritance:
 
-SciServer.Files module
-----------------------
-
-.. automodule:: SciServer.Files
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-SciServer.Keystone module
--------------------------
-
-.. automodule:: SciServer.Keystone
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-SciServer.Session module
+SciServer.Authentication module
 ------------------------
 
-.. automodule:: SciServer.Session
+.. automodule:: SciServer.Authentication
     :members:
     :undoc-members:
     :show-inheritance:
 
+SciServer.SciDrive module
+------------------------
+
+.. automodule:: SciServer.SciDrive
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+SciServer.SkyServer module
+------------------------
+
+.. automodule:: SciServer.SkyServer
+    :members:
+    :undoc-members:
+    :show-inheritance:

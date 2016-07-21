@@ -32,7 +32,12 @@ def getKeystoneUserWithToken(token):
         return e
 
 def login(UserName, Password):
-
+    """
+    Logs the user into SciServer.
+    :param UserName:
+    :param Password:
+    :return: authentication token
+    """
     loginURL = Config.AuthenticationURL
 
     authJson = {"auth":{"identity":{"password":{"user":{"name":UserName,"password":Password}}}}}
