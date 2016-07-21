@@ -6,7 +6,7 @@ import urllib
 from io import StringIO
 from io import BytesIO
 
-from SciServer import LoginPortal, Config
+from SciServer import Authentication, Config
 
 def sqlSearch(sql, limit="10", token=""):
     """Runs a SQL query against the SDSS database. If a token is supplied, then it will run on behalf of the token's user.
@@ -27,7 +27,7 @@ def sqlSearch(sql, limit="10", token=""):
     else:
         Token = ""
         try:
-            Token = LoginPortal.getToken()
+            Token = Authentication.getToken()
         except:
             Token = ""
         if(Token != ""):
@@ -94,7 +94,7 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     else:
         Token = ""
         try:
-            Token = LoginPortal.getToken()
+            Token = Authentication.getToken()
         except:
             Token = ""
         if(Token != ""):
@@ -136,7 +136,7 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     else:
         Token = ""
         try:
-            Token = LoginPortal.getToken()
+            Token = Authentication.getToken()
         except:
             Token = ""
         if(Token != ""):
@@ -182,7 +182,7 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     else:
         Token = ""
         try:
-            Token = LoginPortal.getToken()
+            Token = Authentication.getToken()
         except:
             Token = ""
         if(Token != ""):

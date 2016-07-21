@@ -6,15 +6,15 @@ from io import StringIO
 import requests
 import pandas
 
-from SciServer import LoginPortal, Config
+from SciServer import Authentication, Config
 
 
 def getSchemaName(token=""):
     if (token == ""):
-        userToken = LoginPortal.getToken()
+        userToken = Authentication.getToken()
     else:
         userToken = token
-    keystoneUserId = LoginPortal.getKeystoneUserWithToken(userToken).id
+    keystoneUserId = Authentication.getKeystoneUserWithToken(userToken).id
     usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId
     headers = {'X-Auth-Token': userToken, 'Content-Type': 'application/json'}
     getResponse = requests.get(usersUrl, headers=headers)
@@ -28,7 +28,7 @@ def getTables(context="MyDB"):
 
     TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables"
 
-    headers={'X-Auth-Token': LoginPortal.getToken(), 'Content-Type': 'application/json'}
+    headers={'X-Auth-Token': Authentication.getToken(), 'Content-Type': 'application/json'}
 
     getResponse = requests.get(TablesUrl,headers=headers)
 
@@ -62,7 +62,7 @@ def executeQuery(queryString, context="MyDB", acceptHeader="application/json+arr
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
     if (token == ""):
         try:
-            headers['X-Auth-Token'] = LoginPortal.getToken()
+            headers['X-Auth-Token'] = Authentication.getToken()
         except:
             pass
     else:
@@ -101,7 +101,7 @@ def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
 
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
     if (token == ""):
-        headers['X-Auth-Token']= LoginPortal.getToken()
+        headers['X-Auth-Token']= Authentication.getToken()
     else:
         headers['X-Auth-Token']=  token
 
@@ -119,7 +119,7 @@ def getJobStatus(jobid):
 
     QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobid)
 
-    headers={'X-Auth-Token': LoginPortal.getToken(),'Content-Type': 'application/json'}
+    headers={'X-Auth-Token': Authentication.getToken(),'Content-Type': 'application/json'}
 
     try:
         postResponse =requests.get(QueryUrl,headers=headers)
@@ -216,7 +216,7 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
 
     headers={}
     if (token == ""):
-        headers['X-Auth-Token']= LoginPortal.getToken()
+        headers['X-Auth-Token']= Authentication.getToken()
     else:
         headers['X-Auth-Token']= token
 

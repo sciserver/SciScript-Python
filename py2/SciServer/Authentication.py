@@ -1,4 +1,4 @@
-__author__ = 'gerard'
+l__author__ = 'gerard'
 #Python v3.4
 
 import json
@@ -14,7 +14,7 @@ class KeystoneUser:
 
 def getKeystoneUserWithToken(token):
 
-    loginURL = Config.LoginPortalURL
+    loginURL = Config.AuthenticationURL
     if ~loginURL.endswith("/"):
         loginURL = loginURL + "/"
     loginURL = loginURL + token
@@ -33,7 +33,7 @@ def getKeystoneUserWithToken(token):
 
 def login(UserName, Password):
 
-    loginURL = Config.LoginPortalURL
+    loginURL = Config.AuthenticationURL
 
     authJson = {"auth":{"identity":{"password":{"user":{"name":UserName,"password":Password}}}}}
 

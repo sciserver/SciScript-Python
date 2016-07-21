@@ -3,12 +3,12 @@ from io import StringIO
 
 import requests
 
-from SciServer import Config, LoginPortal
+from SciServer import Config, Authentication
 
 
 def createContainer(path, token=""):
     if (token == ""):
-        userToken = LoginPortal.getToken()
+        userToken = Authentication.getToken()
     else:
         userToken = token;
 
@@ -28,7 +28,7 @@ def createContainer(path, token=""):
 
 def upload(path, data, token=""):
     if (token == ""):
-        userToken = LoginPortal.getToken()
+        userToken = Authentication.getToken()
     else:
         userToken = token;
 
@@ -47,7 +47,7 @@ def publicUrl(path, token):
     retrieve public URL for file identified by path
     """
     if (token == ""):
-        userToken = LoginPortal.getToken()
+        userToken = Authentication.getToken()
     else:
         userToken = token;
 
