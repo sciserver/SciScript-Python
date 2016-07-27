@@ -40,9 +40,9 @@ def getTables(context="MyDB"):
 
 def executeQuery(queryString, context="MyDB", acceptHeader="application/json+array", token="", format="pandas"):
     """Executes a casjob query.  If a token is supplied then it will execute on behalf of the token's user.
-    format parameter specifies the return type:
-    'pandas': pandas.DataFrame
-    'csv': a csv string
+    format parameter specifies the return type:\n
+    'pandas': pandas.DataFrame.
+    'csv': a csv string.
     'readable' : a StringIO, readable object wrapping a csv string that can be passed into pandas.read_csv for example.
     'json': a dict created from a JSON string with the Query, a Result consisting of a Columns and a Data field.
     """
