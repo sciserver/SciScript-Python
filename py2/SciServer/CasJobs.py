@@ -116,7 +116,7 @@ def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
 
 def getJobStatus(jobid):
     """Gets a casjobs job status.
-    Returns the dict object (https://docs.python.org/3.4/library/stdtypes.html#dict) coresponding to the json received from casjobs."""
+    Returns the dict object (https://docs.python.org/3.4/library/stdtypes.html#dict) corresponding to the json received from casjobs."""
 
     QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobid)
 
@@ -168,7 +168,8 @@ def getFitsFileFromQuery(filename, queryString, context="MyDB", token=""):
 
         return True
     except Exception as e:
-        print e
+        if (Config.executeMode == "debug"):
+            print e
         return False
 
 
@@ -212,7 +213,8 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
     https://docs.python.org/3/library/urllib.request.html
     Returns the output from casjobs in string form."""
 
-    print "Uploading ", sys.getsizeof(CVSdata), "bytes..."
+    if (Config.executeMode == "debug"):
+        print "Uploading ", sys.getsizeof(CVSdata), "bytes..."
     tablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables/" + tableName
 
     headers={}
@@ -223,8 +225,11 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
 
     try:
         postResponse = requests.post(tablesUrl,data=CVSdata,headers=headers)
-        print "uploadCVSDataFrameToTable POST response: ", postResponse.status_code, postResponse.reason
+        if (Config.executeMode == "debug"):
+            print "uploadCVSDataFrameToTable POST response: ", postResponse.status_code, postResponse.reason
 
         return postResponse.content.decode()
     except Exception as error:
-        print "There was a problem uploading the data. Exception message: ", error.read()
+        if (Config.executeMode == "debug"):
+            print "There was a problem uploading the data. Exception message: ", error.message
+        raise

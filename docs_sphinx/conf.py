@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Sciserver Python'
-copyright = '2015, Chris Richardson'
+copyright = '2016, SciServer'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -201,7 +201,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'sphinx.tex', '. Documentation',
-   'Chris Richardson', 'manual'),
+   'Gerard Lemson, Manuchehr Taghizadeh-Popp', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -231,7 +231,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'sphinx', '. Documentation',
-     ['Chris Richardson'], 1)
+     ['Gerard Lemson, Manuchehr Taghizadeh-Popp'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -245,7 +245,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'sphinx', '. Documentation',
-   'Chris Richardson', 'sphinx', 'One line description of project.',
+   'gerard Lemson, Manuchehr Taghizadeh-Popp', 'sphinx', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -266,9 +266,9 @@ texinfo_documents = [
 
 # Bibliographic Dublin Core info.
 epub_title = '.'
-epub_author = 'Chris Richardson'
-epub_publisher = 'Chris Richardson'
-epub_copyright = '2015, Chris Richardson'
+epub_author = 'Gerard Lemson, Manuchehr Taghizadeh-Popp'
+epub_publisher = 'Gerard Lemson, Manuchehr Taghizadeh-Popp'
+epub_copyright = '2016, SciServer'
 
 # The basename for the epub file. It defaults to the project name.
 #epub_basename = '.'

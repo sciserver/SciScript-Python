@@ -23,7 +23,9 @@ def createContainer(path, token=""):
     try:
         res = requests.put(url, data=data, headers=headers)
     except requests.exceptions.RequestException as error:
-        print(error, error.read().decode())
+        if (Config.executeMode == "debug"):
+            print error, error.read().decode()
+        raise
 
 
 def upload(path, data, token=""):
@@ -37,9 +39,11 @@ def upload(path, data, token=""):
     headers = {'X-Auth-Token': userToken}
     try:
         res = requests.put(url, data=data, headers=headers)
-        print(res.content.decode())
+        if (Config.executeMode == "debug"):
+            print(res.content.decode())
     except requests.exceptions.RequestException as error:
-        print(error, error.read().decode())
+        if (Config.executeMode == "debug"):
+            print error, error.read().decode()
         raise
 
 def publicUrl(path, token):
@@ -56,7 +60,8 @@ def publicUrl(path, token):
     try:
         res = requests.get(url, headers=headers)
     except requests.exceptions.RequestException as error:
-        print(error, error.read().decode())
+        if (Config.executeMode == "debug"):
+            print error, error.read().decode()
         raise
 
     jsonRes = json.loads(res.content.decode())
@@ -73,6 +78,7 @@ def download(path, token=""):
         res = requests.get(fileUrl,stream=True)
         return StringIO(res.content.decode())
     except requests.exceptions.RequestException as error:
-        print(error, error.read().decode())
+        if (Config.executeMode == "debug"):
+            print error, error.read().decode()
         raise
   

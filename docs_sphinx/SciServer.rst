@@ -35,3 +35,11 @@ SciServer.SkyServer module
     :members:
     :undoc-members:
     :show-inheritance:
+
+SciServer.SkyQuery module
+------------------------
+
+.. automodule:: SciServer.SkyQuery
+    :members:
+    :undoc-members:
+    :show-inheritance:
