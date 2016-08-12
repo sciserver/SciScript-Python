@@ -56,7 +56,7 @@ def executeQuery(queryString, context="MyDB", acceptHeader="application/json+arr
 
     QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"
 
-    query = {"Query": queryString}
+    query = {"Query": queryString, "TaskName": "SciScript-Python.SciServer.CasJobs.executeQuery"}
 
     data = json.dumps(query).encode()
 
@@ -96,7 +96,7 @@ def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
 
     QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/jobs"
 
-    query = {"Query": queryString}
+    query = {"Query": queryString, "TaskName": "SciScript-Python.SciServer.CasJobs.submitJob"}
 
     data = json.dumps(query).encode()
 
@@ -141,14 +141,16 @@ def waitForJob(jobid):
     print waitingStr,
 
     while not complete:
-        print back,
-        print waitingStr,
+        if (Config.executeMode == "debug"):
+            print back,
+            print waitingStr,
         jobDesc = getJobStatus(jobid)
         jobStatus = int(jobDesc["Status"])
         if jobStatus in (3, 4, 5):
             complete = True
-            print back,
-            print "Done!"
+            if (Config.executeMode == "debug"):
+                print back,
+                print "Done!"
         else:
             time.sleep(2)
 
