@@ -1,3 +1,11 @@
 /.project
 /.pydevproject
 /.idea
+/py2/build
+/py2/dist
+/py2/SciServer.egg-info
+/py2/.idea
+/py3/build
+/py3/dist
+/py3/SciServer.egg-info
+/py3/.idea
