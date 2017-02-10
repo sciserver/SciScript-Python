@@ -14,11 +14,11 @@ def sqlSearch(sql, limit="10", token=""):
     'limit': maximum number of rows in the result table (string). If set to '0', then the function will return all rows.\n
     'token': Sciserver's authentication token for the user.\n
     """
-    url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SearchTools/SqlSearch?'
+    url = Config.SkyServerWSurl + '/SearchTools/SqlSearch?'
     url = url + 'format=csv&'
     url = url + 'cmd=' + sql + '&'
     url = url + 'limit=' + limit + '&'
-    url = urllib.quote_plus(url)
+    #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
@@ -77,7 +77,7 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     \t\t(see http://skyserver.sdss.org/dr12/en/tools/chart/chartinfo.aspx)\n
     'token': Sciserver's authentication token for the user.
     """
-    url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/ImgCutout/getjpeg?'
+    url = Config.SkyServerWSurl + '/ImgCutout/getjpeg?'
     url = url + 'ra=' + str(ra) + '&'
     url = url + 'dec=' + str(dec) + '&'
     url = url + 'scale=' + str(scale) + '&'
@@ -85,7 +85,7 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     url = url + 'height=' + str(height) + '&'
     url = url + 'opt=' + opt + '&'
     url = url + 'query=' + query + '&'
-    url = urllib.quote_plus(url)
+    #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
@@ -119,7 +119,7 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     'limit': Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
     'token': Sciserver's authentication token for the user.\n
     """
-    url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SearchTools/RadialSearch?'
+    url = Config.SkyServerWSurl + '/SearchTools/RadialSearch?'
     url = url + 'format=csv&'
     url = url + 'ra=' + str(ra) + '&'
     url = url + 'dec=' + str(dec) + '&'
@@ -164,7 +164,7 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     'limit': Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
     'token': Sciserver's authentication token for the user.\n
     """
-    url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SearchTools/RectangularSearch?'
+    url = Config.SkyServerWSurl + '/SearchTools/RectangularSearch?'
     url = url + 'format=csv&'
     url = url + 'min_ra=' + str(min_ra) + '&'
     url = url + 'max_ra=' + str(max_ra) + '&'
@@ -195,6 +195,83 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
 
         r=response.content.decode();
         return pandas.read_csv(StringIO(r), comment='#')
+    except requests.exceptions.RequestException as e:
+        return e
+
+
+def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=None, dec=None, plate=None, mjd=None, fiber=None, run=None, rerun=None, camcol=None, field=None, obj=None, token=""):
+    """Gets the properties of the the object that is being searched for. Search parameters:\n
+    'objId': SDSS ObjId.\n
+    'specObjId': SDSS SpecObjId.\n
+    'apogee_id': ID idetifying Apogee target object.\n
+    'apstar_id': unique ID for combined apogee star spectrum.\n
+    'ra': right ascention.\n
+    'dec': declination.\n
+    'plate': SDSS plate number.\n
+    'mjd': Modified Julian Date of observation.\n
+    'fiber': SDSS fiber number.\n
+    'run': SDSS run number.\n
+    'rerun': SDSS rerun number.\n
+    'camcol': SDSS camera column.\n
+    'field': SDSS field number.\n
+    'obj': The object id within a field.\n
+
+    """
+    url = Config.SkyServerWSurl + '/SearchTools/ObjectSearch?query=LoadExplore&'
+    url = url + 'format=json&'
+    if(objId):
+        url = url + 'objid=' + str(objId) + '&';
+    if(specObjId):
+        url = url + 'specobjid=' + str(specObjId) + '&';
+    if(apogee_id):
+        url = url + 'apid=' + str(apogee_id) + '&';
+    else:
+        if(apstar_id):
+            url = url + 'apid=' + str(apstar_id) + '&';
+    if(ra):
+        url = url + 'ra=' + str(ra) + '&';
+    if(dec):
+        url = url + 'dec=' + str(dec) + '&';
+    if(plate):
+        url = url + 'plate=' + str(plate) + '&';
+    if(mjd):
+        url = url + 'mjd=' + str(mjd) + '&';
+    if(fiber):
+        url = url + 'fiber=' + str(fiber) + '&';
+    if(run):
+        url = url + 'run=' + str(run) + '&';
+    if(rerun):
+        url = url + 'rerun=' + str(rerun) + '&';
+    if(camcol):
+        url = url + 'camcol=' + str(camcol) + '&';
+    if(field):
+        url = url + 'field=' + str(field) + '&';
+    if(obj):
+        url = url + 'obj=' + str(obj) + '&';
+    #url = urllib.quote_plus(url)
+    acceptHeader = "text/plain"
+    headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
+
+    if (token != ""):
+        headers['X-Auth-Token'] = token
+    else:
+        Token = ""
+        try:
+            Token = Authentication.getToken()
+        except:
+            Token = ""
+        if(Token != ""):
+            headers['X-Auth-Token'] = Token
+
+    try:
+        response = requests.get(url,headers=headers)
+        if response.status_code != 200:
+            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+
+        #r=response.content.decode();
+        r = response.json()
+        #return pandas.read_csv(StringIO(r), comment='#')
+        return r;
     except requests.exceptions.RequestException as e:
         return e
 
