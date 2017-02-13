@@ -8,13 +8,18 @@ from io import BytesIO
 
 from SciServer import Authentication, Config
 
-def sqlSearch(sql, limit="10", token=""):
+def sqlSearch(sql, limit="10", token="", dataRelease=None):
     """Runs a SQL query against the SDSS database. If a token is supplied, then it will run on behalf of the token's user.\n
     'sql': a string containing the sql query\n
     'limit': maximum number of rows in the result table (string). If set to '0', then the function will return all rows.\n
     'token': Sciserver's authentication token for the user.\n
+    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
     """
-    url = Config.SkyServerWSurl + '/SearchTools/SqlSearch?'
+    if(dataRelease):
+        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+    else:
+        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+
     url = url + 'format=csv&'
     url = url + 'cmd=' + sql + '&'
     url = url + 'limit=' + limit + '&'
@@ -44,7 +49,7 @@ def sqlSearch(sql, limit="10", token=""):
         return e
 
 
-def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", token = ""):
+def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", token = "", dataRelease=None):
     """Gets a rectangular image cutout from a region of the sky in SDSS, centered at (ra,dec). Return type is numpy.ndarray.\n
     'ra': Right Ascension of the image's center.\n
     'dec': Declination of the image's center.\n
@@ -75,9 +80,13 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     \t\tS R (0.0, 23.5)\n
     \t\tG A (20, 30)\n
     \t\t(see http://skyserver.sdss.org/dr12/en/tools/chart/chartinfo.aspx)\n
-    'token': Sciserver's authentication token for the user.
+    'token': Sciserver's authentication token for the user.\n
+    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
     """
-    url = Config.SkyServerWSurl + '/ImgCutout/getjpeg?'
+    if(dataRelease):
+        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+    else:
+        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
     url = url + 'ra=' + str(ra) + '&'
     url = url + 'dec=' + str(dec) + '&'
     url = url + 'scale=' + str(scale) + '&'
@@ -109,7 +118,7 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     except requests.exceptions.RequestException as e:
         return e
 
-def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="optical", limit="10", token=""):
+def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="optical", limit="10", token="", dataRelease=None):
     """Runs a query in the SDSS database that searches for all objects within a certain radius from a point in the sky, and retrieves the result table as a Panda's dataframe.\n
     'ra': Right Ascension of the image's center.\n
     'dec': Declination of the image's center.\n
@@ -118,8 +127,14 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     'whichPhotometry': Type of retrieved data. Can be set to "optical" or "infrared".\n
     'limit': Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
     'token': Sciserver's authentication token for the user.\n
+    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+
     """
-    url = Config.SkyServerWSurl + '/SearchTools/RadialSearch?'
+    if (dataRelease):
+        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+    else:
+        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+
     url = url + 'format=csv&'
     url = url + 'ra=' + str(ra) + '&'
     url = url + 'dec=' + str(dec) + '&'
@@ -153,7 +168,7 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
         return e
 
 
-def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", whichPhotometry="optical", limit="10", token=""):
+def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", whichPhotometry="optical", limit="10", token="", dataRelease=None):
     """Runs a query in the SDSS database that searches for all objects within a certain rectangular box defined on the the sky, and retrieves the result table as a Panda's dataframe.\n
     'min_ra': Minimum value of Right Ascension coordinate that defines the box boundaries on the sky.\n
     'max_ra': Maximum value of Right Ascension coordinate that defines the box boundaries on the sky.\n
@@ -163,8 +178,12 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     'whichPhotometry': Type of retrieved data. Can be set to "optical" or "infrared".\n
     'limit': Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
     'token': Sciserver's authentication token for the user.\n
+    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
     """
-    url = Config.SkyServerWSurl + '/SearchTools/RectangularSearch?'
+    if (dataRelease):
+        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+    else:
+        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
     url = url + 'format=csv&'
     url = url + 'min_ra=' + str(min_ra) + '&'
     url = url + 'max_ra=' + str(max_ra) + '&'
@@ -199,7 +218,7 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
         return e
 
 
-def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=None, dec=None, plate=None, mjd=None, fiber=None, run=None, rerun=None, camcol=None, field=None, obj=None, token=""):
+def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=None, dec=None, plate=None, mjd=None, fiber=None, run=None, rerun=None, camcol=None, field=None, obj=None, token="", dataRelease=None):
     """Gets the properties of the the object that is being searched for. Search parameters:\n
     'objId': SDSS ObjId.\n
     'specObjId': SDSS SpecObjId.\n
@@ -215,9 +234,13 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
     'camcol': SDSS camera column.\n
     'field': SDSS field number.\n
     'obj': The object id within a field.\n
-
+    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
     """
-    url = Config.SkyServerWSurl + '/SearchTools/ObjectSearch?query=LoadExplore&'
+    if (dataRelease):
+        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+    else:
+        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+
     url = url + 'format=json&'
     if(objId):
         url = url + 'objid=' + str(objId) + '&';
