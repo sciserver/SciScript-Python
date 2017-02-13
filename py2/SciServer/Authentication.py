@@ -1,4 +1,4 @@
-l__author__ = 'gerard'
+__author__ = 'gerard'
 #Python v3.4
 
 import json
