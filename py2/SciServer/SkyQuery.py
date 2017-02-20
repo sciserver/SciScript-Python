@@ -36,7 +36,7 @@ def getJobStatus(jobID, token = ''):
         r = response.json()
         return(r['queryJob'])
     else:
-        raise NameError(response.json())
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def cancelJob(jobID, token = ''):
@@ -60,7 +60,7 @@ def cancelJob(jobID, token = ''):
         r = response.json()
         return(r['queryJob'])
     else:
-        raise NameError(response.json())
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def listQueues(token = ''):
@@ -81,7 +81,7 @@ def listQueues(token = ''):
         r = response.content
         return(r)
     else:
-        raise NameError(response.json())
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def getQueueInfo(queue, token = ''):
@@ -102,7 +102,7 @@ def getQueueInfo(queue, token = ''):
         r = response.content
         return(r)
     else:
-        raise NameError(response.json())
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def submitJob(query,token = '', queue='quick'):
@@ -133,7 +133,7 @@ def submitJob(query,token = '', queue='quick'):
         r = response.json()
         return(r['queryJob']['guid'])
     else:
-        raise NameError(response.json())
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def listJobs(queue, token = ''):
@@ -159,7 +159,7 @@ def listJobs(queue, token = ''):
         r = response.json()
         return(r)
     else:
-        raise NameError(response.json())
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 
@@ -185,7 +185,7 @@ def listAllDatasets(token = ''):
     if response.status_code == 200:
         return(response.json())
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def getDatasetInfo(datasetName, token = ''):
@@ -205,7 +205,7 @@ def getDatasetInfo(datasetName, token = ''):
     if response.status_code == 200:
         return(response.json())
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def listDatasetTables(datasetName, token = ''):
@@ -225,7 +225,7 @@ def listDatasetTables(datasetName, token = ''):
     if response.status_code == 200:
         return(response.json())
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def getTableInfo(datasetName, tableName, token = ''):
@@ -245,7 +245,7 @@ def getTableInfo(datasetName, tableName, token = ''):
     if response.status_code == 200:
         return(response.json())
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def listTableColumns(datasetName, tableName, token = ''):
@@ -266,7 +266,7 @@ def listTableColumns(datasetName, tableName, token = ''):
     if response.status_code == 200:
         return(response.json())
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 ######################################################################################################################
@@ -289,7 +289,7 @@ def getTable(datasetName, tableName, top = '',  token = ''):
     if response.status_code == 200:
         return(pandas.read_csv(StringIO(response.content.decode()), sep="\t"))
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
 
 def dropTable(datasetName, tableName, token = ''):
@@ -309,4 +309,4 @@ def dropTable(datasetName, tableName, token = ''):
     if response.status_code == 200:
         return(response.json())
     else:
-        return(response.text)
+        raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());

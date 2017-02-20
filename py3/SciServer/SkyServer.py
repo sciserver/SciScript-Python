@@ -41,12 +41,12 @@ def sqlSearch(sql, limit="10", token="", dataRelease=None):
     try:
         response = requests.get(url,headers=headers)
         if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+            raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
         r=response.content.decode();
         return pandas.read_csv(StringIO(r), comment='#')
     except requests.exceptions.RequestException as e:
-        return e
+        raise e
 
 
 def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", token = "", dataRelease=None):
@@ -112,11 +112,11 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     try:
         response = requests.get(url,headers=headers)
         if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+            raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
         return skimage.io.imread( BytesIO( response.content  ) )
     except requests.exceptions.RequestException as e:
-        return e
+        raise e
 
 def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="optical", limit="10", token="", dataRelease=None):
     """Runs a query in the SDSS database that searches for all objects within a certain radius from a point in the sky, and retrieves the result table as a Panda's dataframe.\n
@@ -160,12 +160,12 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     try:
         response = requests.get(url,headers=headers)
         if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+            raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
         r=response.content.decode();
         return pandas.read_csv(StringIO(r), comment='#')
     except requests.exceptions.RequestException as e:
-        return e
+        raise e
 
 
 def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", whichPhotometry="optical", limit="10", token="", dataRelease=None):
@@ -210,12 +210,12 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     try:
         response = requests.get(url,headers=headers)
         if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+            raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
         r=response.content.decode();
         return pandas.read_csv(StringIO(r), comment='#')
     except requests.exceptions.RequestException as e:
-        return e
+        raise e
 
 
 def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=None, dec=None, plate=None, mjd=None, fiber=None, run=None, rerun=None, camcol=None, field=None, obj=None, token="", dataRelease=None):
@@ -289,12 +289,12 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
     try:
         response = requests.get(url,headers=headers)
         if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+            raise Exception("Http Response returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
         #r=response.content.decode();
         r = response.json()
         #return pandas.read_csv(StringIO(r), comment='#')
         return r;
     except requests.exceptions.RequestException as e:
-        return e
+        raise e
 

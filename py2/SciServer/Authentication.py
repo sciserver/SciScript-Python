@@ -20,6 +20,9 @@ def getKeystoneUserWithToken(token):
     loginURL = loginURL + token
     try:
         getResponse = requests.get(loginURL)
+        if getResponse.status_code != 200:
+            raise Exception("Http Response returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+
         responseJson = json.loads((getResponse.content.decode()))
 
         ksu = KeystoneUser()
@@ -29,7 +32,7 @@ def getKeystoneUserWithToken(token):
         return ksu
 
     except Exception as e:
-        return e
+        raise e
 
 def login(UserName, Password):
     """
@@ -49,12 +52,14 @@ def login(UserName, Password):
 
     try:
         postResponse = requests.post(loginURL,data=data,headers=headers)
+        if postResponse.status_code != 200:
+            raise Exception("Http Response returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
+
         token= postResponse.headers['X-Subject-Token']
         setKeystoneToken(token)
         return token
     except Exception as e:
-        print("Exeption message: ", e)
-        return None
+        raise e;
 
 def getToken():
     """

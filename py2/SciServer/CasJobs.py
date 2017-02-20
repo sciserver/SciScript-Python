@@ -19,6 +19,9 @@ def getSchemaName(token=""):
     usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId
     headers={'X-Auth-Token': userToken,'Content-Type': 'application/json'}
     getResponse = requests.get(usersUrl,headers=headers)
+    if getResponse.status_code != 200:
+        raise Exception("Http Response returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+
     jsonResponse = json.loads(getResponse.content.decode())
     return "wsid_" + str(jsonResponse["WebServicesId"])
 
@@ -32,6 +35,9 @@ def getTables(context="MyDB"):
     headers={'X-Auth-Token': Authentication.getToken(),'Content-Type': 'application/json'}
 
     getResponse = requests.get(TablesUrl,headers=headers)
+
+    if getResponse.status_code != 200:
+        raise Exception("Http Response returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
 
     jsonResponse = json.loads(getResponse.content.decode())
 
@@ -69,11 +75,11 @@ def executeQuery(queryString, context="MyDB", acceptHeader="application/json+arr
     else:
         headers['X-Auth-Token'] = token
 
-
     try:
         postResponse = requests.post(QueryUrl,data=data,headers=headers)
         if postResponse.status_code != 200:
-            return {"Error":{"ErrorCode":postResponse.status_code,"Message":postResponse.content.decode()}}
+            raise Exception("Http Response returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
+
         r=postResponse.content.decode()
         if (format == "readable"):
             return StringIO(r)
@@ -86,8 +92,8 @@ def executeQuery(queryString, context="MyDB", acceptHeader="application/json+arr
             return json.loads(r)
         else: # should not occur
             return {"Error":{"Message":"Illegal format specification '"+format+"'"}}
-    except requests.exceptions.RequestException as e:
-        return e
+    except Exception as e:
+        raise e
 
 
 def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
@@ -108,10 +114,12 @@ def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
 
     try:
         putResponse = requests.put(QueryUrl,data=data,headers=headers)
+        if putResponse.status_code != 200:
+            raise Exception("Http Response returned status code " + str(putResponse.status_code) + ":\n" + putResponse.content.decode());
 
         return int(putResponse.content.decode())
     except requests.exceptions.RequestException as e:
-        return e
+        raise e
 
 
 def getJobStatus(jobid):
@@ -124,10 +132,12 @@ def getJobStatus(jobid):
 
     try:
         postResponse =requests.get(QueryUrl,headers=headers)
+        if postResponse.status_code != 200:
+            raise Exception("Http Response returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
 
         return json.loads(postResponse.content.decode())
-    except requests.exceptions.RequestException as e:
-        return e.code
+    except Exception as e:
+        raise e;
 
 
 def waitForJob(jobid):
@@ -227,6 +237,9 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
 
     try:
         postResponse = requests.post(tablesUrl,data=CVSdata,headers=headers)
+        if postResponse.status_code != 200:
+            raise Exception("Http Response returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
+
         if (Config.executeMode == "debug"):
             print "uploadCVSDataFrameToTable POST response: ", postResponse.status_code, postResponse.reason
 
@@ -234,4 +247,4 @@ def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
     except Exception as error:
         if (Config.executeMode == "debug"):
             print "There was a problem uploading the data. Exception message: ", error.message
-        raise
+        raise error
