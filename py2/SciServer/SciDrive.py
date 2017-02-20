@@ -22,7 +22,10 @@ def createContainer(path, token=""):
     headers = {'X-Auth-Token': userToken, 'Content-Type': 'application/xml'}
     try:
         res = requests.put(url, data=data, headers=headers)
-    except requests.exceptions.RequestException as error:
+        if res.status_code != 200:
+            raise Exception("Http Response returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+
+    except Exception as error:
         if (Config.executeMode == "debug"):
             print error, error.read().decode()
         raise
@@ -39,12 +42,15 @@ def upload(path, data, token=""):
     headers = {'X-Auth-Token': userToken}
     try:
         res = requests.put(url, data=data, headers=headers)
+        if res.status_code != 200:
+            raise Exception("Http Response returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+
         if (Config.executeMode == "debug"):
             print(res.content.decode())
-    except requests.exceptions.RequestException as error:
+    except Exception as error:
         if (Config.executeMode == "debug"):
             print error, error.read().decode()
-        raise
+        raise error
 
 def publicUrl(path, token):
     """
@@ -59,14 +65,17 @@ def publicUrl(path, token):
     headers={'X-Auth-Token': userToken}
     try:
         res = requests.get(url, headers=headers)
-    except requests.exceptions.RequestException as error:
+        if res.status_code != 200:
+            raise Exception("Http Response returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+
+        jsonRes = json.loads(res.content.decode())
+        fileUrl = jsonRes["url"]
+        return fileUrl
+
+    except Exception as error:
         if (Config.executeMode == "debug"):
             print error, error.read().decode()
-        raise
-
-    jsonRes = json.loads(res.content.decode())
-    fileUrl = jsonRes["url"]
-    return fileUrl
+        raise error
 
 def download(path, token=""):
     """
@@ -76,9 +85,12 @@ def download(path, token=""):
     fileUrl=publicUrl(path,token)
     try:
         res = requests.get(fileUrl,stream=True)
+        if res.status_code != 200:
+            raise Exception("Http Response returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+
         return StringIO(res.content.decode())
-    except requests.exceptions.RequestException as error:
+    except Exception as error:
         if (Config.executeMode == "debug"):
             print error, error.read().decode()
-        raise
+        raise error
   
