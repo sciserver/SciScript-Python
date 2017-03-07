@@ -22,6 +22,6 @@
 
 ### Creating HTML documentation:
 
-1.- Run 'make html' while in the `./docs_sphinx/' directory. The html files will be created in `./docs_sphinx/_build/`
+1.- Run `make html` while in the `./docs_sphinx/` directory. The html files will be created in `./docs_sphinx/_build/`
 
 
