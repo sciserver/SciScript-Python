@@ -97,7 +97,13 @@ def executeQuery(sql, context="MyDB", format="pandas"):
 
     QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"
 
-    query = {"Query": sql, "TaskName": "SciScript-Python.SciServer.CasJobs.executeQuery"}
+    TaskName = "";
+    if Config.isSciServerComputeEnvironment():
+        TaskName = "Compute.SciScript-Python.CasJobs.executeQuery"
+    else:
+        TaskName = "SciScript-Python.CasJobs.executeQuery"
+
+    query = {"Query": sql, "TaskName": TaskName}
 
     data = json.dumps(query).encode()
 
@@ -142,7 +148,13 @@ def submitJob(sql, context="MyDB"):
 
         QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/jobs"
 
-        query = {"Query": sql, "TaskName": "SciScript-Python.SciServer.CasJobs.submitJob"}
+        TaskName = "";
+        if Config.isSciServerComputeEnvironment():
+            TaskName = "Compute.SciScript-Python.CasJobs.submitJob"
+        else:
+            TaskName = "SciScript-Python.CasJobs.submitJob"
+
+        query = {"Query": sql, "TaskName": TaskName}
 
         data = json.dumps(query).encode()
 

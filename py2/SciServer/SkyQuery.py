@@ -47,9 +47,9 @@ def cancelJob(jobID):
     Cancels a single job (more info in http://www.voservices.net/skyquery).
 
     :param jobID: the ID of the job, which is obtained at the moment of submitting the job.
-    :return: a dictionary with the job status and other related metadata.
+    :return: Returns True if the job was cancelled successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
-    :example: status = SkyQuery.getJobStatus(SkyQuery.submitJob("select 1 as foo"))
+    :example: isCanceled = SkyQuery.cancelJob(SkyQuery.submitJob("select 1 as foo"))
 
     .. seealso:: SkyQuery.submitJob, SkyQuery.getJobStatus
     """
@@ -64,8 +64,16 @@ def cancelJob(jobID):
         response = requests.delete(statusURL, headers=headers)
 
         if response.status_code == 200:
-            r = response.json()
-            return(r['queryJob'])
+            #r = response.json()
+            #try:
+            #    status = r['queryJob']["status"]
+            #    if status == "canceled":
+            #        return True;
+            #    else:
+            #        return False;
+            #except:
+            #    return False;
+            return True;
         else:
             raise Exception("Error when cancelling job " + str(jobID) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
     else:

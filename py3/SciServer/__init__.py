@@ -18,7 +18,7 @@ Some SciServer tools you can access with this package:\n
 \t\tYou can query the SDSS database using SkyServer.sqlSearch, get cutout images from the sky using SkyServer.getJpegImgCutout.
 
 * `SkyQuery <http://www.voservices.net/skyquery>`_: Cross-match of astronomical source catalogs.
-\t\tYou can use this scalable database system for uploading your own catalogs and cross-matching them against huge astronomical source catalogs, or even cross-matching huge catalogs agaibnst each other!. Use SkyQuery.submitJob to run the cross-match, and use SkyQuery.listAllDatasets, SkyQuery.listDatasetTables and SkyQuery.listTableColumns to browse the catalogs and database schema.
+\t\tYou can use this scalable database system for uploading your own catalogs and cross-matching them against huge astronomical source catalogs, or even cross-matching huge catalogs against each other!. Use SkyQuery.submitJob to run the cross-match, and use SkyQuery.listAllDatasets, SkyQuery.listDatasetTables and SkyQuery.listTableColumns to browse the catalogs and database schema.
 
 **References**
 
