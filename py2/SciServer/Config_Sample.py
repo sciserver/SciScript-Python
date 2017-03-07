@@ -4,7 +4,7 @@ Although these parameters must be set/defined by the admin or user before the in
 
 - **Config.CasJobsRESTUri**: defines the base URL of the CasJobs web API (string). E.g., "http://skyserver.sdss.org/CasJobs/RestApi"
 
-- **Config.AuthenticationURL**: defines the base URL of the CasJobs web service API (string). E.g., "http://portal.sciserver.org/login-portal/keystone/v3/tokens"
+- **Config.AuthenticationURL**: defines the base URL of the Authentication web service API (string). E.g., "http://portal.sciserver.org/login-portal/keystone/v3/tokens"
 
 - **Config.SciDriveHost**: defines the base URL of the SciDrive web service API (string). E.g., "http://www.scidrive.org"
 
@@ -16,7 +16,7 @@ Although these parameters must be set/defined by the admin or user before the in
 
 - **Config.KeystoneTokenPath**: defines the local path (string) to the file containing the user's authentication token in the SciServer-Compute environment. E.g., "/home/idies/keystone.token". Unlikely to change since it is hardcoded in SciServer-Compute.
 
-- **Config.version**: defines the SciServer release tag (string), to which this package belongs. E.g., "sciserver-v1.9.3"
+- **Config.version**: defines the SciServer release version tag (string), to which this package belongs. E.g., "sciserver-v1.9.3"
 """
 # URLs for accessing SciServer web services (API endpoints)
 CasJobsRESTUri = "http://skyserver.sdss.org/CasJobs/RestApi"
