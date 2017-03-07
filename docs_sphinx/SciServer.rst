@@ -1,8 +1,10 @@
 SciServer package
 =================
 
-Submodules
-----------
+.. automodule:: SciServer
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 SciServer.CasJobs module
 ------------------------
