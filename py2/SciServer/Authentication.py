@@ -1,10 +1,3 @@
-"""
-some casjobs exmplae
-
-"""
-
-
-
 __author__ = 'gerard,mtaghiza'
 #Python v3.4
 

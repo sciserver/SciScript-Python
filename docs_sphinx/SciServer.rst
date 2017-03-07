@@ -14,6 +14,14 @@ SciServer.CasJobs module
     :undoc-members:
     :show-inheritance:
 
+SciServer.Config module
+------------------------
+
+.. automodule:: SciServer.Config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 SciServer.Authentication module
 ------------------------
 
