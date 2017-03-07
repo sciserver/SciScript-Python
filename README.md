@@ -1,4 +1,4 @@
-# SciScript-R
+# SciScript-Python
 
 ## Python libraries for Jupyter Notebooks
 
@@ -10,7 +10,7 @@
 
 1.- To install python 2 code, run `python setup.py install` while in the `./py2` directory.
 
-2.- To install python 3 code, run `python setup.py install` while in the `./py3` directory.
+2.- To install python 3 code, run `python3 setup.py install` while in the `./py3` directory.
 
 
 ### Automatic Update/Installation process:
