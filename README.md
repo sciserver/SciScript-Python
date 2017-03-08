@@ -2,6 +2,26 @@
 
 ## Python libraries for Jupyter Notebooks
 
+This python package provides functions for quick access of SciServer APIs (web services) and tools.
+[SciServer](http://www.sciserver.org) provides a new online framework for data-intensive scientifc computing in the cloud,
+where the motto is to bring the computation close where the data is stored, and allow seamless access and sharing of big data sets within the scientific community.
+
+Some SciServer tools you can access with this package:\n
+
+..* [Login Portal](http://portal.sciserver.org): Single sign-on portal to all SciServer applications.
+
+..* [CasJobs](http://skyserver.sdss.org/CasJobs): Database storage and querying.
+
+..* [SciDrive](http://www.scidrive.org/): Drag-and-drop file storage and sharing.
+
+..* [SkyServer] <http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
+
+..* [SkyQuery] <http://www.voservices.net/skyquery): Cross-match of astronomical source catalogs.
+
+Maintainer: Manuchehr Taghizadeh-Popp.
+
+Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
+
 
 ### Cloning the code locally:
     `git clone http://github.com/sciserver/SciScript-Python.git`
