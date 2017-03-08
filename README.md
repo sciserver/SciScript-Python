@@ -37,7 +37,7 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 
 1.- Run `python ShowSciServerTags.py` in order to see the version tags that label each SciServer release containing new SciScript code.
 
-2.- To update or install, run `python Update.py tag`, where `tag` is the version tag of the SciServer release containing the SciScript version you want to install or update to (see previous step). If `tag` is not specified, then the latest version will be installed.
+2.- To install, run `python Install.py tag`, where `tag` is the version tag of the SciServer release containing the SciScript version you want to install or update to (see previous step). If `tag` is not specified, then the latest version will be installed.
 
 
 ## Creating HTML documentation:
