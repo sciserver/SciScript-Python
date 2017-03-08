@@ -13,14 +13,12 @@ sysPrint("\n---1) Updating local Git repository...\n\n")
 os.system("git tag -d $(git tag)") #deletes local tags
 os.system("git fetch --all") #fetches all remotes into local repo, including tags.
 os.system("git checkout master")
-#os.system("git reset --hard origin/master") #resets the local master branch to what was just fetched.
-#os.system("git clean -df") #removes all untracked filesl
 
-sysPrint("\n--2) Listing available SciServer version Tags:\n\n")
+sysPrint("\n--2) Listing available SciServer release version tags:\n\n")
 tags = os.popen("git tag --list \"*sciserver*\"").read().split("\n")
 if len(tags)==0:
-  sysPrint("No SciServer Tags available.\n\n")
+  sysPrint("No SciServer tags available.\n\n")
 else:
     os.system("git tag --list \"*sciserver*\"")
 
-sysPrint("\n Refer to http://www.sciserver.org/support/updates for particular release tag details.\n\n")
+sysPrint("\n*** Refer to http://www.sciserver.org/support/updates for particular release tag details.")
