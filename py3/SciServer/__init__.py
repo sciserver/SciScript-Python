@@ -1,5 +1,5 @@
 """
-This package provides functions for quick access of SciServer APIs (web services) and tools.
+This python package provides functions for quick access of SciServer APIs (web services) and tools.
 SciServer (http://www.sciserver.org) provides a new online framework for data-intensive scientifc computing in the cloud,
 where the motto is to bring the computation close where the data is stored, and allow seamless access and sharing of big data sets within the scientific community.
 
@@ -15,7 +15,7 @@ Some SciServer tools you can access with this package:\n
 \t\tYou can create directories in SciDrive using SciDrive.createContainer, upload a file to SciDrive using SciDrive.upload, and share its URL with your collaborators by using SciDrive.publicUrl.
 
 * `SkyServer <http://skyserver.sdss.org/>`_: Access to the SDSS astronomical survey.
-\t\tYou can query the SDSS database using SkyServer.sqlSearch, get cutout images from the sky using SkyServer.getJpegImgCutout.
+\t\tYou can query the SDSS database using SkyServer.sqlSearch, run cone searches using SkyServer.radialSearch, or get cutout images from the sky using SkyServer.getJpegImgCutout, between other tasks.
 
 * `SkyQuery <http://www.voservices.net/skyquery>`_: Cross-match of astronomical source catalogs.
 \t\tYou can use this scalable database system for uploading your own catalogs and cross-matching them against huge astronomical source catalogs, or even cross-matching huge catalogs against each other!. Use SkyQuery.submitJob to run the cross-match, and use SkyQuery.listAllDatasets, SkyQuery.listDatasetTables and SkyQuery.listTableColumns to browse the catalogs and database schema.

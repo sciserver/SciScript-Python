@@ -30,6 +30,14 @@ SciServer.Authentication module
     :undoc-members:
     :show-inheritance:
 
+SciServer.LoginPortal module
+------------------------
+
+.. automodule:: SciServer.LoginPortal
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 SciServer.SciDrive module
 ------------------------
 
