@@ -8,15 +8,15 @@ where the motto is to bring the computation close where the data is stored, and 
 
 Some SciServer tools you can access with this package:\n
 
-..* [Login Portal](http://portal.sciserver.org): Single sign-on portal to all SciServer applications.
+ * [Login Portal](http://portal.sciserver.org): Single sign-on portal to all SciServer applications.
 
-..* [CasJobs](http://skyserver.sdss.org/CasJobs): Database storage and querying.
+ * [CasJobs](http://skyserver.sdss.org/CasJobs): Database storage and querying.
 
-..* [SciDrive](http://www.scidrive.org/): Drag-and-drop file storage and sharing.
+ * [SciDrive](http://www.scidrive.org/): Drag-and-drop file storage and sharing.
 
-..* [SkyServer](http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
+ * [SkyServer](http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
 
-..* [SkyQuery](http://www.voservices.net/skyquery): Cross-match of astronomical source catalogs.
+ * [SkyQuery](http://www.voservices.net/skyquery): Cross-match of astronomical source catalogs.
 
 Maintainer: Manuchehr Taghizadeh-Popp.
 
