@@ -6,7 +6,7 @@ This python package provides functions for quick access of [SciServer](http://ww
 [SciServer](http://www.sciserver.org) provides a new online framework for data-intensive scientifc computing in the cloud,
 where the motto is to bring the computation close where the data is stored, and allow seamless access and sharing of big data sets within the scientific community.
 
-Some SciServer tools you can access with this package:\n
+Some SciServer tools you can access with this package:
 
  * [Login Portal](http://portal.sciserver.org): Single sign-on portal to all SciServer applications.
 
@@ -34,7 +34,7 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 
 
 ## Automatic Update/Installation process:
-  
+
 1.- Run `python ShowSciServerTags.py` in order to see the version tags that label each SciServer release containing new SciScript code.
 
 2.- To update or install, run `python Update.py tag`, where `tag` is the version tag of the SciServer release containing the SciScript version you want to install or update to (see previous step). If `tag` is not specified, then the latest version will be installed.
