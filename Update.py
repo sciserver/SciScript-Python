@@ -30,11 +30,11 @@ os.system("git reset --hard origin/master") #resets the local master branch to w
 os.system("git clean -df") #removes all untracked files
 
 
-if len(commandLineArguments) == 0:
+if len(commandLineArguments) <= 1:
     sysPrint("\n---2) Checking out latest SciScript code from local master branch...\n\n")
     os.system("git checkout master")
 else:
-    sciserverTag = commandLineArguments[0]
+    sciserverTag = commandLineArguments[1]
     sysPrint("\n---2) Checking out latest SciScript code tagged as \"" + sciserverTag + "\"...\n\n")
     os.system("git checkout tags/" + sciserverTag)
 
