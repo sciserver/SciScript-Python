@@ -146,7 +146,7 @@ def submitJob(query, queue='quick'):
     :param queue: queue name (string). Can be set to 'quick' for a quick job, or 'long' for a long job.
     :return: returns the jobID (string), unique identifier of the job.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
-    :example: jobId = SkyQuery.submitJob('select 1 as foo')
+    :example: jobId = SkyQuery.submitJob('select 1 as foo', "quick")
 
     .. seealso:: SkyQuery.getJobStatus, SkyQuery.listQueues
     """
@@ -173,14 +173,14 @@ def submitJob(query, queue='quick'):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def listJobs(queue):
+def listJobs(queue="quick"):
     """
     Lists the jobs in the queue in descending order by submission time. Only jobs of the authenticated user are listed (more info in http://www.voservices.net/skyquery).
 
     :param queue: queue name (string). Can be set to 'quick' for a quick job, or 'long' for a long job.
     :return: returns job definitions as a list object.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
-    :example: queueInfo = SkyQuery.getQueueInfo('quick')
+    :example: jobsList = SkyQuery.listJobs('quick')
 
     .. seealso:: SkyQuery.getJobStatus, SkyQuery.listQueues
     """
@@ -416,3 +416,4 @@ def dropTable(datasetName, tableName):
             raise Exception("Error when dropping table " + str(tableName) + " from dataset " + str(datasetName) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
+
