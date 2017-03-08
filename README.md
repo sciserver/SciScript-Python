@@ -14,9 +14,9 @@ Some SciServer tools you can access with this package:\n
 
 ..* [SciDrive](http://www.scidrive.org/): Drag-and-drop file storage and sharing.
 
-..* [SkyServer] <http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
+..* [SkyServer](http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
 
-..* [SkyQuery] <http://www.voservices.net/skyquery): Cross-match of astronomical source catalogs.
+..* [SkyQuery](http://www.voservices.net/skyquery): Cross-match of astronomical source catalogs.
 
 Maintainer: Manuchehr Taghizadeh-Popp.
 
@@ -24,7 +24,7 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 
 
 ### Cloning the code locally:
-    `git clone http://github.com/sciserver/SciScript-Python.git`
+    git clone http://github.com/sciserver/SciScript-Python.git
 
 ### Manual Installation Process:
 
