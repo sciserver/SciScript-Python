@@ -17,8 +17,10 @@ os.system("git checkout master")
 #os.system("git clean -df") #removes all untracked filesl
 
 sysPrint("\n--2) Listing available SciServer version Tags:\n\n")
-tags = os.popen("git tag").read().split("\n")
+tags = os.popen("git tag --list \"*sciserver*\"").read().split("\n")
 if len(tags)==0:
   sysPrint("No SciServer Tags available.\n\n")
 else:
-    os.system("git tag")
+    os.system("git tag --list \"*sciserver*\"")
+
+sysPrint("\n Refer to http://www.sciserver.org/support/updates for particular release tag details.\n\n")
