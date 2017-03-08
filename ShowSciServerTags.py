@@ -21,4 +21,4 @@ if len(tags)==0:
 else:
     os.system("git tag --list \"*sciserver*\"")
 
-sysPrint("\n*** Refer to http://www.sciserver.org/support/updates for particular release tag details.")
+sysPrint("\n*** Refer to http://www.sciserver.org/support/updates for particular release tag details.\n\n")
