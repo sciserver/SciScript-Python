@@ -67,7 +67,7 @@ def getTables(context="MyDB"):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def executeQuery(sql, context="MyDB", format="pandas"):
+def executeQuery(sql, context="MyDB", format="readable"):
     """
     Executes a synchronous SQL query in a CasJobs database context.
 
