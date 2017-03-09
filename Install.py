@@ -35,10 +35,10 @@ else:
 
 
 hasInstallFile = os.popen("ls Install.py").read().split("\n")
-if len(hasInstallFile) > 0: 
-  os.system("rm -f ../Install_IntermediateCopy5551234.py") #removes the copy of the install file one level up
-else
-  os.system("mv -f ../Install_IntermediateCopy5551234.py ./Install.py") #copies the install file back from one level up.
+if len(hasInstallFile) > 0:
+    os.system("rm -f ../Install_IntermediateCopy5551234.py") #removes the copy of the install file one level up
+else:
+    os.system("mv -f ../Install_IntermediateCopy5551234.py ./Install.py") #copies the install file back from one level up.
 
 os.chdir("./py2")
 
