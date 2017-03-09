@@ -37,9 +37,7 @@ os.chdir("./py2")
 os.system('printf "\n---3) Building the SciServer package for Python 2...\n\n"')
 
 if isSciServerComputeEnvironment():
-  os.system("source activate py27")# activating python = python2 in anaconda
-  os.system("python setup.py install")
-  os.system("source activate root")# deactivating python = python2 in anaconda, now changing back to the anaconda default of python = python3
+  os.system("source activate py27 ; python setup.py install ; source activate root") # activating python = python2 in anaconda, and then changing back to the anaconda default of python = python3
 else:
   os.system("python2 setup.py install")
 
