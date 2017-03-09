@@ -23,8 +23,7 @@ os.system("git checkout master")
 os.system("git reset --hard origin/master") #resets the local master branch to what was just fetched.
 os.system("git clean -df") #removes all untracked files
 
-os.system("cp Install.py ../") #copies the install file one level up, so that if the commit checked out in step 2) does not have it, then we can copy it back in there.
-
+os.system("cp -f Install.py ../Install_IntermediateCopy5551234.py") #copies the install file one level up, so that if the commit checked out in step 2) does not have it, then we can copy it back in there.
 
 if len(commandLineArguments) <= 1:
     os.system('printf "\n---2) Checking out latest SciScript code from local master branch...\n\n"')
@@ -34,7 +33,12 @@ else:
     os.system('printf "\n---2) Checking out latest SciScript code tagged as \"" + sciserverTag + "\"...\n\n"')
     os.system("git checkout tags/" + sciserverTag)
 
-os.system("mv ../Install.py ./") #copies the install file one level up, so that if the commit checked out in step 2) does not have it, then we can copy it back in there.
+
+hasInstallFile = os.popen("ls Install.py").read().split("\n")
+if len(hasInstallFile) > 0: 
+  os.system("rm -f ../Install_IntermediateCopy5551234.py") #removes the copy of the install file one level up
+else
+  os.system("mv -f ../Install_IntermediateCopy5551234.py ./Install.py") #copies the install file back from one level up.
 
 os.chdir("./py2")
 
