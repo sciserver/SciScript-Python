@@ -23,6 +23,8 @@ os.system("git checkout master")
 os.system("git reset --hard origin/master") #resets the local master branch to what was just fetched.
 os.system("git clean -df") #removes all untracked files
 
+os.system("cp Install.py ../") #copies the install file one level up, so that if the commit checked out in step 2) does not have it, then we can copy it back in there.
+
 
 if len(commandLineArguments) <= 1:
     os.system('printf "\n---2) Checking out latest SciScript code from local master branch...\n\n"')
@@ -31,6 +33,8 @@ else:
     sciserverTag = commandLineArguments[1]
     os.system('printf "\n---2) Checking out latest SciScript code tagged as \"" + sciserverTag + "\"...\n\n"')
     os.system("git checkout tags/" + sciserverTag)
+
+os.system("mv ../Install.py ./") #copies the install file one level up, so that if the commit checked out in step 2) does not have it, then we can copy it back in there.
 
 os.chdir("./py2")
 
