@@ -33,8 +33,7 @@ else:
     os.system('printf "\n---2) Checking out latest SciScript code tagged as \"" + sciserverTag + "\"...\n\n"')
     os.system("git checkout tags/" + sciserverTag)
 
-
-hasInstallFile = os.popen("ls Install.py").read().split("\n")
+hasInstallFile = os.popen("ls Install.py").read()
 if len(hasInstallFile) > 0:
     os.system("rm -f ../Install_IntermediateCopy5551234.py") #removes the copy of the install file one level up
 else:
