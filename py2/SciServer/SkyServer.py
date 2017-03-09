@@ -22,9 +22,15 @@ def sqlSearch(sql, dataRelease=None):
     .. seealso:: CasJobs.executeQuery, CasJobs.submitJob.
     """
     if(dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/SqlSearch?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/SqlSearch?'
 
     url = url + 'format=csv&'
     url = url + 'cmd=' + sql + '&'
@@ -89,9 +95,16 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     :example: img = SkyServer.getJpegImgCutout(ra=197.614455642896, dec=18.438168853724, width=512, height=512, scale=0.4, opt="OG", query="SELECT TOP 100 p.objID, p.ra, p.dec, p.r FROM fGetObjFromRectEq(197.6,18.4,197.7,18.5) n, PhotoPrimary p WHERE n.objID=p.objID")
     """
     if(dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/ImgCutout/getjpeg?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/ImgCutout/getjpeg?'
+
     url = url + 'ra=' + str(ra) + '&'
     url = url + 'dec=' + str(dec) + '&'
     url = url + 'scale=' + str(scale) + '&'
@@ -115,10 +128,12 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
 
     response = requests.get(url,headers=headers)
     if response.status_code != 200:
-        raise Exception("Error when getting an image cutout.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
+        if response.status_code == 404 or response.status_code == 500:
+            raise Exception("Error when getting an image cutout.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ". " + response.reason);
+        else:
+            raise Exception("Error when getting an image cutout.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
-    return skimage.io.imread( BytesIO( response.content  ) )
-
+    return skimage.io.imread( BytesIO( response.content))
 
 def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="optical", limit="10", dataRelease=None):
     """
@@ -137,10 +152,16 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
 
     .. seealso:: SkyServer.sqlSearch, SkyServer.rectangularSearch.
     """
-    if (dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+    if(dataRelease):
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RadialSearch?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RadialSearch?'
 
     url = url + 'format=csv&'
     url = url + 'ra=' + str(ra) + '&'
@@ -189,10 +210,17 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
 
     .. seealso:: SkyServer.sqlSearch, SkyServer.radialSearch.
     """
-    if (dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+    if(dataRelease):
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RectangularSearch?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RectangularSearch?'
+
     url = url + 'format=csv&'
     url = url + 'min_ra=' + str(min_ra) + '&'
     url = url + 'max_ra=' + str(max_ra) + '&'
@@ -248,10 +276,16 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
 
     .. seealso:: SkyServer.sqlSearch, SkyServer.rectangularSearch, SkyServer.radialSearch.
     """
-    if (dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+    if(dataRelease):
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
 
     url = url + 'format=json&'
     if(objId):
