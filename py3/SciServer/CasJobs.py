@@ -221,15 +221,15 @@ def waitForJob(jobid, verbose=True):
 
         while not complete:
             if (verbose):
-            print(back, end="")
-            print(waitingStr, end="")
+	      print(back, end="")
+	      print(waitingStr, end="")
             jobDesc = getJobStatus(jobid)
             jobStatus = int(jobDesc["Status"])
             if jobStatus in (3, 4, 5):
                 complete = True
                 if (verbose):
-                print(back, end="")
-                print("Done!")
+		  print(back, end="")
+		  print("Done!")
             else:
                 time.sleep(2)
 
