@@ -178,9 +178,9 @@ def getJobStatus(jobid):
     :param jobid: id of job (integer)
     :return: Returns a dictionary object containing the job status and related metadata. If jobid is the empty string, then returns a list with the statuses of all previous jobs.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
-    :example: CasJobs.waitForJob(CasJobs.submitJob("select 1"))
+    :example: status = CasJobs.getJobStatus(CasJobs.submitJob("select 1"))
 
-    .. seealso:: status <- CasJobs.getJobStatus(CasJobs.submitJob("select 1"))
+    .. seealso:: CasJobs.submitJob, CasJobs.waitForJob.
     """
     token = Authentication.getToken()
     if token is not None and token != "":
