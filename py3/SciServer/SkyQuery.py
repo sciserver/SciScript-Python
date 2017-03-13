@@ -417,3 +417,40 @@ def dropTable(datasetName, tableName):
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
+
+def uploadTable(data, datasetName, tableName, format="csv"):
+    """
+    Uploads a data table in csv format into a database (more info in http://www.voservices.net/skyquery).
+
+    :param data: data string in CSV format.
+    :param datasetName: name of dataset (string).
+    :param tableName: name of table (string) within dataset.
+    :param format: format of the 'data' parameter. Set to 'csv' for now.
+    :return: returns True if the table was uploaded successfully.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
+    :example: response = SkyQuery.uploadTable("Column1,Column2\n4.5,5.5\n", "MyDB", "myTable")
+
+    .. seealso:: SkyQuery.listQueues, SkyQuery.listAllDatasets, SkyQuery.getDatasetInfo, SkyQuery.listDatasetTables, SkyQuery.getTableInfo, SkyQuery.getTable, SkyQuery.submitJob
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName
+        ctype = ""
+        if format == "csv":
+            ctype = 'text/plain'
+        else:
+            ctype = 'text/plain'
+
+        headers = {'Content-Type': ctype ,'Accept': 'application/json'}
+        headers['X-Auth-Token']=  token
+
+        response = requests.put(url, data=data, headers=headers)
+
+        if response.status_code == 200:
+            return (True)
+        else:
+            raise Exception("Error when uploading data to table " + str(tableName) + " in dataset " + str(datasetName) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
