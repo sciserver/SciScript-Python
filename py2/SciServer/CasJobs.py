@@ -2,7 +2,7 @@ import json
 import time
 
 import sys
-from io import StringIO
+from io import StringIO, BytesIO
 
 import requests
 import pandas
@@ -77,11 +77,11 @@ def executeQuery(sql, context="MyDB", format="readable"):
     \t\t'pandas': pandas.DataFrame.\n
     \t\t'csv': a csv string.\n
     \t\t'readable' : a StringIO, readable object (has the .read() method) wrapping a csv string that can be passed into pandas.read_csv for example.\n
-    \t\t'fits' : a StringIO, readable object wrapping the result in fits format.\n
+    \t\t'fits' : a BytesIO, readable object (has the .read() method) wrapping the result in fits format.\n
     \t\t'json': a dictionary created from a JSON string with the Query, a Result consisting of a Columns and a Data field.\n
     :return: The result is a json object with format [{"Date":seconds,"Name":"TableName","Rows":int,"Size",int},..]
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error. Throws an exception if parameter 'format' is not correctly specified.
-    :example: table = CasJobs.executeQuery(sql="select 1 as foo, 2 as bar",context="MyDB")
+    :example: table = CasJobs.executeQuery(sql="select 1 as foo, 2 as bar",format="pandas", context="MyDB")
 
     .. seealso:: CasJobs.submitJob, CasJobs.getTables, SkyServer.sqlSearch
     """
@@ -116,18 +116,19 @@ def executeQuery(sql, context="MyDB", format="readable"):
     if postResponse.status_code != 200:
         raise Exception("Error when executing query. Http Response from CasJobs API returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
 
-    r=postResponse.content.decode()
     if (format == "readable"):
+        r = postResponse.content.decode()
         return StringIO(r)
     elif format == "pandas":
-        r=json.loads(r)
+        r=json.loads(postResponse.content.decode())
         return pandas.DataFrame(r['Result'][0]['Data'],columns=r['Result'][0]['Columns'])
     elif format == "csv":
-        return r
+        return postResponse.content.decode()
     elif format == "json":
+        r = postResponse.content.decode()
         return json.loads(r)
     elif format == "fits":
-        return StringIO(r)
+        return BytesIO(postResponse.content)
     else: # should not occur
         raise Exception("Error when executing query. Illegal format parameter specification: " + str(format));
 
@@ -252,10 +253,10 @@ def getFitsFileFromQuery(fileName, queryString, context="MyDB"):
     .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.getPandasDataFrameFromQuery, CasJobs.getNumpyArrayFromQuery
     """
     try:
-        fitsResponse = executeQuery(queryString, context=context, format="fits")
+        bytesio = executeQuery(queryString, context=context, format="fits")
 
         theFile = open(fileName, "w+b")
-        theFile.write(fitsResponse.read())
+        theFile.write(bytesio.read())
         theFile.close()
 
         return True
