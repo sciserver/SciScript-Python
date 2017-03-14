@@ -9,12 +9,13 @@ from io import BytesIO
 
 from SciServer import Authentication, Config
 
-def sqlSearch(sql, dataRelease=None):
+def sqlSearch(sql, dataRelease=None, index_col=None):
     """
     Executes a SQL query to the SDSS database, and retrieves the result table as a dataframe. Maximum number of rows retrieved is set currently to 500,000.
 
     :param sql: a string containing the sql query
     :param dataRelease: SDSS data release (string). E.g, 'DR13'. Default value already set in SciServer.Config.DataRelease
+    :param index_col: index of the column (integer) that contains the table index. Default set to None.
     :return: Returns the results table as a Pandas data frame.
     :raises: Throws an exception if the HTTP request to the SkyServer API returns an error.
     :example: df = SkyServer.sqlSearch(sql="select 1")
@@ -53,7 +54,7 @@ def sqlSearch(sql, dataRelease=None):
         raise Exception("Error when executing a sql query.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
     r=response.content.decode();
-    return pandas.read_csv(StringIO(r), comment='#')
+    return pandas.read_csv(StringIO(r), comment='#', index_col=index_col)
 
 
 def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", dataRelease=None):
