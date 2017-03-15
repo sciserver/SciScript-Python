@@ -205,7 +205,7 @@ def waitForJob(jobid, verbose=True):
 
     :param jobid: id of job (integer)
     :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
-    :return: Returns a dictionary object containing the job status and related metadata
+    :return: After the job is finished, returns a dictionary object containing the job status and related metadata.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
     :example: CasJobs.waitForJob(CasJobs.submitJob("select 1"))
 

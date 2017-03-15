@@ -5,6 +5,7 @@ from io import StringIO
 
 import requests
 import pandas
+import time
 
 from SciServer import Authentication, Config
 
@@ -171,6 +172,45 @@ def submitJob(query, queue='quick'):
             raise Exception("Error when submitting job on queue " + str(queue) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
+
+
+def waitForJob(jobid, verbose=True):
+    """
+    Queries the job status from SkyQuery every 2 seconds and waits for the SkyQuery job to be completed.
+
+    :param jobid: id of job (integer)
+    :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
+    :return: After the job is finished, returns a dictionary object containing the job status and related metadata.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
+    :example: SkyQuery.waitForJob(SkyQuery.submitJob("select 1"))
+
+    .. seealso:: SkyQuery.submitJob, SkyQuery.getJobStatus.
+    """
+    try:
+        complete = False
+
+        waitingStr = "Waiting..."
+        back = "\b" * len(waitingStr)
+        if verbose:
+            print waitingStr,
+
+        while not complete:
+            if verbose:
+                #print back,
+                print waitingStr,
+            jobDesc = getJobStatus(jobid)
+            if jobDesc['status'] == 'completed':
+                complete = True
+                if verbose:
+                    #print back,
+                    print "Done!"
+            else:
+                time.sleep(2)
+
+        return jobDesc
+    except Exception as e:
+        raise e;
+
 
 
 def listJobs(queue="quick"):
