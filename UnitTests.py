@@ -3,10 +3,15 @@ from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyServer, S
 import unittest2 as unittest
 import os;
 import pandas;
-#from markdown_adapter import run_markdown
 
+# Define login Name and password before running the tests
 loginName = '***';
 loginPassword = '***'
+
+
+testFitsFile = "./MyFile.fits"
+testCSVFile = "./MyFile.csv"
+
 
 class TestSciScript(unittest.TestCase):
 
@@ -43,9 +48,6 @@ class TestSciScript(unittest.TestCase):
         testDatabase = "MyDB"
         testQuery = "select 4 as Column1, 5 as Column2 "
         testQueryResultCSV = "Column1,Column2\n4,5\n"
-        testFitsFile = "./MyFile.fits"
-        testCSVFile = "./MyFile.csv"
-
         #CasJobs.getSchemaName
         wsid = CasJobs.getSchemaName()
 
@@ -126,6 +128,7 @@ class TestSciScript(unittest.TestCase):
     def test_SciDrive(self):
 
         SciDriveDir = "SciScriptPythonTestDirectory"
+        SciDriveFile = "Test.fits"
 
         try:
             response = SciDrive.delete(SciDriveDir)
@@ -136,13 +139,17 @@ class TestSciScript(unittest.TestCase):
         response = SciDrive.createContainer(SciDriveDir)
 
         #upload
-        #response = SciDrive.upload("/MyDirectory/file.csv", "./file.csv")
+        response = SciDrive.upload(SciDriveDir + "/" + SciDriveFile, testFitsFile)
 
         #public url
-        #url = SciDrive.publicUrl("/MyDirectory/file.csv")
+        url = SciDrive.publicUrl(SciDriveDir + "/" + SciDriveFile)
 
         #download
-        #stringio = SciDrive.download("/MyDirectory/file.csv");csv = stringio.read();
+        stringio = SciDrive.download(SciDriveDir + "/" + SciDriveFile);fits = stringio.read();
+
+        #clean up of file:
+        os.system("rm " + testFitsFile)
+
 
     def test_SkyQuery(self):
 
