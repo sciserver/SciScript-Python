@@ -218,18 +218,18 @@ def waitForJob(jobid, verbose=True):
         waitingStr = "Waiting..."
         back = "\b" * len(waitingStr)
         if verbose:
-            print(waitingStr)
+            print(waitingStr, end="")
 
         while not complete:
             if verbose:
-                print(back)
-                print(waitingStr)
+                #print(back, end="")
+                print(waitingStr, end="")
             jobDesc = getJobStatus(jobid)
             jobStatus = int(jobDesc["Status"])
             if jobStatus in (3, 4, 5):
                 complete = True
                 if verbose:
-                    print(back)
+                    #print(back, end="")
                     print("Done!")
             else:
                 time.sleep(2)
@@ -265,16 +265,15 @@ def getFitsFileFromQuery(fileName, queryString, context="MyDB"):
         raise e
 
 # no explicit index column by default
-def getPandasDataFrameFromQuery(queryString, context="MyDB", index_col=None):
+def getPandasDataFrameFromQuery(queryString, context="MyDB"):
     """
     Executes a casjobs quick query and returns the result as a pandas dataframe object with an index (http://pandas.pydata.org/pandas-docs/stable/).
 
     :param queryString: sql query (string)
     :param context: database context (string)
-    :param index_col: index of the column (integer) that contains the table index. Default set to None.
     :return: Returns a Pandas dataframe containing the results table.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
-    :example: df = CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB", index_col=0)
+    :example: df = CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB")
 
     .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.getFitsFileFromQuery, CasJobs.getNumpyArrayFromQuery
     """
@@ -282,7 +281,7 @@ def getPandasDataFrameFromQuery(queryString, context="MyDB", index_col=None):
         cvsResponse = executeQuery(queryString, context=context,format="readable")
 
         #if the index column is not specified then it will add it's own column which causes problems when uploading the transformed data
-        dataFrame = pandas.read_csv(cvsResponse, index_col=index_col)
+        dataFrame = pandas.read_csv(cvsResponse, index_col=None)
 
         return dataFrame
 
@@ -321,15 +320,15 @@ def uploadPandasDataFrameToTable(dataFrame, tableName, context="MyDB"):
     :param context: database context (string)
     :return: Returns True if the dataframe was uploaded successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
-    :example: response = CasJobs.uploadPandasDataFrameToTable(CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB", index_col=0), "NewTableFromDataFrame")
+    :example: response = CasJobs.uploadPandasDataFrameToTable(CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB"), "NewTableFromDataFrame")
 
     .. seealso:: CasJobs.uploadCSVDataToTable
     """
     try:
-        if dataFrame.index.name == "" or dataFrame.index.name is None:
-            dataFrame.index.name = "index"
+        #if dataFrame.index.name == "" or dataFrame.index.name is None:
+        #    dataFrame.index.name = "index"
 
-        sio = dataFrame.to_csv().encode("utf8")
+        sio = dataFrame.to_csv(index_label=False, index=False).encode("utf8")
 
         return uploadCSVDataToTable(sio, tableName, context)
 
@@ -345,7 +344,7 @@ def uploadCSVDataToTable(CVSdata, tableName, context="MyDB"):
     :param context: database context (string)
     :return: Returns True if the csv data was uploaded successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
-    :example: csv = CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB", index_col=0).to_csv().encode("utf8"); response = CasJobs.uploadCSVDataToTable(csv, "NewTableFromDataFrame")
+    :example: csv = CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB").to_csv().encode("utf8"); response = CasJobs.uploadCSVDataToTable(csv, "NewTableFromDataFrame")
 
     .. seealso:: CasJobs.uploadPandasDataFrameToTable
     """
