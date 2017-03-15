@@ -26,12 +26,15 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 ## Cloning the code locally:
     git clone http://github.com/sciserver/SciScript-Python.git
 
+## Setting configuration parameters:
+
+1.- Open `./py2/Config.py` and `./py3/Config.py`, and edit the API URLs and parameters to match those of your SciServer installation, according to the instructions and descriptions found therein.
+
 ## Manual Installation Process:
 
 1.- To install python 2 code, run `python setup.py install` while in the `./py2` directory.
 
 2.- To install python 3 code, run `python3 setup.py install` while in the `./py3` directory.
-
 
 ## Automatic Update/Installation process:
 
@@ -39,13 +42,12 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 
 2.- To install, run `python Install.py tag`, where `tag` is the version tag of the SciServer release containing the SciScript version you want to install or update to (see previous step). If `tag` is not specified, then the latest version will be installed.
 
-
 ## Creating HTML documentation:
 
 1.- Run `make html` while in the `./docs_sphinx/` directory. The html files will be created in `./docs_sphinx/_build/`
 
 ## Unit Tests:
 
-1.- Open `UnitTests.py` and edit the `loginName` and `loginPassword` parameters in order to run the Tests under the credentials of a (test) user. 
-2.- Run `python UnitTests.py` in order to run the unit tests for the SciScript-Python modules. Be sure all that all tests end with an `OK` status.
+1.- Open `UnitTests.py` and edit the `loginName` and `loginPassword` parameters in order to run the Tests under the credentials of a (test) user.
 
+2.- Run `python UnitTests.py` in order to run the unit tests for the SciScript-Python modules. Be sure all that all tests end with an `OK` status.
