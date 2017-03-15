@@ -44,4 +44,8 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 
 1.- Run `make html` while in the `./docs_sphinx/` directory. The html files will be created in `./docs_sphinx/_build/`
 
+## Unit Tests:
+
+1.- Open `UnitTests.py` and edit the `loginName` and `loginPassword` parameters in order to run the Tests under the credentials of a (test) user. 
+2.- Run `python UnitTests.py` in order to run the unit tests for the SciScript-Python modules. Be sure all that all tests end with an `OK` status.
 
