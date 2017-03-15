@@ -11,7 +11,7 @@ def createContainer(path):
     Creates a container (directory) in SciDrive
 
     :param path: path of the directory in SciDrive.
-    :return: Returns True if the container (directory) was created successfully, and False if not.
+    :return: Returns True if the container (directory) was created successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
     :example: response = SciDrive.createContainer("MyDirectory")
 
@@ -111,5 +111,35 @@ def download(path):
 
         return StringIO(res.content.decode())
 
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
+def delete(path):
+    """
+    Deletes a file or directory in SciDrive
+
+    :param path: path of the file or directory in SciDrive.
+    :return: Returns True if the file or directory was deleted successfully.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
+    :example: response = SciDrive.delete("path/to/SciDrive/file.csv")
+
+    .. seealso:: SciDrive.upload.
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+        containerBody = ('<vos:node xmlns:xsi="http://www.w3.org/2001/thisSchema-instance" '
+                         'xsi:type="vos:ContainerNode" xmlns:vos="http://www.ivoa.net/xml/VOSpace/v2.0" '
+                         'uri="vos://' + Config.SciDriveHost + '!vospace/' + path + '">'
+                                                                                    '<vos:properties/><vos:accepts/><vos:provides/><vos:capabilities/>'
+                                                                                    '</vos:node>')
+        url = Config.SciDriveHost + '/vospace-2.0/nodes/' + path
+        data = str.encode(containerBody)
+        headers = {'X-Auth-Token': token, 'Content-Type': 'application/xml'}
+        res = requests.delete(url, data=data, headers=headers)
+        if res.status_code < 200 or res.status_code >= 300:
+            raise Exception("Error when deleting " + str(path) + " in SciDrive.\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+
+        return True
     else:
         raise Exception("User token is not defined. First log into SciServer.")
