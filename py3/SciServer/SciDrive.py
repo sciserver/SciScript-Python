@@ -117,12 +117,12 @@ def download(path):
 
 def delete(path):
     """
-    Deletes a file or directory in SciDrive
+    Deletes a file or container (directory) in SciDrive.
 
-    :param path: path of the file or directory in SciDrive.
-    :return: Returns True if the file or directory was deleted successfully.
+    :param path: path of the file or container (directory) in SciDrive.
+    :return: Returns True if the file or container (directory) was deleted successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
-    :example: response = SciDrive.delete("path/to/SciDrive/file.csv")
+        :example: response = SciDrive.delete("path/to/SciDrive/file.csv")
 
     .. seealso:: SciDrive.upload.
     """
