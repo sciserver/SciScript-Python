@@ -237,7 +237,7 @@ def listAllDatasets():
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def getDatasetInfo(datasetName):
+def getDatasetInfo(datasetName="MyDB"):
     """
     Gets information related to a particular dataset (more info in http://www.voservices.net/skyquery).
 
@@ -265,7 +265,7 @@ def getDatasetInfo(datasetName):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def listDatasetTables(datasetName):
+def listDatasetTables(datasetName="MyDB"):
     """
     Returns a list of all tables within a dataset (more info in http://www.voservices.net/skyquery).
 
@@ -294,15 +294,15 @@ def listDatasetTables(datasetName):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def getTableInfo(datasetName, tableName):
+def getTableInfo(tableName, datasetName="MyDB"):
     """
     Returns info about a particular table belonging to a dataset (more info in http://www.voservices.net/skyquery).
 
-    :param datasetName: name of dataset (string).
     :param tableName: name of table (string) within dataset.
+    :param datasetName: name of dataset (string).
     :return: returns a dictionary containing the table properties and associated info/metadata.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
-    :example: info = SkyQuery.getTableInfo("MyDB", "myTable")
+    :example: info = SkyQuery.getTableInfo("myTable", datasetName="MyDB")
 
     .. seealso:: SkyQuery.listQueues, SkyQuery.listAllDatasets, SkyQuery.getDatasetInfo, SkyQuery.listDatasetTables, SkyQuery.listTableColumns, SkyQuery.getTable, SkyQuery.dropTable
     """
@@ -323,15 +323,15 @@ def getTableInfo(datasetName, tableName):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def listTableColumns(datasetName, tableName):
+def listTableColumns(tableName, datasetName="MyDB"):
     """
     Returns a list of all columns in a table belonging to a particular dataset (more info in http://www.voservices.net/skyquery).
 
-    :param datasetName: name of dataset (string).
     :param tableName: name of table (string) within dataset.
+    :param datasetName: name of dataset (string).
     :return: returns a list containing the columns and associated descriptions.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
-    :example: columns = SkyQuery.listTableColumns("MyDB", "myTable")
+    :example: columns = SkyQuery.listTableColumns("myTable", datasetName="MyDB")
 
     .. seealso:: SkyQuery.listQueues, SkyQuery.listAllDatasets, SkyQuery.getDatasetInfo, SkyQuery.listDatasetTables, SkyQuery.getTableInfo, SkyQuery.getTable, SkyQuery.dropTable
     """
