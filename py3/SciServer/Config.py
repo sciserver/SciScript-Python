@@ -26,7 +26,7 @@ SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
 SkyServerWSurl = "http://skyserver.sdss.org"
 DataRelease = "DR13"
 KeystoneTokenPath =  "/home/idies/keystone.token" #this path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
-version = "sciserver-v1.9.5" #sciserver release version
+version = "sciserver-v1.10.0" #sciserver release version
 
 
 
