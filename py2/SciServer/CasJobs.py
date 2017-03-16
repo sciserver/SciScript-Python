@@ -67,7 +67,7 @@ def getTables(context="MyDB"):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def executeQuery(sql, context="MyDB", format="readable"):
+def executeQuery(sql, context="MyDB", format="pandas"):
     """
     Executes a synchronous SQL query in a CasJobs database context.
 
@@ -79,7 +79,7 @@ def executeQuery(sql, context="MyDB", format="readable"):
     \t\t'readable' : a StringIO, readable object (has the .read() method) wrapping a csv string that can be passed into pandas.read_csv for example.\n
     \t\t'fits' : a BytesIO, readable object (has the .read() method) wrapping the result in fits format.\n
     \t\t'json': a dictionary created from a JSON string with the Query, a Result consisting of a Columns and a Data field.\n
-    :return: The result is a json object with format [{"Date":seconds,"Name":"TableName","Rows":int,"Size",int},..]
+    :return: the query result table, in a format defined by the 'format' input parameter.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error. Throws an exception if parameter 'format' is not correctly specified.
     :example: table = CasJobs.executeQuery(sql="select 1 as foo, 2 as bar",format="pandas", context="MyDB")
 
