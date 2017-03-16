@@ -12,7 +12,6 @@ Contents:
    :maxdepth: 4
 
    SciServer
-   Turbulence
 
 
 Indices and tables
