@@ -203,7 +203,7 @@ def waitForJob(jobid, verbose=True):
                 complete = True
                 if verbose:
                     #print(back, end="")
-                    print "Done!"
+                    print("Done!")
             else:
                 time.sleep(2)
 
