@@ -2,15 +2,15 @@
 The SciServer.Config module contains important parameters for the correct functioning of the SciServer package.\n
 Although these parameters must be set/defined by the admin or user before the installation of the package, they can also be accessed and changed on-the-fly while on the python session.\n
 
-- **Config.CasJobsRESTUri**: defines the base URL of the CasJobs web API (string). E.g., "http://skyserver.sdss.org/CasJobs/RestApi"
+- **Config.CasJobsRESTUri**: defines the base URL of the CasJobs web API (string). E.g., "https://skyserver.sdss.org/CasJobs/RestApi"
 
-- **Config.AuthenticationURL**: defines the base URL of the Authentication web service API (string). E.g., "http://portal.sciserver.org/login-portal/keystone/v3/tokens"
+- **Config.AuthenticationURL**: defines the base URL of the Authentication web service API (string). E.g., "https://portal.sciserver.org/login-portal/keystone/v3/tokens"
 
-- **Config.SciDriveHost**: defines the base URL of the SciDrive web service API (string). E.g., "http://www.scidrive.org"
+- **Config.SciDriveHost**: defines the base URL of the SciDrive web service API (string). E.g., "https://www.scidrive.org"
 
 - **Config.SkyQueryUrl**: defines the base URL of the SkyQuery web service API (string). E.g., "http://voservices.net/skyquery/Api/V1"
 
-- **Config.SkyServerWSurl**: defines the base URL of the SkyServer web service API (string). E.g., "http://skyserver.sdss.org"
+- **Config.SkyServerWSurl**: defines the base URL of the SkyServer web service API (string). E.g., "https://skyserver.sdss.org"
 
 - **Config.DataRelease**: defines the SDSS data release (string), to be used to build the full SkyServer API url along with Config.SkyServerWSurl. E.g., "DR13"
 
@@ -19,11 +19,11 @@ Although these parameters must be set/defined by the admin or user before the in
 - **Config.version**: defines the SciServer release version tag (string), to which this package belongs. E.g., "sciserver-v1.9.3"
 """
 # URLs for accessing SciServer web services (API endpoints)
-CasJobsRESTUri = "http://skyserver.sdss.org/CasJobs/RestApi"
-AuthenticationURL = "http://portal.sciserver.org/login-portal/keystone/v3/tokens"
-SciDriveHost = "http://www.scidrive.org"
+CasJobsRESTUri = "https://skyserver.sdss.org/CasJobs/RestApi"
+AuthenticationURL = "https://portal.sciserver.org/login-portal/keystone/v3/tokens"
+SciDriveHost = "https://www.scidrive.org"
 SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
-SkyServerWSurl = "http://skyserver.sdss.org"
+SkyServerWSurl = "https://skyserver.sdss.org"
 DataRelease = "DR13"
 KeystoneTokenPath =  "/home/idies/keystone.token" #this path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
 version = "sciserver-v1.10.0" #sciserver release version

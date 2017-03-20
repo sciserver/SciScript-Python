@@ -6,7 +6,7 @@ from io import StringIO
 import requests
 import pandas
 import time
-
+import urllib
 from SciServer import Authentication, Config
 
 
@@ -14,11 +14,11 @@ from SciServer import Authentication, Config
 # Jobs:
 
 
-def getJobStatus(jobID):
+def getJobStatus(jobId):
     """
     Gets the status of a job, as well as other related metadata (more info in http://www.voservices.net/skyquery).
 
-    :param jobID: the ID of the job (string), which is obtained at the moment of submitting the job.
+    :param jobId: the ID of the job (string), which is obtained at the moment of submitting the job.
     :return: a dictionary with the job status and other related metadata.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
     :example: status = SkyQuery.getJobStatus(SkyQuery.submitJob("select 1 as foo"))
@@ -27,7 +27,7 @@ def getJobStatus(jobID):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + str(jobID)
+        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + str(jobId)
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -38,16 +38,16 @@ def getJobStatus(jobID):
             r = response.json()
             return(r['queryJob'])
         else:
-            raise Exception("Error when getting the job status of job " + str(jobID) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
+            raise Exception("Error when getting the job status of job " + str(jobId) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def cancelJob(jobID):
+def cancelJob(jobId):
     """
     Cancels a single job (more info in http://www.voservices.net/skyquery).
 
-    :param jobID: the ID of the job, which is obtained at the moment of submitting the job.
+    :param jobId: the ID of the job, which is obtained at the moment of submitting the job.
     :return: Returns True if the job was cancelled successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
     :example: isCanceled = SkyQuery.cancelJob(SkyQuery.submitJob("select 1 as foo"))
@@ -57,7 +57,7 @@ def cancelJob(jobID):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + jobID
+        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + jobId
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -76,7 +76,7 @@ def cancelJob(jobID):
             #    return False;
             return True;
         else:
-            raise Exception("Error when cancelling job " + str(jobID) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
+            raise Exception("Error when cancelling job " + str(jobId) + ".\nHttp Response from SkyQuery API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
@@ -145,7 +145,7 @@ def submitJob(query, queue='quick'):
 
     :param query: sql query (string)
     :param queue: queue name (string). Can be set to 'quick' for a quick job, or 'long' for a long job.
-    :return: returns the jobID (string), unique identifier of the job.
+    :return: returns the jobId (string), unique identifier of the job.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
     :example: jobId = SkyQuery.submitJob('select 1 as foo', "quick")
 
@@ -174,11 +174,11 @@ def submitJob(query, queue='quick'):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def waitForJob(jobid, verbose=True):
+def waitForJob(jobId, verbose=True):
     """
     Queries the job status from SkyQuery every 2 seconds and waits for the SkyQuery job to be completed.
 
-    :param jobid: id of job (integer)
+    :param jobId: id of job (integer)
     :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
     :return: After the job is finished, returns a dictionary object containing the job status and related metadata.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
@@ -198,7 +198,7 @@ def waitForJob(jobid, verbose=True):
             if verbose:
                 #print(back, end="")
                 print(waitingStr, end="")
-            jobDesc = getJobStatus(jobid)
+            jobDesc = getJobStatus(jobId)
             if jobDesc['status'] == 'completed':
                 complete = True
                 if verbose:
@@ -419,7 +419,7 @@ def getTable(tableName, datasetName="MyDB", top = None):
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
 
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers, stream=True)
 
         if response.status_code == 200:
             return(pandas.read_csv(StringIO(response.content.decode()), sep="\t"))
@@ -479,12 +479,14 @@ def uploadTable(uploadData, tableName, datasetName="MyDB", format="csv"):
         if format == "csv":
             ctype = 'text/csv'
         else:
-            ctype = 'text/csv'
+            raise Exception("Unknown format '" + format + "' when trying to upload data in SkyQuery.\n");
 
         headers = {'Content-Type': ctype ,'Accept': 'application/json'}
         headers['X-Auth-Token']=  token
 
-        response = requests.put(url, data=uploadData, headers=headers)
+        #url = urllib.quote_plus(url)
+
+        response = requests.put(url, data=uploadData, headers=headers, stream=True)
 
         if response.status_code == 200:
             return (True)

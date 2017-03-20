@@ -1,7 +1,8 @@
 import json
 from io import StringIO
+from io import BytesIO
 
-import requests
+import requests as requests
 
 from SciServer import Config, Authentication
 
@@ -36,26 +37,34 @@ def createContainer(path):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def upload(scidrivePath, localFile):
+def upload(path, data="", localFilePath=""):
     """
-    Uploads a file into a directory in SciDrive.
+    Uploads data or a local file into a SciDrive directory.
 
-    :param scidrivePath: path of the SciDrive directory where the file is being uploaded into.
-    :param localFile: local path of the file to be uploaded.
+    :param path: desired file path in SciDrive (string).
+    :param data: data to be uploaded into SciDrive. If the 'localFilePath' parameter is set, then the local file will be uploaded instead.
+    :param localFilePath: path to the local file to be uploaded (string).
     :return: Returns an object with the attributes of the uploaded file.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
-    :example: response = SciDrive.upload("/SciDrive/path/to/file.csv", "/local/path/to/file.csv")
+    :example: response = SciDrive.upload("/SciDrive/path/to/file.csv", localFilePath="/local/path/to/file.csv")
 
     .. seealso:: SciDrive.createContainer
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SciDriveHost + '/vospace-2.0/1/files_put/dropbox/' + scidrivePath
-        data = localFile
+        url = Config.SciDriveHost + '/vospace-2.0/1/files_put/dropbox/' + path
         headers = {'X-Auth-Token': token}
-        res = requests.put(url, data=data, headers=headers)
+        if(localFilePath != ""):
+            with open(localFilePath, "rb") as file:
+                res = requests.put(url, data=file, headers=headers, stream=True)
+        else:
+            res = requests.put(url, data=data, headers=headers, stream=True)
+
         if res.status_code != 200:
-            raise Exception("Error when uploading local file " + str(localFile) + " to SciDrive path " + str(scidrivePath) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            if (localFilePath != None):
+                raise Exception("Error when uploading local file " + str(localFilePath) + " to SciDrive path " + str(path) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            else:
+                raise Exception("Error when uploading data to SciDrive path " + str(path) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
 
         return json.loads(res.content.decode())
     else:
@@ -90,14 +99,15 @@ def publicUrl(path):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def download(path):
+def download(path, format="text"):
     """
     Downloads the file identified by the path as a read()-able stream, i.e., to get contents call read() on the resulting object.
 
     :param path: path of the file (or directory) in SciDrive.
-    :return: object of class io.StringIO.
+    :param format: type of the returned object. Can be "StringIO" (io.StringIO object containing readable text), "BytesIO" (io.BytesIO object containing readable binary data), or "text" (a text string).
+    :return: object of type io.StringIO, io.BytesIO or string.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
-    :example: stringio = SciDrive.download("path/to/SciDrive/file.csv"); csv = stringio.read();
+    :example: csvString = SciDrive.download("path/to/SciDrive/file.csv", format="text");
 
     .. seealso:: SciDrive.upload
     """
@@ -109,7 +119,14 @@ def download(path):
         if res.status_code != 200:
             raise Exception("Error when downloading SciDrive file " + str(path) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
 
-        return StringIO(res.content.decode())
+        if format == "StringIO":
+            return StringIO(res.content.decode())
+        if format == "text":
+                return res.content.decode()
+        elif format == "BytesIO":
+            return BytesIO(res.content)
+        else:
+            raise Exception("Unknown format '" + format + "' when trying to download SciDrive file " + str(path) + ".\n");
 
     else:
         raise Exception("User token is not defined. First log into SciServer.")

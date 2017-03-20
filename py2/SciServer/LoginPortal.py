@@ -33,7 +33,7 @@ def getKeystoneUserWithToken(token):
     .. seealso:: Authentication.getToken, Authentication.login, Authentication.setToken.
     """
     warnings.warn("Using SciServer.LoginPortal.getKeystoneUserWithToken is deprecated. Use SciServer.Authentication.getKeystoneUserWithToken instead.", DeprecationWarning, stacklevel=2);
-    return SciServer.Authentication.getKeystoneToken();
+    return SciServer.Authentication.getKeystoneUserWithToken(token);
 
 def login(UserName, Password):
     """
@@ -112,5 +112,5 @@ def setKeystoneToken(token):
 
     .. seealso:: Authentication.getKeystoneUserWithToken, Authentication.login, Authentication.setToken, Authentication.token, Authentication.getToken.
     """
-    warnings.warn("Using SciServer.LoginPortal.getKeystoneToken is setKeystoneToken. Use SciServer.Authentication.setToken instead.", DeprecationWarning, stacklevel=2);
-    SciServer.Authentication.setKeystoneToken();
+    warnings.warn("Using SciServer.LoginPortal.getKeystoneToken is deprecated. Use SciServer.Authentication.setToken instead.", DeprecationWarning, stacklevel=2);
+    SciServer.Authentication.setKeystoneToken(token);

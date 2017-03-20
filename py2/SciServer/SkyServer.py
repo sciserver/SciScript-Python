@@ -48,7 +48,7 @@ def sqlSearch(sql, dataRelease=None):
     if token is not None and token != "":
         headers['X-Auth-Token'] = token
 
-    response = requests.get(url,headers=headers)
+    response = requests.get(url,headers=headers, stream=True)
     if response.status_code != 200:
         raise Exception("Error when executing a sql query.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
@@ -126,7 +126,7 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     if token is not None and token != "":
         headers['X-Auth-Token'] = token
 
-    response = requests.get(url,headers=headers)
+    response = requests.get(url,headers=headers, stream=True)
     if response.status_code != 200:
         if response.status_code == 404 or response.status_code == 500:
             raise Exception("Error when getting an image cutout.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ". " + response.reason);
@@ -184,7 +184,7 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     if token is not None and token != "":
         headers['X-Auth-Token'] = token
 
-    response = requests.get(url,headers=headers)
+    response = requests.get(url,headers=headers, stream=True)
     if response.status_code != 200:
         raise Exception("Error when executing a radial search.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
@@ -243,7 +243,7 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     if token is not None and token != "":
         headers['X-Auth-Token'] = token
 
-    response = requests.get(url,headers=headers)
+    response = requests.get(url,headers=headers, stream=True)
     if response.status_code != 200:
         raise Exception("Error when executing a rectangular search.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
@@ -331,7 +331,7 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
     if token is not None and token != "":
         headers['X-Auth-Token'] = token
 
-    response = requests.get(url,headers=headers)
+    response = requests.get(url,headers=headers, stream=True)
     if response.status_code != 200:
         raise Exception("Error when doing an object search.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
