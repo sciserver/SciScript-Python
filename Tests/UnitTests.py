@@ -10,8 +10,8 @@ from io import BytesIO
 
 
 # Define login Name and password before running the tests
-loginName = '***';
-loginPassword = '***'
+loginName = 'manu9';
+loginPassword = '12345'
 
 
 #skyserver
@@ -146,9 +146,9 @@ class TestCasJobs(unittest.TestCase):
         self.assertEqual(CasJobs_TestTableCSV, df.to_csv(index=False))
 
     def test_CasJobs_submitJob(self):
-        jobId = CasJobs.submitJob(sql=CasJobs_TestQuery + " into " + CasJobs_TestTableName1, context=CasJobs_TestDatabase)
+        jobId = CasJobs.submitJob(sql=CasJobs_TestQuery + " into MyDB." + CasJobs_TestTableName1, context=CasJobs_TestDatabase)
         jobDescription = CasJobs.waitForJob(jobId=jobId, verbose=False)
-        df = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName1,context=CasJobs_TestDatabase, format="csv")
+        df = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName1, context="MyDB", format="csv")
         self.assertNotEqual(jobId, "")
 
     def test_CasJobs_getJobStatus(self):
@@ -193,21 +193,21 @@ class TestCasJobs(unittest.TestCase):
 
             df = pandas.read_csv(StringIO(CasJobs_TestTableCSV), index_col=None)
 
-            result = CasJobs.uploadPandasDataFrameToTable(dataFrame=df, tableName=CasJobs_TestTableName2, context=CasJobs_TestDatabase)
-            table = CasJobs.executeQuery(sql="select * from " + CasJobs_TestTableName2, context=CasJobs_TestDatabase, format="pandas")
-            result2 = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context=CasJobs_TestDatabase, format="csv")
+            result = CasJobs.uploadPandasDataFrameToTable(dataFrame=df, tableName=CasJobs_TestTableName2, context="MyDB")
+            table = CasJobs.executeQuery(sql="select * from " + CasJobs_TestTableName2, context="MyDB", format="pandas")
+            result2 = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context="MyDB", format="csv")
             self.assertEqual(result, True)
             self.assertItemsEqual(table, df)
 
-            result = CasJobs.uploadCSVDataToTable(csvData=CasJobs_TestTableCSV, tableName=CasJobs_TestTableName2, context=CasJobs_TestDatabase)
-            df2 = CasJobs.executeQuery(sql="select * from " + CasJobs_TestTableName2, context=CasJobs_TestDatabase, format="pandas")
-            result2 = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context=CasJobs_TestDatabase, format="csv")
+            result = CasJobs.uploadCSVDataToTable(csvData=CasJobs_TestTableCSV, tableName=CasJobs_TestTableName2, context="MyDB")
+            df2 = CasJobs.executeQuery(sql="select * from " + CasJobs_TestTableName2, context="MyDB", format="pandas")
+            result2 = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context="MyDB", format="csv")
             self.assertEqual(result, True)
             self.assertItemsEqual(df, df2)
 
         finally:
             try:
-                csv = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context=CasJobs_TestDatabase,format="csv")
+                csv = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context="MyDB",format="csv")
             except:
                 pass;
 
