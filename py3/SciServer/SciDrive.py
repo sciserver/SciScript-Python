@@ -1,7 +1,7 @@
 import json
 from io import StringIO
 from io import BytesIO
-
+import urllib
 import requests as requests
 
 from SciServer import Config, Authentication
@@ -99,13 +99,42 @@ def publicUrl(path):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def download(path, format="text"):
+def directoryList(path=""):
     """
-    Downloads the file identified by the path as a read()-able stream, i.e., to get contents call read() on the resulting object.
+    Gets the contents and metadata of a SciDrive directory (or file).
+
+    :param path: path of the directory (or file ) in SciDrive.
+    :return: a dictionary containing info and metadata of the directory (or file).
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
+    :example: dirList = SciDrive.directoryList("path/to/SciDrive/directory")
+
+    .. seealso:: SciDrive.upload, SciDrive.download
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        url = Config.SciDriveHost + "/vospace-2.0/1/metadata/sandbox/" + str(path) + "?list=True&path="  + str(path)
+        headers = {'X-Auth-Token': token}
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            raise Exception("Error when getting the public URL of SciDrive file " + str(path) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+
+        jsonRes = json.loads(res.content.decode())
+        return (jsonRes);
+
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
+
+def download(path, format="text", localFilePath=""):
+    """
+    Downloads a file (directory) from SciDrive into the local file system, or returns the file conetent as an object in several formats.
 
     :param path: path of the file (or directory) in SciDrive.
-    :param format: type of the returned object. Can be "StringIO" (io.StringIO object containing readable text), "BytesIO" (io.BytesIO object containing readable binary data), or "text" (a text string).
-    :return: object of type io.StringIO, io.BytesIO or string.
+    :param format: type of the returned object. Can be "StringIO" (io.StringIO object containing readable text), "BytesIO" (io.BytesIO object containing readable binary data), "response" ( the HTTP response as an object of class requests.Response) or "text" (a text string). If the parameter 'localFilePath' is defined, then the 'format' parameter is not used and the file is downloaded to the local file system instead.
+    :param localFilePath: local path of the file to be downloaded. If 'localFilePath' is defined, then the 'format' parameter is not used.
+    :return: If the 'localFilePath' parameter is defined, then it will return True when the file is downloaded successfully in the local file system. If the 'localFilePath' is not defined, then the type of the returned object depends on the value of the 'format' parameter (either io.StringIO, io.BytesIO, requests.Response or string).
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SciDrive API returns an error.
     :example: csvString = SciDrive.download("path/to/SciDrive/file.csv", format="text");
 
@@ -119,14 +148,29 @@ def download(path, format="text"):
         if res.status_code != 200:
             raise Exception("Error when downloading SciDrive file " + str(path) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
 
-        if format == "StringIO":
-            return StringIO(res.content.decode())
-        if format == "text":
-                return res.content.decode()
-        elif format == "BytesIO":
-            return BytesIO(res.content)
+        if localFilePath is not None and localFilePath != "":
+
+            bytesio = BytesIO(res.content)
+            theFile = open(localFilePath, "w+b")
+            theFile.write(bytesio.read())
+            theFile.close()
+            return True
+
         else:
-            raise Exception("Unknown format '" + format + "' when trying to download SciDrive file " + str(path) + ".\n");
+
+            if format is not None and format != "":
+                if format == "StringIO":
+                    return StringIO(res.content.decode())
+                if format == "text":
+                    return res.content.decode()
+                elif format == "BytesIO":
+                    return BytesIO(res.content)
+                elif format == "response":
+                    return res;
+                else:
+                    raise Exception("Unknown format '" + format + "' when trying to download SciDrive file " + str(path) + ".\n");
+            else:
+                raise Exception("Wrong format parameter value\n");
 
     else:
         raise Exception("User token is not defined. First log into SciServer.")
