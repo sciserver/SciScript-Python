@@ -29,7 +29,7 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 
 ## 2) Setting configuration parameters:
 
-2.1.- Open `./py2/Config.py` and `./py3/Config.py`, and edit the API URLs and parameters to match those of the SciServer tools and installation, according to the instructions and descriptions found therein.
+2.1.- Open `./py2/SciServer/Config.py` and `./py3/SciServer/Config.py`, and edit the API URLs and parameters to match those of the SciServer tools and installation, according to the instructions and descriptions found therein.
 
 ## 3) Installation:
 
@@ -53,9 +53,9 @@ There are 2 possibilities: automatic or manual installation.
 
 ## 5) Unit Tests:
 
-5.1.- Open `./Tests/UnitTests.py` and edit the `loginName` and `loginPassword` parameters in order to run the Tests under the credentials of a (test) user.
+5.1.- Open `./Tests/UnitTests.py` and edit the `Authentication_loginName` and `Authentication_loginPassword` parameters in order to run the Tests under the credentials of a (test) user.
 
-5.2.- Run `python UnitTests.py` while in the `./Test` directory in order to run the unit tests for the SciScript-Python modules. Be sure all that all tests end with an `OK` status.
+5.2.- Run `python UnitTests.py` while in the `./Tests` directory in order to run the unit tests for the SciScript-Python modules. Be sure all that all tests end with an `OK` status.
 
 ## 6) Examples.
 
