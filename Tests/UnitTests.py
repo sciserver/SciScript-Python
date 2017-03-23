@@ -10,8 +10,8 @@ from io import BytesIO
 
 
 # Define login Name and password before running the tests
-loginName = 'manu9';
-loginPassword = '12345'
+Authentication_loginName = 'manu9';
+Authentication_loginPassword = '12345'
 
 
 #skyserver
@@ -62,7 +62,7 @@ class TestAuthentication(unittest.TestCase):
         newToken1 = "myToken1"
         newToken2 = "myToken2"
 
-        token1 = Authentication.login(loginName, loginPassword);
+        token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
         token2 = Authentication.getToken()
         token3 = Authentication.getKeystoneToken()
         token4 = Authentication.token.value
@@ -77,7 +77,7 @@ class TestAuthentication(unittest.TestCase):
         self.assertEqual(token1, token3)
         self.assertEqual(token1, token4)
 
-        self.assertEqual(user.userName, loginName)
+        self.assertEqual(user.userName, Authentication_loginName)
         self.assertIsNot(user.id, None)
         self.assertNotEqual(user.id, "")
 
@@ -101,7 +101,7 @@ class TestLoginPortal(unittest.TestCase):
         newToken1 = "myToken1"
         newToken2 = "myToken2"
 
-        token1 = LoginPortal.login(loginName, loginPassword);
+        token1 = LoginPortal.login(Authentication_loginName, Authentication_loginPassword);
         token2 = LoginPortal.getToken()
         token3 = LoginPortal.getKeystoneToken()
         user = LoginPortal.getKeystoneUserWithToken(token1)
@@ -125,7 +125,7 @@ class TestLoginPortal(unittest.TestCase):
 
 class TestCasJobs(unittest.TestCase):
 
-    token1 = Authentication.login(loginName, loginPassword);
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
 
     def setUp(self):
         pass
@@ -154,11 +154,12 @@ class TestCasJobs(unittest.TestCase):
     def test_CasJobs_getJobStatus(self):
         jobId = CasJobs.submitJob(sql=CasJobs_TestQuery, context=CasJobs_TestDatabase)
         jobDescription = CasJobs.getJobStatus(jobId)
-        self.assertNotEqual(jobDescription, "")
+        self.assertEqual(jobDescription["JobID"], jobId)
 
     def test_CasJobs_cancelJob(self):
         jobId = CasJobs.submitJob(sql=CasJobs_TestQuery, context=CasJobs_TestDatabase)
-        jobDescription = CasJobs.cancelJob(jobId=jobId)
+        isCanceled = CasJobs.cancelJob(jobId=jobId)
+        self.assertEqual(isCanceled, True)
 
     def test_CasJobs_waitForJob(self):
         jobId = CasJobs.submitJob(sql=CasJobs_TestQuery, context=CasJobs_TestDatabase)
@@ -173,7 +174,7 @@ class TestCasJobs(unittest.TestCase):
             self.assertEqual(os.path.isfile(CasJobs_TestFitsFile), True)
         finally:
             try:
-                os.system("rm " + CasJobs_TestFitsFile)
+                os.remove(CasJobs_TestFitsFile)
             except:
                 pass;
 
@@ -214,7 +215,7 @@ class TestCasJobs(unittest.TestCase):
 
 class TestSkyServer(unittest.TestCase):
 
-    token1 = Authentication.login(loginName, loginPassword);
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
 
     def setUp(self):
         pass
@@ -255,7 +256,7 @@ class TestSkyServer(unittest.TestCase):
 
 class TestSciDrive(unittest.TestCase):
 
-    token1 = Authentication.login(loginName, loginPassword);
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
 
     def setUp(self):
         pass
@@ -275,7 +276,7 @@ class TestSciDrive(unittest.TestCase):
             self.assertEqual(responseCreate, True)
 
             dirList = SciDrive.directoryList(SciDrive_Directory)
-            self.assertTrue(dirList["path"].__contains__("nne"));
+            self.assertTrue(dirList["path"].__contains__(SciDrive_Directory));
 
        finally:
             responseDelete = SciDrive.delete(SciDrive_Directory)
@@ -323,14 +324,14 @@ class TestSciDrive(unittest.TestCase):
 
         finally:
             try:
-                os.system("rm " + SciDrive_FileName)
+                os.remove(SciDrive_FileName)
             except:
                 pass;
 
 
 class TestSkyQuery(unittest.TestCase):
 
-    token1 = Authentication.login(loginName, loginPassword);
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
 
     def setUp(self):
         pass
