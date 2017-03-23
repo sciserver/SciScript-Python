@@ -264,7 +264,7 @@ class TestSciDrive(unittest.TestCase):
     # SciDrive section:
 
 
-    def test_SciDrive_createContainer(self):
+    def test_SciDrive_createContainer_directoryList_delete(self):
        try:
            responseDelete = SciDrive.delete(SciDrive_Directory)
        except:
@@ -273,10 +273,13 @@ class TestSciDrive(unittest.TestCase):
        try:
             responseCreate = SciDrive.createContainer(SciDrive_Directory)
             self.assertEqual(responseCreate, True)
+
+            dirList = SciDrive.directoryList(SciDrive_Directory)
+            self.assertTrue(dirList["path"].__contains__("nne"));
+
        finally:
             responseDelete = SciDrive.delete(SciDrive_Directory)
             self.assertEqual(responseDelete, True)
-
 
     def test_SciDrive_publicUrl(self):
             try:
