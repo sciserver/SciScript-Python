@@ -365,12 +365,28 @@ print(object)
 
 # In[ ]:
 
+#list content and metadata of top level directory in SciDrive
+
+dirList = SciDrive.directoryList("")
+print(dirList)
+
+
+# In[ ]:
+
 #define name of directory to be created in SciDrive:
 SciDrive_Directory = "SciScriptPython"
 #define name, path and content of a file to be first created and then uploaded into SciDrive:
 SciDrive_FileName = "TestFile.csv"
 SciDrive_FilePath = "./TestFile.csv"
 SciDrive_FileContent = "Column1,Column2\n4.5,5.5\n"
+
+
+# In[ ]:
+
+#list content and metadata of top level directory in SciDrive
+
+dirList = SciDrive.directoryList("")
+print(dirList)
 
 
 # In[ ]:
