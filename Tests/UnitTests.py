@@ -10,8 +10,8 @@ from io import BytesIO
 
 
 # Define login Name and password before running the tests:
-Authentication_loginName = 'manu9';
-Authentication_loginPassword = '12345'
+Authentication_loginName = '***';
+Authentication_loginPassword = '***'
 
 
 #skyserver
