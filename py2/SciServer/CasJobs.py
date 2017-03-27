@@ -2,236 +2,401 @@ import json
 import time
 
 import sys
-from io import StringIO
+from io import StringIO, BytesIO
 
-import requests
+import requests as requests
 import pandas
 
 from SciServer import Authentication, Config
 
 
-def getSchemaName(token=""):
-    if (token == ""):
-        userToken = Authentication.getToken()
+def getSchemaName():
+    """
+    Returns the WebServiceID that identifies the schema for a user in MyScratch database with CasJobs.
+
+    :return: WebServiceID of the user (string).
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: wsid = CasJobs.getSchemaName()
+
+    .. seealso:: CasJobs.getTables.
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        keystoneUserId = Authentication.getKeystoneUserWithToken(token).id
+        usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId
+        headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
+        getResponse = requests.get(usersUrl,headers=headers)
+        if getResponse.status_code != 200:
+            raise Exception("Error when getting schema name. Http Response from CasJobs API returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+
+        jsonResponse = json.loads(getResponse.content.decode())
+        return "wsid_" + str(jsonResponse["WebServicesId"])
     else:
-        userToken = token;
-    keystoneUserId = Authentication.getKeystoneUserWithToken(userToken).id
-    usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId
-    headers={'X-Auth-Token': userToken,'Content-Type': 'application/json'}
-    getResponse = requests.get(usersUrl,headers=headers)
-    jsonResponse = json.loads(getResponse.content.decode())
-    return "wsid_" + str(jsonResponse["WebServicesId"])
+        raise Exception("User token is not defined. First log into SciServer.")
 
 
 def getTables(context="MyDB"):
-    """Returns all the tables from the current user in the given context.
-    The result is a json object with format [{"Date":seconds,"Name":"TableName","Rows":int,"Size",int},..]"""
+    """
+    Gets the names, size and creation date of all tables in a database context that the user has access to.
 
-    TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables"
+    :param context:	database context (string)
+    :return: The result is a json object with format [{"Date":seconds,"Name":"TableName","Rows":int,"Size",int},..]
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: tables = CasJobs.getTables("MyDB")
 
-    headers={'X-Auth-Token': Authentication.getToken(),'Content-Type': 'application/json'}
-
-    getResponse = requests.get(TablesUrl,headers=headers)
-
-    jsonResponse = json.loads(getResponse.content.decode())
-
-    return jsonResponse
-
-
-def executeQuery(queryString, context="MyDB", acceptHeader="application/json+array", token="", format="pandas"):
-    """Executes a casjob query.  If a token is supplied then it will execute on behalf of the token's user.
-    format parameter specifies the return type:\n
-    'pandas': pandas.DataFrame.
-    'csv': a csv string.
-    'readable' : a StringIO, readable object wrapping a csv string that can be passed into pandas.read_csv for example.
-    'json': a dict created from a JSON string with the Query, a Result consisting of a Columns and a Data field.
+    .. seealso:: CasJobs.getSchemaName
     """
 
-    if (format == "pandas") or (format =="json"):
-        acceptHeader="application/json+array"
-    elif (format == "csv") or (format == "readable"):
-        acceptHeader = "text/plain"
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables"
+
+        headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
+
+        getResponse = requests.get(TablesUrl,headers=headers)
+
+        if getResponse.status_code != 200:
+            raise Exception("Error when getting table description from database context " + str(context) + ".\nHttp Response from CasJobs API returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+
+        jsonResponse = json.loads(getResponse.content.decode())
+
+        return jsonResponse
     else:
-        return {"Error":{"Message":"Illegal format specification '"+format+"'"}}
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
+def executeQuery(sql, context="MyDB", format="pandas"):
+    """
+    Executes a synchronous SQL query in a CasJobs database context.
+
+    :param sql: sql query (string)
+    :param context: database context (string)
+    :param format: parameter (string) that specifies the return type:\n
+    \t\t'pandas': pandas.DataFrame.\n
+    \t\t'json': a JSON string containing the query results. \n
+    \t\t'dict': a dictionary created from the JSON string containing the query results.\n
+    \t\t'csv': a csv string.\n
+    \t\t'readable': an object of type io.StringIO, which has the .read() method and wraps a csv string that can be passed into pandas.read_csv for example.\n
+    \t\t'StringIO': an object of type io.StringIO, which has the .read() method and wraps a csv string that can be passed into pandas.read_csv for example.\n
+    \t\t'fits': an object of type io.BytesIO, which has the .read() method and wraps the result in fits format.\n
+    \t\t'BytesIO': an object of type io.BytesIO, which has the .read() method and wraps the result in fits format.\n
+    :return: the query result table, in a format defined by the 'format' input parameter.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error. Throws an exception if parameter 'format' is not correctly specified.
+    :example: table = CasJobs.executeQuery(sql="select 1 as foo, 2 as bar",format="pandas", context="MyDB")
+
+    .. seealso:: CasJobs.submitJob, CasJobs.getTables, SkyServer.sqlSearch
+    """
+
+    if (format == "pandas") or (format =="json") or (format =="dict"):
+        acceptHeader="application/json+array"
+    elif (format == "csv") or (format == "readable") or (format == "StringIO"):
+        acceptHeader = "text/plain"
+    elif format == "fits":
+        acceptHeader = "application/fits"
+    elif format == "BytesIO":
+        acceptHeader = "application/fits" # defined later using specific serialization
+    else:
+        raise Exception("Error when executing query. Illegal format parameter specification: " + str(format));
 
     QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"
 
-    query = {"Query": queryString, "TaskName": "SciScript-Python.SciServer.CasJobs.executeQuery"}
+    TaskName = "";
+    if Config.isSciServerComputeEnvironment():
+        TaskName = "Compute.SciScript-Python.CasJobs.executeQuery"
+    else:
+        TaskName = "SciScript-Python.CasJobs.executeQuery"
+
+    query = {"Query": sql, "TaskName": TaskName}
 
     data = json.dumps(query).encode()
 
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
-    if (token == ""):
-        try:
-            headers['X-Auth-Token'] = Authentication.getToken()
-        except:
-            pass
-    else:
+    token = Authentication.getToken()
+    if token is not None and token != "":
         headers['X-Auth-Token'] = token
 
+    postResponse = requests.post(QueryUrl,data=data,headers=headers, stream=True)
+    if postResponse.status_code != 200:
+        raise Exception("Error when executing query. Http Response from CasJobs API returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
 
-    try:
-        postResponse = requests.post(QueryUrl,data=data,headers=headers)
-        if postResponse.status_code != 200:
-            return {"Error":{"ErrorCode":postResponse.status_code,"Message":postResponse.content.decode()}}
-        r=postResponse.content.decode()
-        if (format == "readable"):
-            return StringIO(r)
-        elif format == "pandas":
-            r=json.loads(r)
-            return pandas.DataFrame(r['Result'][0]['Data'],columns=r['Result'][0]['Columns'])
-        elif format == "csv":
-            return r
-        elif format == "json":
-            return json.loads(r)
-        else: # should not occur
-            return {"Error":{"Message":"Illegal format specification '"+format+"'"}}
-    except requests.exceptions.RequestException as e:
-        return e
+    if (format == "readable") or (format == "StringIO"):
+        return StringIO(postResponse.content.decode())
+    elif format == "pandas":
+        r=json.loads(postResponse.content.decode())
+        return pandas.DataFrame(r['Result'][0]['Data'],columns=r['Result'][0]['Columns'])
+    elif format == "csv":
+        return postResponse.content.decode()
+    elif format == "dict":
+        return json.loads(postResponse.content.decode())
+    elif format == "json":
+        return  postResponse.content.decode()
+    elif format == "fits":
+        return BytesIO(postResponse.content)
+    elif format == "BytesIO":
+        return BytesIO(postResponse.content)
+    else: # should not occur
+        raise Exception("Error when executing query. Illegal format parameter specification: " + str(format));
 
+def submitJob(sql, context="MyDB"):
+    """
+    Submits an asynchronous SQL query to the CasJobs queue.
 
-def submitJob(queryString, context="MyDB", acceptHeader="text/plain", token=""):
-    """Submits a query to the casjobs queue.  If a token is supplied then it will execute on behalf of the token's user.
-    Returns the casjobs jobID (int)."""
+    :param sql: sql query (string)
+    :param context:	database context (string)
+    :return: Returns the CasJobs jobID (integer).
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: jobid = CasJobs.submitJob("select 1 as foo","MyDB")
 
-    QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/jobs"
+    .. seealso:: CasJobs.executeQuery, CasJobs.getJobStatus, CasJobs.waitForJob, CasJobs.cancelJob.
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
 
-    query = {"Query": queryString, "TaskName": "SciScript-Python.SciServer.CasJobs.submitJob"}
+        QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/jobs"
 
-    data = json.dumps(query).encode()
+        TaskName = "";
+        if Config.isSciServerComputeEnvironment():
+            TaskName = "Compute.SciScript-Python.CasJobs.submitJob"
+        else:
+            TaskName = "SciScript-Python.CasJobs.submitJob"
 
-    headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
-    if (token == ""):
-        headers['X-Auth-Token']= Authentication.getToken()
-    else:
+        query = {"Query": sql, "TaskName": TaskName}
+
+        data = json.dumps(query).encode()
+
+        headers = {'Content-Type': 'application/json', 'Accept': "text/plain"}
         headers['X-Auth-Token']=  token
 
-    try:
+
         putResponse = requests.put(QueryUrl,data=data,headers=headers)
+        if putResponse.status_code != 200:
+            raise Exception("Error when submitting a job. Http Response from CasJobs API returned status code " + str(putResponse.status_code) + ":\n" + putResponse.content.decode());
 
         return int(putResponse.content.decode())
-    except requests.exceptions.RequestException as e:
-        return e
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
 
 
-def getJobStatus(jobid):
-    """Gets a casjobs job status.
-    Returns the dict object (https://docs.python.org/3.4/library/stdtypes.html#dict) corresponding to the json received from casjobs."""
+def getJobStatus(jobId):
+    """
+    Shows the status of a job submitted to CasJobs.
 
-    QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobid)
+    :param jobId: id of job (integer)
+    :return: Returns a dictionary object containing the job status and related metadata. The "Status" field can be equal to 0 (Ready), 1 (Started), 2 (Canceling), 3(Canceled), 4 (Failed) or 5 (Finished). If jobId is the empty string, then returns a list with the statuses of all previous jobs.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: status = CasJobs.getJobStatus(CasJobs.submitJob("select 1"))
 
-    headers={'X-Auth-Token': Authentication.getToken(),'Content-Type': 'application/json'}
+    .. seealso:: CasJobs.submitJob, CasJobs.waitForJob, CasJobs.cancelJob.
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
 
-    try:
+        QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobId)
+
+        headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
+
         postResponse =requests.get(QueryUrl,headers=headers)
+        if postResponse.status_code != 200:
+            raise Exception("Error when getting the status of job " + str(jobId) + ".\nHttp Response from CasJobs API returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
 
         return json.loads(postResponse.content.decode())
-    except requests.exceptions.RequestException as e:
-        return e.code
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
 
 
-def waitForJob(jobid):
-    """Waits for the casjobs job to return a status of 3, 4, or 5.
-    Queries the job status from casjobs every 2 seconds."""
+def cancelJob(jobId):
+    """
+    Cancels a job already submitted.
 
-    complete = False
+    :param jobId: id of job (integer)
+    :return: Returns True if the job was canceled successfully.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: response = CasJobs.cancelJob(CasJobs.submitJob("select 1"))
 
-    waitingStr = "Waiting..."
-    back = "\b" * len(waitingStr)
-    print waitingStr,
+    .. seealso:: CasJobs.submitJob, CasJobs.waitForJob.
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
 
-    while not complete:
-        if (Config.executeMode == "debug"):
-            print back,
-            print waitingStr,
-        jobDesc = getJobStatus(jobid)
-        jobStatus = int(jobDesc["Status"])
-        if jobStatus in (3, 4, 5):
-            complete = True
-            if (Config.executeMode == "debug"):
-                print back,
-                print "Done!"
-        else:
-            time.sleep(2)
+        QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobId)
 
-    return jobDesc
+        headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
+
+        response =requests.delete(QueryUrl,headers=headers)
+        if response.status_code != 200:
+            raise Exception("Error when canceling job " + str(jobId) + ".\nHttp Response from CasJobs API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
+
+        return True;#json.loads(response.content)
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
 
 
-def getFitsFileFromQuery(filename, queryString, context="MyDB", token=""):
-    """Executes a casjobs query and writes the result to a fits (http://www.stsci.edu/institute/software_hardware/pyfits) file.
-    Returns True if successful. """
+def waitForJob(jobId, verbose=True):
+    """
+    Queries the job status from casjobs every 2 seconds and waits for the casjobs job to return a status of 3, 4, or 5 (Cancelled, Failed or Finished, respectively).
+
+    :param jobId: id of job (integer)
+    :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
+    :return: After the job is finished, returns a dictionary object containing the job status and related metadata. The "Status" field can be equal to 0 (Ready), 1 (Started), 2 (Canceling), 3(Canceled), 4 (Failed) or 5 (Finished).
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: CasJobs.waitForJob(CasJobs.submitJob("select 1"))
+
+    .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.cancelJob.
+    """
 
     try:
-        fitsResponse = executeQuery(queryString, context=context, acceptHeader="application/fits", token=token)
+        complete = False
 
-        theFile = open(filename, "w+b")
-        theFile.write(fitsResponse.read())
+        waitingStr = "Waiting..."
+        back = "\b" * len(waitingStr)
+        if verbose:
+            print waitingStr,
+
+        while not complete:
+            if verbose:
+                #print back,
+                print waitingStr,
+            jobDesc = getJobStatus(jobId)
+            jobStatus = int(jobDesc["Status"])
+            if jobStatus in (3, 4, 5):
+                complete = True
+                if verbose:
+                    #print back,
+                    print "Done!"
+            else:
+                time.sleep(2)
+
+        return jobDesc
+    except Exception as e:
+        raise e;
+
+
+def writeFitsFileFromQuery(fileName, queryString, context="MyDB"):
+    """
+    Executes a quick CasJobs query and writes the result to a local Fits file (http://www.stsci.edu/institute/software_hardware/pyfits).
+
+    :param fileName: path to the local Fits file to be created (string)
+    :param queryString: sql query (string)
+    :param context: database context (string)
+    :return: Returns True if the fits file was created successfully.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: CasJobs.writeFitsFileFromQuery("/home/user/myFile.fits","select 1 as foo")
+
+    .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.getPandasDataFrameFromQuery, CasJobs.getNumpyArrayFromQuery
+    """
+    try:
+        bytesio = executeQuery(queryString, context=context, format="fits")
+
+        theFile = open(fileName, "w+b")
+        theFile.write(bytesio.read())
         theFile.close()
 
         return True
-    except Exception as e:
-        if (Config.executeMode == "debug"):
-            print e
-        return False
 
+    except Exception as e:
+        raise e
 
 # no explicit index column by default
-def getPandasDataFrameFromQuery(queryString, context="MyDB", token="", index_col=None):
-    """Executes a casjobs query and stores the cvs result in a pandas (http://pandas.pydata.org/pandas-docs/stable/) dataframe object.
-    Returns the dataframe."""
+def getPandasDataFrameFromQuery(queryString, context="MyDB"):
+    """
+    Executes a casjobs quick query and returns the result as a pandas dataframe object with an index (http://pandas.pydata.org/pandas-docs/stable/).
 
-    cvsResponse = executeQuery(queryString, context=context, token=token)
+    :param queryString: sql query (string)
+    :param context: database context (string)
+    :return: Returns a Pandas dataframe containing the results table.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: df = CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB")
 
-    #if the index column is not specified then it will add it's own column which causes problems when uploading the transformed data
-    dataFrame = pandas.read_csv(cvsResponse, index_col=index_col)
+    .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.writeFitsFileFromQuery, CasJobs.getNumpyArrayFromQuery
+    """
+    try:
+        cvsResponse = executeQuery(queryString, context=context,format="readable")
 
-    return dataFrame
+        #if the index column is not specified then it will add it's own column which causes problems when uploading the transformed data
+        dataFrame = pandas.read_csv(cvsResponse, index_col=None)
 
+        return dataFrame
 
-def getNumpyArrayFromQuery(queryString, context="MyDB", token=""):
-    """Executes a casjobs query and stores the cvs result in a numpy (http://docs.scipy.org/doc/numpy/) array.
-    Returns numpy array."""
+    except Exception as e:
+        raise e
 
-    dataFrame = getPandasDataFrameFromQuery(queryString, context, token)
+def getNumpyArrayFromQuery(queryString, context="MyDB"):
+    """
+    Executes a casjobs query and returns the results table as a Numpy array (http://docs.scipy.org/doc/numpy/).
 
-    return dataFrame.as_matrix()
+    :param queryString: sql query (string)
+    :param context: database context (string)
+    :return: Returns a Numpy array storing the results table.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: array = CasJobs.getNumpyArrayFromQuery("select 1 as foo", context="MyDB")
+
+    .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.writeFitsFileFromQuery, CasJobs.getPandasDataFrameFromQuery
+
+    """
+    try:
+
+        dataFrame = getPandasDataFrameFromQuery(queryString, context)
+        return dataFrame.as_matrix()
+
+    except Exception as e:
+        raise e
 
 
 #require pandas for now but be able to take a string in the future
-def uploadPandasDataFrameToTable(dataFrame, tableName, context="MyDB", token=""):
-    """Uploads a pandas dataframe object into casjobs.
-    Returns the output from casjobs in string form."""
+def uploadPandasDataFrameToTable(dataFrame, tableName, context="MyDB"):
+    """
+    Uploads a pandas dataframe object into a CasJobs table. If the dataframe contains a named index, then the index will be uploaded as a column as well.
 
-    if dataFrame.index.name == "" or dataFrame.index.name is None:
-        dataFrame.index.name = "index"
+    :param dataFrame: Pandas data frame containg the data (pandas.core.frame.DataFrame)
+    :param tableName: name of CasJobs table to be created.
+    :param context: database context (string)
+    :return: Returns True if the dataframe was uploaded successfully.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: response = CasJobs.uploadPandasDataFrameToTable(CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB"), "NewTableFromDataFrame")
 
-    sio = dataFrame.to_csv().encode("utf8")
+    .. seealso:: CasJobs.uploadCSVDataToTable
+    """
+    try:
+        if dataFrame.index.name is not None and dataFrame.index.name != "":
+            sio = dataFrame.to_csv().encode("utf8")
+        else:
+            sio = dataFrame.to_csv(index_label=False, index=False).encode("utf8")
 
-    return uploadCVSDataToTable(sio, tableName, context, token)
+        return uploadCSVDataToTable(sio, tableName, context)
 
+    except Exception as e:
+        raise e
 
-def uploadCVSDataToTable(CVSdata, tableName, context="MyDB", token=""):
-    """Uploads  cvs data into casjobs.  data should support the buffered interface (it should have a read() method).
-    https://docs.python.org/3/library/urllib.request.html
-    Returns the output from casjobs in string form."""
+def uploadCSVDataToTable(csvData, tableName, context="MyDB"):
+    """
+    Uploads CSV data into a CasJobs table.
 
-    if (Config.executeMode == "debug"):
-        print "Uploading ", sys.getsizeof(CVSdata), "bytes..."
-    tablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables/" + tableName
+    :param csvData: a CSV table in string format.
+    :param tableName: name of CasJobs table to be created.
+    :param context: database context (string)
+    :return: Returns True if the csv data was uploaded successfully.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
+    :example: csv = CasJobs.getPandasDataFrameFromQuery("select 1 as foo", context="MyDB").to_csv().encode("utf8"); response = CasJobs.uploadCSVDataToTable(csv, "NewTableFromDataFrame")
 
-    headers={}
-    if (token == ""):
-        headers['X-Auth-Token']= Authentication.getToken()
-    else:
+    .. seealso:: CasJobs.uploadPandasDataFrameToTable
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        #if (Config.executeMode == "debug"):
+        #    print "Uploading ", sys.getsizeof(CVSdata), "bytes..."
+        tablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables/" + tableName
+
+        headers={}
         headers['X-Auth-Token']= token
 
-    try:
-        postResponse = requests.post(tablesUrl,data=CVSdata,headers=headers)
-        if (Config.executeMode == "debug"):
-            print "uploadCVSDataFrameToTable POST response: ", postResponse.status_code, postResponse.reason
+        postResponse = requests.post(tablesUrl,data=csvData,headers=headers, stream=True)
+        if postResponse.status_code != 200:
+            raise Exception("Error when uploading CSV data into CasJobs table " + tableName + ".\nHttp Response from CasJobs API returned status code " + str(postResponse.status_code) + ":\n" + postResponse.content.decode());
 
-        return postResponse.content.decode()
-    except Exception as error:
-        if (Config.executeMode == "debug"):
-            print "There was a problem uploading the data. Exception message: ", error.message
-        raise
+        return True
+
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")

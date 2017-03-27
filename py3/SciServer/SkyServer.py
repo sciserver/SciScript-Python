@@ -2,62 +2,71 @@ import requests
 import pandas
 import skimage.io
 import urllib
+#import json
 
 from io import StringIO
 from io import BytesIO
 
 from SciServer import Authentication, Config
 
-def sqlSearch(sql, limit="10", token="", dataRelease=None):
-    """Runs a SQL query against the SDSS database. If a token is supplied, then it will run on behalf of the token's user.\n
-    'sql': a string containing the sql query\n
-    'limit': maximum number of rows in the result table (string). If set to '0', then the function will return all rows.\n
-    'token': Sciserver's authentication token for the user.\n
-    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+def sqlSearch(sql, dataRelease=None):
+    """
+    Executes a SQL query to the SDSS database, and retrieves the result table as a dataframe. Maximum number of rows retrieved is set currently to 500,000.
+
+    :param sql: a string containing the sql query
+    :param dataRelease: SDSS data release (string). E.g, 'DR13'. Default value already set in SciServer.Config.DataRelease
+    :return: Returns the results table as a Pandas data frame.
+    :raises: Throws an exception if the HTTP request to the SkyServer API returns an error.
+    :example: df = SkyServer.sqlSearch(sql="select 1")
+
+    .. seealso:: CasJobs.executeQuery, CasJobs.submitJob.
     """
     if(dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/SqlSearch?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/SqlSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/SqlSearch?'
 
     url = url + 'format=csv&'
     url = url + 'cmd=' + sql + '&'
-    url = url + 'limit=' + limit + '&'
+
+    if Config.isSciServerComputeEnvironment():
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.sqlSearch&"
+    else:
+        url = url + "TaskName=SciScript-Python.SkyServer.sqlSearch&"
+
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
-    if (token != ""):
+    token = Authentication.getToken()
+    if token is not None and token != "":
         headers['X-Auth-Token'] = token
-    else:
-        Token = ""
-        try:
-            Token = Authentication.getToken()
-        except:
-            Token = ""
-        if(Token != ""):
-            headers['X-Auth-Token'] = Token
 
-    try:
-        response = requests.get(url,headers=headers)
-        if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+    response = requests.get(url,headers=headers, stream=True)
+    if response.status_code != 200:
+        raise Exception("Error when executing a sql query.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
-        r=response.content.decode();
-        return pandas.read_csv(StringIO(r), comment='#')
-    except requests.exceptions.RequestException as e:
-        return e
+    r=response.content.decode();
+    return pandas.read_csv(StringIO(r), comment='#', index_col=None)
 
 
-def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", token = "", dataRelease=None):
-    """Gets a rectangular image cutout from a region of the sky in SDSS, centered at (ra,dec). Return type is numpy.ndarray.\n
-    'ra': Right Ascension of the image's center.\n
-    'dec': Declination of the image's center.\n
-    'scale': scale of the image, measured in [arcsec/pix]\n
-    'width': Right Ascension of the image's center.\n
-    'ra': Right Ascension of the image's center.\n
-    'height': Height of the image, measured in [pix].\n
-    'opt': Optional drawing options, expressed as concatenation of letters (string). The letters options are\n
+def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query="", dataRelease=None):
+    """
+    Gets a rectangular image cutout from a region of the sky in SDSS, centered at (ra,dec). Return type is numpy.ndarray.\n
+
+    :param ra: Right Ascension of the image's center.
+    :param dec: Declination of the image's center.
+    :param scale: scale of the image, measured in [arcsec/pix]
+    :param width: Right Ascension of the image's center.
+    :param ra: Right Ascension of the image's center.
+    :param height: Height of the image, measured in [pix].
+    :param opt: Optional drawing options, expressed as concatenation of letters (string). The letters options are \n
     \t"G": Grid. Draw a N-S E-W grid through the center\n
     \t"L": Label. Draw the name, scale, ra, and dec on image.\n
     \t"P PhotoObj. Draw a small cicle around each primary photoObj.\n
@@ -68,8 +77,8 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     \t"M": Masks. Draw the outline of each mask considered to be important.\n
     \t"Q": Plates. Draw the outline of each plate.\n
     \t"I": Invert. Invert the image (B on W).\n
-    \t(see http://skyserver.sdss.org/dr12/en/tools/chart/chartinfo.aspx)\n
-    'query': Optional string. Marks with inverted triangles on the image the position of user defined objects. The (RA,Dec) coordinates of these object can be given by three means:\n
+    \t(see http://skyserver.sdss.org/public/en/tools/chart/chartinfo.aspx)\n
+    :param query: Optional string. Marks with inverted triangles on the image the position of user defined objects. The (RA,Dec) coordinates of these object can be given by three means:\n
     \t1) query is a SQL command of format "SELECT Id, RA, Dec, FROM Table".
     \t2) query is list of objects. A header with RA and DEC columns must be included. Columns must be separated by tabs, spaces, commas or semicolons. The list may contain as many columns as wished.
     \t3) query is a string following the pattern: ObjType Band (low_mag, high_mag).
@@ -79,14 +88,23 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     \t\tS\n
     \t\tS R (0.0, 23.5)\n
     \t\tG A (20, 30)\n
-    \t\t(see http://skyserver.sdss.org/dr12/en/tools/chart/chartinfo.aspx)\n
-    'token': Sciserver's authentication token for the user.\n
-    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+    \t\t(see http://skyserver.sdss.org/public/en/tools/chart/chartinfo.aspx)\n
+    :param dataRelease: SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+    :return: Returns the image as a numpy.ndarray object.
+    :raises: Throws an exception if the HTTP request to the SkyServer API returns an error.
+    :example: img = SkyServer.getJpegImgCutout(ra=197.614455642896, dec=18.438168853724, width=512, height=512, scale=0.4, opt="OG", query="SELECT TOP 100 p.objID, p.ra, p.dec, p.r FROM fGetObjFromRectEq(197.6,18.4,197.7,18.5) n, PhotoPrimary p WHERE n.objID=p.objID")
     """
     if(dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/ImgCutout/getjpeg?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/ImgCutout/getjpeg?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/ImgCutout/getjpeg?'
+
     url = url + 'ra=' + str(ra) + '&'
     url = url + 'dec=' + str(dec) + '&'
     url = url + 'scale=' + str(scale) + '&'
@@ -94,46 +112,56 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     url = url + 'height=' + str(height) + '&'
     url = url + 'opt=' + opt + '&'
     url = url + 'query=' + query + '&'
+
+    if Config.isSciServerComputeEnvironment():
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.getJpegImgCutout&"
+    else:
+        url = url + "TaskName=SciScript-Python.SkyServer.getJpegImgCutout&"
+
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
-    if (token != ""):
+    token = Authentication.getToken()
+    if token is not None and token != "":
         headers['X-Auth-Token'] = token
-    else:
-        Token = ""
-        try:
-            Token = Authentication.getToken()
-        except:
-            Token = ""
-        if(Token != ""):
-            headers['X-Auth-Token'] = Token
 
-    try:
-        response = requests.get(url,headers=headers)
-        if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+    response = requests.get(url,headers=headers, stream=True)
+    if response.status_code != 200:
+        if response.status_code == 404 or response.status_code == 500:
+            raise Exception("Error when getting an image cutout.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ". " + response.reason);
+        else:
+            raise Exception("Error when getting an image cutout.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
-        return skimage.io.imread( BytesIO( response.content  ) )
-    except requests.exceptions.RequestException as e:
-        return e
+    return skimage.io.imread( BytesIO( response.content))
 
-def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="optical", limit="10", token="", dataRelease=None):
-    """Runs a query in the SDSS database that searches for all objects within a certain radius from a point in the sky, and retrieves the result table as a Panda's dataframe.\n
-    'ra': Right Ascension of the image's center.\n
-    'dec': Declination of the image's center.\n
-    'radius': Search radius around the (ra,dec) coordinate in the sky. Measured in arcminutes.\n
-    'coordType': Type of celestial coordinate system. Can be set to "equatorial" or "galactic".\n
-    'whichPhotometry': Type of retrieved data. Can be set to "optical" or "infrared".\n
-    'limit': Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
-    'token': Sciserver's authentication token for the user.\n
-    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
-
+def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="optical", limit="10", dataRelease=None):
     """
-    if (dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+    Runs a query in the SDSS database that searches for all objects within a certain radius from a point in the sky, and retrieves the result table as a Panda's dataframe.\n
+
+    :param ra: Right Ascension of the image's center.\n
+    :param dec: Declination of the image's center.\n
+    :param radius: Search radius around the (ra,dec) coordinate in the sky. Measured in arcminutes.\n
+    :param coordType: Type of celestial coordinate system. Can be set to "equatorial" or "galactic".\n
+    :param whichPhotometry: Type of retrieved data. Can be set to "optical" or "infrared".\n
+    :param limit: Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
+    :param dataRelease: SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+    :return: Returns the results table as a Pandas data frame.
+    :raises: Throws an exception if the HTTP request to the SkyServer API returns an error.
+    :example: df = SkyServer.radialSearch(ra=258.25, dec=64.05, radius=3)
+
+    .. seealso:: SkyServer.sqlSearch, SkyServer.rectangularSearch.
+    """
+    if(dataRelease):
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RadialSearch?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RadialSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RadialSearch?'
 
     url = url + 'format=csv&'
     url = url + 'ra=' + str(ra) + '&'
@@ -142,48 +170,57 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     url = url + 'coordType=' + coordType + '&'
     url = url + 'whichPhotometry=' + whichPhotometry + '&'
     url = url + 'limit=' + limit + '&'
+
+    if Config.isSciServerComputeEnvironment():
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.radialSearch&"
+    else:
+        url = url + "TaskName=SciScript-Python.SkyServer.radialSearch&"
+
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
-    if (token != ""):
+    token = Authentication.getToken()
+    if token is not None and token != "":
         headers['X-Auth-Token'] = token
-    else:
-        Token = ""
-        try:
-            Token = Authentication.getToken()
-        except:
-            Token = ""
-        if(Token != ""):
-            headers['X-Auth-Token'] = Token
 
-    try:
-        response = requests.get(url,headers=headers)
-        if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+    response = requests.get(url,headers=headers, stream=True)
+    if response.status_code != 200:
+        raise Exception("Error when executing a radial search.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
-        r=response.content.decode();
-        return pandas.read_csv(StringIO(r), comment='#')
-    except requests.exceptions.RequestException as e:
-        return e
+    r=response.content.decode();
+    return pandas.read_csv(StringIO(r), comment='#', index_col=None)
 
 
-def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", whichPhotometry="optical", limit="10", token="", dataRelease=None):
-    """Runs a query in the SDSS database that searches for all objects within a certain rectangular box defined on the the sky, and retrieves the result table as a Panda's dataframe.\n
-    'min_ra': Minimum value of Right Ascension coordinate that defines the box boundaries on the sky.\n
-    'max_ra': Maximum value of Right Ascension coordinate that defines the box boundaries on the sky.\n
-    'min_dec': Minimum value of Declination coordinate that defines the box boundaries on the sky.\n
-    'max_dec': Maximum value of Declination coordinate that defines the box boundaries on the sky.\n
-    'coordType': Type of celestial coordinate system. Can be set to "equatorial" or "galactic".\n
-    'whichPhotometry': Type of retrieved data. Can be set to "optical" or "infrared".\n
-    'limit': Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
-    'token': Sciserver's authentication token for the user.\n
-    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", whichPhotometry="optical", limit="10", dataRelease=None):
     """
-    if (dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+    Runs a query in the SDSS database that searches for all objects within a certain rectangular box defined on the the sky, and retrieves the result table as a Panda's dataframe.\n
+
+    :param min_ra: Minimum value of Right Ascension coordinate that defines the box boundaries on the sky.\n
+    :param max_ra: Maximum value of Right Ascension coordinate that defines the box boundaries on the sky.\n
+    :param min_dec: Minimum value of Declination coordinate that defines the box boundaries on the sky.\n
+    :param max_dec: Maximum value of Declination coordinate that defines the box boundaries on the sky.\n
+    :param coordType: Type of celestial coordinate system. Can be set to "equatorial" or "galactic".\n
+    :param whichPhotometry: Type of retrieved data. Can be set to "optical" or "infrared".\n
+    :param limit: Maximum number of rows in the result table (string). If set to "0", then the function will return all rows.\n
+    :param dataRelease: SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+    :return: Returns the results table as a Pandas data frame.
+    :raises: Throws an exception if the HTTP request to the SkyServer API returns an error.
+    :example: df = SkyServer.rectangularSearch(min_ra=258.2, max_ra=258.3, min_dec=64,max_dec=64.1)
+
+    .. seealso:: SkyServer.sqlSearch, SkyServer.radialSearch.
+    """
+    if(dataRelease):
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RectangularSearch?'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/RectangularSearch?'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/RectangularSearch?'
+
     url = url + 'format=csv&'
     url = url + 'min_ra=' + str(min_ra) + '&'
     url = url + 'max_ra=' + str(max_ra) + '&'
@@ -192,54 +229,63 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     url = url + 'coordType=' + coordType + '&'
     url = url + 'whichPhotometry=' + whichPhotometry + '&'
     url = url + 'limit=' + limit + '&'
+
+    if Config.isSciServerComputeEnvironment():
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.rectangularSearch&"
+    else:
+        url = url + "TaskName=SciScript-Python.SkyServer.rectangularSearch&"
+
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
-    if (token != ""):
+    token = Authentication.getToken()
+    if token is not None and token != "":
         headers['X-Auth-Token'] = token
-    else:
-        Token = ""
-        try:
-            Token = Authentication.getToken()
-        except:
-            Token = ""
-        if(Token != ""):
-            headers['X-Auth-Token'] = Token
 
-    try:
-        response = requests.get(url,headers=headers)
-        if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+    response = requests.get(url,headers=headers, stream=True)
+    if response.status_code != 200:
+        raise Exception("Error when executing a rectangular search.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
-        r=response.content.decode();
-        return pandas.read_csv(StringIO(r), comment='#')
-    except requests.exceptions.RequestException as e:
-        return e
+    r=response.content.decode();
+    return pandas.read_csv(StringIO(r), comment='#', index_col=None)
 
 
-def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=None, dec=None, plate=None, mjd=None, fiber=None, run=None, rerun=None, camcol=None, field=None, obj=None, token="", dataRelease=None):
-    """Gets the properties of the the object that is being searched for. Search parameters:\n
-    'objId': SDSS ObjId.\n
-    'specObjId': SDSS SpecObjId.\n
-    'apogee_id': ID idetifying Apogee target object.\n
-    'apstar_id': unique ID for combined apogee star spectrum.\n
-    'ra': right ascention.\n
-    'dec': declination.\n
-    'plate': SDSS plate number.\n
-    'mjd': Modified Julian Date of observation.\n
-    'fiber': SDSS fiber number.\n
-    'run': SDSS run number.\n
-    'rerun': SDSS rerun number.\n
-    'camcol': SDSS camera column.\n
-    'field': SDSS field number.\n
-    'obj': The object id within a field.\n
-    'dataRelease': SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=None, dec=None, plate=None, mjd=None, fiber=None, run=None, rerun=None, camcol=None, field=None, obj=None, dataRelease=None):
     """
-    if (dataRelease):
-        url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+    Gets the properties of the the object that is being searched for. Search parameters:\n
+
+    :param objId: SDSS ObjId.\n
+    :param specObjId: SDSS SpecObjId.\n
+    :param apogee_id: ID idetifying Apogee target object.\n
+    :param apstar_id: unique ID for combined apogee star spectrum.\n
+    :param ra: right ascention.\n
+    :param dec: declination.\n
+    :param plate: SDSS plate number.\n
+    :param mjd: Modified Julian Date of observation.\n
+    :param fiber: SDSS fiber number.\n
+    :param run: SDSS run number.\n
+    :param rerun: SDSS rerun number.\n
+    :param camcol: SDSS camera column.\n
+    :param field: SDSS field number.\n
+    :param obj: The object id within a field.\n
+    :param dataRelease: SDSS data release string. Example: dataRelease='DR13'. Default value already set in SciServer.Config.DataRelease
+    :return: Returns a list containing the properties and metadata of the astronomical object found.
+    :raises: Throws an exception if the HTTP request to the SkyServer API returns an error.
+    :example: object = SkyServer.objectSearch(ra=258.25, dec=64.05)
+
+    .. seealso:: SkyServer.sqlSearch, SkyServer.rectangularSearch, SkyServer.radialSearch.
+    """
+    if(dataRelease):
+        if dataRelease != "":
+            url = Config.SkyServerWSurl + '/' + dataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
     else:
-        url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+        if Config.DataRelease != "":
+            url = Config.SkyServerWSurl + '/' + Config.DataRelease + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
+        else:
+            url = Config.SkyServerWSurl + '/SkyServerWS/SearchTools/ObjectSearch?query=LoadExplore&'
 
     url = url + 'format=json&'
     if(objId):
@@ -271,30 +317,26 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
         url = url + 'field=' + str(field) + '&';
     if(obj):
         url = url + 'obj=' + str(obj) + '&';
+
+    if Config.isSciServerComputeEnvironment():
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.objectSearch&"
+    else:
+        url = url + "TaskName=SciScript-Python.SkyServer.objectSearch&"
+
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
     headers = {'Content-Type': 'application/json', 'Accept': acceptHeader}
 
-    if (token != ""):
+    token = Authentication.getToken()
+    if token is not None and token != "":
         headers['X-Auth-Token'] = token
-    else:
-        Token = ""
-        try:
-            Token = Authentication.getToken()
-        except:
-            Token = ""
-        if(Token != ""):
-            headers['X-Auth-Token'] = Token
 
-    try:
-        response = requests.get(url,headers=headers)
-        if response.status_code != 200:
-            return {"Error":{"ErrorCode":response.status_code,"Message":response.content.decode()}}
+    response = requests.get(url,headers=headers, stream=True)
+    if response.status_code != 200:
+        raise Exception("Error when doing an object search.\nHttp Response from SkyServer API returned status code " + str(response.status_code) + ":\n" + response.content.decode());
 
-        #r=response.content.decode();
-        r = response.json()
-        #return pandas.read_csv(StringIO(r), comment='#')
-        return r;
-    except requests.exceptions.RequestException as e:
-        return e
-
+    #r=response.content.decode();
+    r = response.json()
+    #r = json.loads(response.content.decode())
+    #return pandas.read_csv(StringIO(r), comment='#')
+    return r;

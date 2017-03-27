@@ -1,8 +1,10 @@
 SciServer package
 =================
 
-Submodules
-----------
+.. automodule:: SciServer
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 SciServer.CasJobs module
 ------------------------
@@ -12,10 +14,26 @@ SciServer.CasJobs module
     :undoc-members:
     :show-inheritance:
 
+SciServer.Config module
+------------------------
+
+.. automodule:: SciServer.Config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 SciServer.Authentication module
 ------------------------
 
 .. automodule:: SciServer.Authentication
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+SciServer.LoginPortal module
+------------------------
+
+.. automodule:: SciServer.LoginPortal
     :members:
     :undoc-members:
     :show-inheritance:
