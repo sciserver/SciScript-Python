@@ -233,7 +233,7 @@ print(result)
 
 #delete local FITS file just created:
 
-os.system("rm " + CasJobs_TestFitsFile)
+os.remove(CasJobs_TestFitsFile)
 
 
 # In[ ]:
@@ -285,7 +285,7 @@ print(df2)
 
 # drop or delete table just created:
 
-result4 = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context=CasJobs_TestDatabase, format="pandas")
+result4 = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName2, context="MyDB", format="pandas")
 print(result4)
 
 
@@ -383,18 +383,18 @@ SciDrive_FileContent = "Column1,Column2\n4.5,5.5\n"
 
 # In[ ]:
 
-#list content and metadata of top level directory in SciDrive
-
-dirList = SciDrive.directoryList("")
-print(dirList)
-
-
-# In[ ]:
-
 #create a folder or container in SciDrive
 
 responseCreate = SciDrive.createContainer(SciDrive_Directory)
 print(responseCreate)
+
+
+# In[ ]:
+
+#list content and metadata of directory in SciDrive
+
+dirList = SciDrive.directoryList(SciDrive_Directory)
+print(dirList)
 
 
 # In[ ]:
@@ -460,7 +460,7 @@ print(responseDelete)
 
 #delete local file:
 
-os.system("rm " + SciDrive_FilePath)
+os.remove(SciDrive_FilePath)
 
 
 # In[ ]:
@@ -560,6 +560,16 @@ isCanceled = SkyQuery.cancelJob(jobId)
 print(isCanceled)
 print("job status:")
 print(SkyQuery.getJobStatus(jobId=jobId))
+
+
+# In[ ]:
+
+# get list of jobs
+
+quickJobsList = SkyQuery.listJobs('quick')
+longJobsList = SkyQuery.listJobs('long')
+print(quickJobsList)
+print(longJobsList)
 
 
 # In[ ]:
