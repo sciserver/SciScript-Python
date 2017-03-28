@@ -25,9 +25,10 @@ SciDriveHost = "https://www.scidrive.org"
 SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
 SkyServerWSurl = "https://skyserver.sdss.org"
 DataRelease = "DR13"
-KeystoneTokenPath =  "/home/idies/keystone.token" #this path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
+KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
 version = "sciserver-v1.10.0" #sciserver release version
-
+JobmApiURL = "http://scitest12.pha.jhu.edu/racm/jobm/rest"
+ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
 
 
 # returns TRUE if the library is running inside the SciServer-Compute, and FALSE if not
