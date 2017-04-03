@@ -10,8 +10,8 @@ from io import BytesIO
 
 
 # Define login Name and password before running the tests:
-Authentication_loginName = '***';
-Authentication_loginPassword = '***'
+Authentication_loginName = 'manu9';
+Authentication_loginPassword = '24500'
 
 
 #skyserver
@@ -312,14 +312,14 @@ class TestSciDrive(unittest.TestCase):
             stringio = SciDrive.download(path=SciDrive_Directory + "/" + SciDrive_FileName, format="StringIO")
             fileContent = stringio.read()
             responseDelete = SciDrive.delete(SciDrive_Directory)
-            self.assertEqual(responseUpload["path"], "/" + SciDrive_Directory + "/" + SciDrive_FileName)
+            self.assertEqual(responseUpload["path"], SciDrive_Directory + "/" + SciDrive_FileName)
             self.assertEqual(fileContent, SciDrive_FileContent)
             self.assertEqual(responseDelete, True)
 
             responseUpload = SciDrive.upload(path=SciDrive_Directory + "/" + SciDrive_FileName, data=SciDrive_FileContent)
             fileContent = SciDrive.download(path=SciDrive_Directory + "/" + SciDrive_FileName, format="text")
             responseDelete = SciDrive.delete(SciDrive_Directory)
-            self.assertEqual(responseUpload["path"], "/" + SciDrive_Directory + "/" + SciDrive_FileName)
+            self.assertEqual(responseUpload["path"], SciDrive_Directory + "/" + SciDrive_FileName)
             self.assertEqual(fileContent, SciDrive_FileContent)
             self.assertEqual(responseDelete, True)
 
