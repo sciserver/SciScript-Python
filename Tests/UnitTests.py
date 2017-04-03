@@ -148,7 +148,7 @@ class TestCasJobs(unittest.TestCase):
 
     def test_CasJobs_submitJob(self):
         jobId = CasJobs.submitJob(sql=CasJobs_TestQuery + " into MyDB." + CasJobs_TestTableName1, context=CasJobs_TestDatabase)
-        jobDescription = CasJobs.waitForJob(jobId=jobId, verbose=TRUE)
+        jobDescription = CasJobs.waitForJob(jobId=jobId, verbose=True)
         df = CasJobs.executeQuery(sql="DROP TABLE " + CasJobs_TestTableName1, context="MyDB", format="csv")
         self.assertNotEqual(jobId, "")
 
