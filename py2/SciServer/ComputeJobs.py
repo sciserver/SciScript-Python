@@ -65,7 +65,7 @@ def getJobsList():
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
-def getJobStatus(jobId):
+def getJobDescription(jobId):
     """
     Gets the definition of the job, including the current status.
     :param jobId: Job ID
@@ -85,14 +85,13 @@ def getJobStatus(jobId):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def getStringStatus(intStatus = None):
+def getJobStatus(jobId):
     """
-    Gets the semantic meaning of the integer status value that a job has. The integer value is a power of 2.
-    :param intStatus:
-    :return:
+    Gets the semantic meaning of the integer status value included in the job description. The integer value is a power of 2, that is, 1:PENDING, 2:QUEUED, 4:ACCEPTED, 8:STARTED, 16:FINISHED, 32:SUCCESS, 64:ERROR and 128:CANCELED
+    :param jobId: Id of job.
+    :return: string with job status.
     """
-    if not isinstance(intStatus, int):
-        raise Exception("Invalid value given to job status. Must be an integer.")
+    intStatus = getJobDescription(jobId)["status"]
 
     if intStatus == 1:
         return "PENDING"
@@ -103,7 +102,7 @@ def getStringStatus(intStatus = None):
     elif intStatus == 8:
         return "STARTED"
     elif intStatus == 16:
-        return "FINIHSED"
+        return "FINISHED"
     elif intStatus == 32:
         return "SUCCESS"
     elif intStatus == 64:
@@ -116,9 +115,9 @@ def getStringStatus(intStatus = None):
 
 def submitNotebookJob(computeDomainName, notebookPath, dockerImage=[], volumes=[], parameters="", jobAlias = ""):
     """
-    Submits a Notebook as a job,
-    :param computeDomainName: Name of compute domain. E.g: http://compute.sciserver.org/dashboard/api/container/
-    :param notebookPath: path of the notebook within the filesystem mounted in SciServer-compute
+    Submits a Jupyter Notebook for execution as an asynchronous job,
+    :param computeDomainName: Name of compute domain (string). E.g: http://compute.sciserver.org/dashboard/api/container/
+    :param notebookPath: path of the notebook within the filesystem mounted in SciServer-Compute (string).
     :param dockerImage: name of Docker image where the job is being submitted. E.g.,  dockerImage=["Python + Dev (astro)"]
     :param volumes: volume conatiners mounted in the docker image for the job execution. E.g., volumes=[{"name":"SDSS_DAS"}, {"name":"Recount"}]
     :param parameters: string containing parameters.
@@ -151,13 +150,23 @@ def submitNotebookJob(computeDomainName, notebookPath, dockerImage=[], volumes=[
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def submitCommandJob(computeDomainName, command, dockerImage=[], volumes=[], jobAlias = ""):
+def submitShellCommandJob(computeDomainName, shellCommand, dockerImage=[], volumes=[], jobAlias = ""):
+    """
+    Submits a shell command for execution as an asynchronous job,
+    :param computeDomainName: Name of compute domain (string). E.g: http://compute.sciserver.org/dashboard/api/container/
+    :param shellCommand: path of the notebook within the filesystem mounted in SciServer-Compute
+    :param dockerImage: name of Docker image where the job is being submitted. E.g.,  dockerImage=["Python + Dev (astro)"]
+    :param volumes: volume conatiners mounted in the docker image for the job execution. E.g., volumes=[{"name":"SDSS_DAS"}, {"name":"Recount"}]
+    :param parameters: string containing parameters.
+    :param jobAlias: alias of job
+    :return:
+    """
 
     token = Authentication.getToken()
     if token is not None and token != "":
 
         dockerJobModel = {
-            "command": command,
+            "command": shellCommand,
             "submitterDID": jobAlias,
             "dockerComputeEndpoint": computeDomainName,
             "dockerImageName": dockerImage,

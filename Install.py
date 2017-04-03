@@ -16,7 +16,7 @@ def isSciServerComputeEnvironment():
 
 
 os.system('printf "\n===============================================================================================================\n"')
-os.system('printf "---1) Updating local Git repository...\n\n"')
+os.system('printf " ---1) Updating local Git repository...\n\n"')
 os.system("git tag -d $(git tag)") #deletes local tags
 os.system("git fetch --all") #fetches all remotes into local repo, including tags.
 os.system("git checkout master")
@@ -28,12 +28,12 @@ os.system("cp -f ShowSciServerTags.py ../ShowSciServerTags_IntermediateCopy55512
 
 if len(commandLineArguments) <= 1:
     os.system('printf "\n===============================================================================================================\n"')
-    os.system('printf "---2) Checking out latest SciScript code from local master branch...\n\n"')
+    os.system('printf " ---2) Checking out latest SciScript code from local master branch...\n\n"')
     os.system("git checkout master")
 else:
     sciserverTag = commandLineArguments[1]
     os.system('printf "\n===============================================================================================================\n"')
-    os.system('printf "---2) Checking out latest SciScript code tagged as \"" + sciserverTag + "\"...\n\n"')
+    os.system('printf " ---2) Checking out latest SciScript code tagged as \"" + sciserverTag + "\"...\n\n"')
     os.system("git checkout tags/" + sciserverTag)
 
 hasInstallFile = os.popen("ls Install.py").read()
@@ -53,7 +53,7 @@ else:
 os.chdir("./py2")
 
 os.system('printf "\n===============================================================================================================\n"')
-os.system('printf "---3) Building the SciServer package for Python 2...\n\n"')
+os.system('printf " ---3) Building the SciServer package for Python 2...\n\n"')
 
 if isSciServerComputeEnvironment():
   os.system("source activate py27 ; python setup.py install ; source activate root") # activating python = python2 in anaconda, and then changing back to the anaconda default of python = python3
@@ -63,7 +63,7 @@ else:
 os.chdir("../py3")
 
 os.system('printf "\n===============================================================================================================\n"')
-os.system('printf "---4) Building the SciServer package for Python 3...\n\n"')
+os.system('printf " ---4) Building the SciServer package for Python 3...\n\n"')
 
 if isSciServerComputeEnvironment():
   os.system("python setup.py install")# In anaconda, the default is python = python3
