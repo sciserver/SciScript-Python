@@ -29,7 +29,7 @@ KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containi
 version = "sciserver-v1.10.0" #sciserver release version
 JobmApiURL = "http://scitest12.pha.jhu.edu/racm/jobm/rest"
 ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
-
+FileServiceURL = 'http://scitest12.pha.jhu.edu/fileservice/api';
 
 # returns TRUE if the library is running inside the SciServer-Compute, and FALSE if not
 import os;
