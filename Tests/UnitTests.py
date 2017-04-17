@@ -398,6 +398,48 @@ class TestSkyQuery(unittest.TestCase):
     def test_SkyQuery_listDatasetTables(self):
         tables = SkyQuery.listDatasetTables("MyDB")
 
+
+
+
+
+class TestComputeJobs(unittest.TestCase):
+
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+    def setUp(self):
+        pass
+
+    # *******************************************************************************************************
+    # ComputeJobs section
+
+    def test_ComputeJobs_getComputeDomains(self):
+        pass
+
+    def test_ComputeJobs_submitNotebookJob(self):
+        pass
+
+    def test_ComputeJobs_submitShellCommandJob(self):
+        pass
+
+    def test_ComputeJobs_getJobDescription(self):
+        pass
+
+    def test_ComputeJobs_getJobStatus(self):
+        pass
+
+    def test_ComputeJobs_getJobsList(self):
+        pass
+
+    def test_ComputeJobs_getJobDirectory(self):
+        pass
+
+    def test_ComputeJobs_cancelJob(self):
+        pass
+
+    def test_ComputeJobs_waitForJob(self):
+        pass
+
+
 if __name__ == '__main__':
     #unittest.main()
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
