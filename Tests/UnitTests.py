@@ -440,6 +440,28 @@ class TestComputeJobs(unittest.TestCase):
         pass
 
 
+class TestFileService(unittest.TestCase):
+
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+    def setUp(self):
+        pass
+
+    # *******************************************************************************************************
+    # FileService section
+
+    def test_FileService_createDir(self):
+        pass
+
+    def test_FileService_delete(self):
+        pass
+
+    def test_FileService_upload(self):
+        pass
+
+    def test_FileService_download(self):
+        pass
+
 if __name__ == '__main__':
     #unittest.main()
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
