@@ -32,6 +32,34 @@ def createDir(path):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
+def getDirList(path, options="X", level=1):
+    """
+    Lists the contents of a directory.
+    :param path: path to the directory. E.g: path="/persistent/newDirectory"
+    :return: True if the directory creation was successful.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileSystem API returns an error.
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        if ~path.startswith("/"):
+            path = "/" + path;
+
+        url = Config.FileServiceURL + "/tree" + path + "?options=" + str(options) + "&level=" + str(level)
+
+        headers = {'X-Auth-Token': token}
+        res = requests.get(url, headers=headers)
+
+        if res.status_code >= 200 and res.status_code < 300:
+            return res.content.decode();
+        else:
+            raise Exception("Error when creating new directory " + path + ".\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
+
+
 def delete(path):
     """
     Delete a directory or file in the remote File System.
