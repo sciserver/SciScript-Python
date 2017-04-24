@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyServer, SkyQuery, SciDrive
+from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyServer, SkyQuery, SciDrive, FileService, ComputeJobs
 import unittest2 as unittest
 import os;
 import pandas;
@@ -39,12 +39,13 @@ SciDrive_Directory = "/SciScriptPython"
 SciDrive_FileName = "TestFile.csv"
 SciDrive_FileContent = "Column1,Column2\n4.5,5.5\n"
 
+FileService_NewDirName = "UnitTestDir"
+FileService_NewFileName = "MyNewFile.txt"
+FileService_newFileContent = "#ID,Column1,Column2\n1,4.5,5.5\n"
+FileService_RemoteFileName = "persistent/" + FileService_NewDirName + "/" + FileService_NewFileName
+FileService_RemoteDirName = "persistent/" + FileService_NewDirName
 
-#class TestVariables:
-#    SkyQuery_jobId = None;
-#    def __init__(self):
-#        pass
-
+ComputeJobs_ = ""
 
 class TestAuthentication(unittest.TestCase):
 
@@ -239,6 +240,9 @@ class TestSkyServer(unittest.TestCase):
         self.maxDiff = None;
         self.assertEqual(SkyServer_RadialSearchResultCSV, df.to_csv(index=False, float_format="%.6f"))
 
+
+
+
     def test_SkyServer_rectangularSearch(self):
         #rectangular search
         df = SkyServer.rectangularSearch(min_ra=258.3, max_ra=258.31, min_dec=64,max_dec=64.01, dataRelease=SkyServer_DataRelease)
@@ -406,38 +410,116 @@ class TestComputeJobs(unittest.TestCase):
 
     token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
 
+
     def setUp(self):
         pass
 
     # *******************************************************************************************************
     # ComputeJobs section
 
+
+
+
+    ComputeJobs_NotebookName = "TestNotebook.ipynb"
+    ComputeJobs_LocalNotebookPath = "./" + ComputeJobs_NotebookName
+    ComputeJobs_RemoteNotebookPath = "/home/idies/workspace/persistent/" + ComputeJobs_NotebookName
+    ComputeJobs_JobAlias = "MyJobAlias"
+    ComputeJobs_Parameters = "param1"
+    ComputeJobs_ShellCommand = "ls";
+    ComputeJobs_ImageNameLike  = "python" #must be all lowercase
+
     def test_ComputeJobs_getComputeDomains(self):
-        pass
+        domains = ComputeJobs.getComputeDomains(batch=True, interactive=False)
+        self.assertTrue(domains[0]["apiEndpoint"] != "" and domains[0]["apiEndpoint"] is not None)
 
-    def test_ComputeJobs_submitNotebookJob(self):
-        pass
 
-    def test_ComputeJobs_submitShellCommandJob(self):
-        pass
 
-    def test_ComputeJobs_getJobDescription(self):
-        pass
 
-    def test_ComputeJobs_getJobStatus(self):
-        pass
 
-    def test_ComputeJobs_getJobsList(self):
-        pass
+    def test_ComputeJobs_submitNotebookJob_getJobsList_getJobDescription_waitForJob_getJobStatus_submitShellCommandJob_cancelJob(self):
+
+        try:
+            isUploaded = FileService.upload(path=ComputeJobs_RemoteNotebookPath,localFilePath=ComputeJobs_LocalNotebookPath)
+        except:
+            pass;
+
+        try:
+
+            domains = ComputeJobs.getComputeDomains(batch=True, interactive=False)
+            self.assertTrue( domains[0]['id'] > 0 )
+
+            domainIndex = None
+            imageIndex = None
+            try:
+                for i in range(len(domains)):
+                    images = domains[i]['images']
+                    for j in range(len(images)):
+                        if ComputeJobs_ImageNameLike in str(images[j]['name']).lower() or ComputeJobs_ImageNameLike in str(images[j]['description']).lower()  :
+                            domainIndex = i
+                            imageIndex = j
+                            raise Exception("");
+            except:
+                pass;
+
+            domainIndex = 1
+            imageIndex = 0
+
+            if domainIndex is None or imageIndex is None:
+                raise Exception("Cannot find '" + ComputeJobs_ImageNameLike +"' image in any Compute Domain.")
+
+            domainApiEndpoint = domains[domainIndex]['apiEndpoint']
+            dockerImage = domains[domainIndex]['images'][imageIndex]['name']
+
+            volumes = [];
+            if len(domains[domainIndex]['volumes']) > 0:
+                volumes = [ { "name" : domains[domainIndex]['volumes'][0]['name'] } ]
+
+            notebookPath = ComputeJobs_RemoteNotebookPath
+            parameters = ComputeJobs_Parameters
+            jobAlias = ComputeJobs_JobAlias
+
+            job = ComputeJobs.submitNotebookJob(domainApiEndpoint=domainApiEndpoint, notebookPath=notebookPath, dockerImage=dockerImage, volumes=volumes, parameters=parameters, jobAlias=jobAlias)
+            self.assertTrue(job['scriptURI'] == ComputeJobs_RemoteNotebookPath)
+            self.assertTrue(job['dockerImageName'] == dockerImage)
+            self.assertTrue(job['dockerComputeEndpoint'] in domainApiEndpoint )
+            self.assertTrue(job['submitterDID'] == jobAlias)
+            self.assertTrue(job['command'] == parameters)
+            self.assertTrue(job['status'] >= 1)
+
+            jobList = ComputeJobs.getJobsList();
+            jobId = jobList[0]['id'];
+
+            job = ComputeJobs.waitForJob(jobId=jobId, verbose=True, pollTime=2)
+            self.assertTrue(jobList[0] == job)
+
+            jobDesc = ComputeJobs.getJobDescription(jobId)
+            self.assertTrue(jobDesc == job)
+
+            status = ComputeJobs.getJobStatus(jobId=jobId)
+            self.assertTrue(status == "SUCCESS")
+
+            job = ComputeJobs.submitShellCommandJob(domainApiEndpoint=domainApiEndpoint, shellCommand=ComputeJobs_ShellCommand, dockerImage=dockerImage, volumes=volumes, jobAlias=jobAlias)
+            self.assertTrue(job['dockerImageName'] == dockerImage)
+            self.assertTrue(job['dockerComputeEndpoint'] in domainApiEndpoint )
+            self.assertTrue(job['submitterDID'] == jobAlias)
+            self.assertTrue(job['command'] == ComputeJobs_ShellCommand)
+            self.assertTrue(job['status'] >= 1)
+
+            job = ComputeJobs.submitNotebookJob(domainApiEndpoint=domainApiEndpoint, notebookPath=notebookPath, dockerImage=dockerImage, volumes=volumes, parameters=parameters, jobAlias=jobAlias)
+            isCanceled = ComputeJobs.cancelJob(job['jobId'])
+            self.assertTrue(isCanceled)
+            status = ComputeJobs.getJobStatus(jobId=jobId)
+            self.assertTrue(status == "CANCELED")
+
+        finally:
+            FileService.delete(path=ComputeJobs_RemoteNotebookPath)
+
+
 
     def test_ComputeJobs_getJobDirectory(self):
-        pass
+        pass;
 
-    def test_ComputeJobs_cancelJob(self):
-        pass
 
-    def test_ComputeJobs_waitForJob(self):
-        pass
 
 
 class TestFileService(unittest.TestCase):
@@ -450,27 +532,80 @@ class TestFileService(unittest.TestCase):
     # *******************************************************************************************************
     # FileService section
 
-    def test_FileService_createDir(self):
-        pass
+    def test_FileService_createDir_getDirList_delete(self):
 
-    def test_FileService_delete(self):
-        pass
+       try:
+           wasDirDeleted = FileService.delete(FileService_RemoteDirName)
+       except:
+           pass
 
-    def test_FileService_upload(self):
-        pass
+       try:
+            wasDirCreated = FileService.createDir(FileService_RemoteDirName);
+            self.assertTrue(wasDirCreated)
 
-    def test_FileService_download(self):
-        pass
+            dirList = FileService.getDirList(FileService_RemoteDirName)
+            self.assertTrue(dirList["path"].__contains__(FileService_NewDirName))
+
+            wasDirDeleted = FileService.delete(FileService_RemoteDirName)
+            self.assertTrue(wasDirDeleted)
+
+       finally:
+            try:
+                wasDirDeleted = FileService.delete(FileService_RemoteDirName)
+            except:
+                pass;
+
+
+
+    def test_FileService_upload_getDirList_download_delete(self):
+        try:
+
+            if (sys.version_info > (3, 0)): #python3
+                file = open(FileService_NewFileName, "w")
+            else: #python2
+                file = open(FileService_NewFileName, "wb")
+
+            file.write(FileService_newFileContent)
+            file.close()
+
+            isUploaded = FileService.upload(path=FileService_RemoteFileName, localFilePath=FileService_NewFileName)
+            dirList = FileService.getDirList(FileService_RemoteDirName)
+            stringio = FileService.download(path=FileService_RemoteFileName, format="StringIO")
+            fileContent = stringio.read()
+            isDeleted = FileService.delete(FileService_RemoteFileName)
+            self.assertTrue(isUploaded)
+            self.assertTrue( dirList.__contains__(FileService_NewFileName))
+            self.assertEqual(fileContent, FileService_newFileContent)
+            self.assertTrue(isDeleted)
+
+            isUploaded = FileService.upload(path=FileService_RemoteFileName, data=FileService_newFileContent)
+            dirList = FileService.getDirList(FileService_RemoteDirName)
+            fileContent = FileService.download(path=FileService_RemoteFileName, format="text")
+            isDeleted = FileService.delete(FileService_RemoteFileName)
+            self.assertTrue(isUploaded)
+            self.assertTrue( dirList.__contains__(FileService_NewFileName))
+            self.assertEqual(fileContent, FileService_newFileContent)
+            self.assertTrue(isDeleted)
+
+        finally:
+            try:
+                os.remove(FileService_newFileContent)
+            except:
+                pass;
+
+
 
 if __name__ == '__main__':
     #unittest.main()
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
     testLoader = unittest.TestLoader()
     testLoader.sortTestMethodsUsing = lambda x, y: 0;
-    suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestComputeJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestFileService); unittest.TextTestRunner(verbosity=2).run(suite)
 
