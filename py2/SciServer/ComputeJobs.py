@@ -22,16 +22,19 @@ def getJobDirectory(jobId = None):
 
         return jobDirectory
     else:
-        raise OSError("Cannot find jobs directory for jobId=" + jobId + ".")
+        raise OSError("Cannot find jobs directory for jobId=" + str(jobId) + ".")
 
 
-def getComputeDomains():
+def getComputeDomains(batch=True, interactive=False):
     """
     Gets a list of all registered compute domains that the user has access to.
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.JobmApiURL + "/computedomains"
+
+        queryString = ("batch=true&" if bool(batch) == True else "batch=false&");
+        queryString = queryString + ("interactive=true" if bool(interactive) == True else "interactive=false");
+        url = Config.JobmApiURL + "/computedomains?" + queryString
         headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
         res = requests.get(url, headers=headers, stream=True)
 
@@ -113,7 +116,7 @@ def getJobStatus(jobId):
         raise Exception("Invalid integer value given to job status.")
 
 
-def submitNotebookJob(computeDomainName, notebookPath, dockerImage=[], volumes=[], parameters="", jobAlias = ""):
+def submitNotebookJob(domainApiEndpoint, notebookPath, dockerImage="", volumes=[None], parameters="", jobAlias = ""):
     """
     Submits a Jupyter Notebook for execution as an asynchronous job,
     :param computeDomainName: Name of compute domain (string). E.g: http://compute.sciserver.org/dashboard/api/container/
@@ -132,7 +135,7 @@ def submitNotebookJob(computeDomainName, notebookPath, dockerImage=[], volumes=[
             "command": parameters,
             "scriptURI": notebookPath,
             "submitterDID": jobAlias,
-            "dockerComputeEndpoint": computeDomainName,
+            "dockerComputeEndpoint": domainApiEndpoint,
             "dockerImageName": dockerImage,
             "volumeContainers": volumes
         }
@@ -150,7 +153,7 @@ def submitNotebookJob(computeDomainName, notebookPath, dockerImage=[], volumes=[
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def submitShellCommandJob(computeDomainName, shellCommand, dockerImage=[], volumes=[], jobAlias = ""):
+def submitShellCommandJob(domainApiEndpoint, shellCommand, dockerImage=[], volumes=[], jobAlias = ""):
     """
     Submits a shell command for execution as an asynchronous job,
     :param computeDomainName: Name of compute domain (string). E.g: http://compute.sciserver.org/dashboard/api/container/
@@ -168,7 +171,7 @@ def submitShellCommandJob(computeDomainName, shellCommand, dockerImage=[], volum
         dockerJobModel = {
             "command": shellCommand,
             "submitterDID": jobAlias,
-            "dockerComputeEndpoint": computeDomainName,
+            "dockerComputeEndpoint": domainApiEndpoint,
             "dockerImageName": dockerImage,
             "volumeContainers": volumes
         }
@@ -191,7 +194,7 @@ def cancelJob(jobId):
 
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.JobmApiURL + "/jobs/" + jobId + "/cancel"
+        url = Config.JobmApiURL + "/jobs/" + str(jobId) + "/cancel"
         headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
         res = requests.post(url, headers=headers, stream=True)
 
@@ -216,8 +219,8 @@ def waitForJob(jobId, verbose=True, pollTime = 5):
             if verbose:
                 #print back,
                 print waitingStr,
-            jobDesc = getJobStatus(jobId)
-            jobStatus = int(jobDesc["status"])
+            jobDesc = getJobDescription(jobId)
+            jobStatus = jobDesc["status"]
             if jobStatus >= 32:
                 complete = True
                 if verbose:
