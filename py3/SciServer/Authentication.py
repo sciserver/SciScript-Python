@@ -38,9 +38,16 @@ def getKeystoneUserWithToken(token):
 
     .. seealso:: Authentication.getToken, Authentication.login, Authentication.setToken.
     """
-    loginURL = Config.AuthenticationURL
+    taskName = ""
+    if Config.isSciServerComputeEnvironment():
+        taskName = "Compute.SciScript-Python.Authentication.getKeystoneUserWithToken"
+    else:
+        taskName = "SciScript-Python.Authentication.getKeystoneUserWithToken"
+    
+    loginURL = Config.AuthenticationURL + "?TaskName=" + taskName;
     if ~loginURL.endswith("/"):
         loginURL = loginURL + "/"
+
     loginURL = loginURL + token
 
     getResponse = requests.get(loginURL)
@@ -72,7 +79,13 @@ def login(UserName, Password):
 
     .. seealso:: Authentication.getKeystoneUserWithToken, Authentication.getToken, Authentication.setToken, Authentication.token.
     """
-    loginURL = Config.AuthenticationURL
+    taskName = ""
+    if Config.isSciServerComputeEnvironment():
+        taskName = "Compute.SciScript-Python.Authentication.login"
+    else:
+        taskName = "SciScript-Python.Authentication.login"
+
+    loginURL = Config.AuthenticationURL + "?TaskName=" + taskName
 
     authJson = {"auth":{"identity":{"password":{"user":{"name":UserName,"password":Password}}}}}
 

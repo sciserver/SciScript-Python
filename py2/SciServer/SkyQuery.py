@@ -27,7 +27,14 @@ def getJobStatus(jobId):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + str(jobId)
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.getJobStatus"
+        else:
+            taskName = "SciScript-Python.SkyQuery.getJobStatus"
+
+        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + str(jobId) + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -57,7 +64,13 @@ def cancelJob(jobId):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + jobId
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.cancelJob"
+        else:
+            taskName = "SciScript-Python.SkyQuery.cancelJob"
+
+        statusURL = Config.SkyQueryUrl + '/Jobs.svc/jobs/' + jobId + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -93,7 +106,14 @@ def listQueues():
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues'
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.listQueues"
+        else:
+            taskName = "SciScript-Python.SkyQuery.listQueues"
+
+        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues' + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -123,7 +143,13 @@ def getQueueInfo(queue):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues/' + queue
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.getQueueInfo"
+        else:
+            taskName = "SciScript-Python.SkyQuery.getQueueInfo"
+
+        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues/' + queue + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -154,7 +180,13 @@ def submitJob(query, queue='quick'):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues/' + queue + '/jobs'
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.submitJob"
+        else:
+            taskName = "SciScript-Python.SkyQuery.submitJob"
+
+        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues/' + queue + '/jobs' + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -226,7 +258,14 @@ def listJobs(queue="quick"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues/' + queue + '/jobs?'
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.listJobs"
+        else:
+            taskName = "SciScript-Python.SkyQuery.listJobs"
+
+        jobsURL = Config.SkyQueryUrl + '/Jobs.svc/queues/' + queue + '/jobs' + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -261,7 +300,13 @@ def listAllDatasets():
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        schemaURL = Config.SkyQueryUrl + '/Schema.svc/datasets'
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.listAllDatasets"
+        else:
+            taskName = "SciScript-Python.SkyQuery.listAllDatasets"
+
+        schemaURL = Config.SkyQueryUrl + '/Schema.svc/datasets' + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -290,7 +335,14 @@ def getDatasetInfo(datasetName="MyDB"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        schemaURL = Config.SkyQueryUrl + '/Schema.svc/datasets/' +  datasetName
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.getDatasetInfo"
+        else:
+            taskName = "SciScript-Python.SkyQuery.getDatasetInfo"
+
+        schemaURL = Config.SkyQueryUrl + '/Schema.svc/datasets/' +  datasetName + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -318,7 +370,14 @@ def listDatasetTables(datasetName="MyDB"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SkyQueryUrl + '/Schema.svc/datasets/' + datasetName +'/tables'
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.listDatasetTables"
+        else:
+            taskName = "SciScript-Python.SkyQuery.listDatasetTables"
+
+        url = Config.SkyQueryUrl + '/Schema.svc/datasets/' + datasetName +'/tables' + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -348,7 +407,14 @@ def getTableInfo(tableName, datasetName="MyDB"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SkyQueryUrl + '/Schema.svc/datasets/' + datasetName +'/tables/' + tableName
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.getTableInfo"
+        else:
+            taskName = "SciScript-Python.SkyQuery.getTableInfo"
+
+        url = Config.SkyQueryUrl + '/Schema.svc/datasets/' + datasetName +'/tables/' + tableName + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -377,7 +443,14 @@ def listTableColumns(tableName, datasetName="MyDB"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SkyQueryUrl + '/Schema.svc/datasets/' + datasetName +'/tables/' + tableName + '/columns'
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.listTableColumns"
+        else:
+            taskName = "SciScript-Python.SkyQuery.listTableColumns"
+
+        url = Config.SkyQueryUrl + '/Schema.svc/datasets/' + datasetName +'/tables/' + tableName + '/columns' + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -412,7 +485,13 @@ def getTable(tableName, datasetName="MyDB", top = None):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.getTable"
+        else:
+            taskName = "SciScript-Python.SkyQuery.getTable"
+
+        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName + "?TaskName=" + taskName
         if top != None and top != "":
             url = url + '?top=' + str(top)
 
@@ -443,7 +522,14 @@ def dropTable(tableName, datasetName="MyDB"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.dropTable"
+        else:
+            taskName = "SciScript-Python.SkyQuery.dropTable"
+
+        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName + "?TaskName=" + taskName
 
         headers = {'Content-Type': 'application/json','Accept': 'application/json'}
         headers['X-Auth-Token']=  token
@@ -474,7 +560,14 @@ def uploadTable(uploadData, tableName, datasetName="MyDB", format="csv"):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SkyQuery.uploadTable"
+        else:
+            taskName = "SciScript-Python.SkyQuery.uploadTable"
+
+        url = Config.SkyQueryUrl + '/Data.svc/' + datasetName +'/' + tableName + "?TaskName=" + taskName
         ctype = ""
         if format == "csv":
             ctype = 'text/csv'
