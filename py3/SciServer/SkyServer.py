@@ -6,8 +6,9 @@ import urllib
 
 from io import StringIO
 from io import BytesIO
-
+from astropy.io import fits
 from SciServer import Authentication, Config
+from SciServer import CasJobs
 
 def sqlSearch(sql, dataRelease=None):
     """
@@ -340,3 +341,25 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
     #r = json.loads(response.content.decode())
     #return pandas.read_csv(StringIO(r), comment='#')
     return r;
+
+    # TODO: get a list of FITS path given a list of object ID and
+    # TODO: make a new function that return a hdu object from FITS file after solve the fits.open() warning problem
+
+def getRawFITSPath(specObjId, context=None, URL = True):
+    def PathAlter(url):#TODO: turn https address to local path on DAS package
+        localPath = url
+        return localPath
+    sql = "select dbo.fGetUrlFitsSpectrum(%d)" % specObjId
+    if(context):
+        pass
+    else:
+        context = 'dr13'
+    dataFrame = CasJobs.executeQuery(sql, context=context, format='pandas')
+    dataInCSV = dataFrame.to_CSV()
+    url = dataInCSV['Colunm1'][0]
+    if(URL):
+        return url
+    else:
+        localPath = PathAlter(url)
+        return localPath
+
