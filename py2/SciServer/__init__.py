@@ -31,7 +31,7 @@ Some SciServer tools you can access with this package:\n
 
 **Authors**: Gerard Lemson <glemson1@jhu.edu>, Manuchehr Taghizadeh-Popp <mtaghiza@jhu.edu>
 
-**Version**: sciserver-v1.10.0
+**Version**: sciserver-v1.10.2
 
 
 """

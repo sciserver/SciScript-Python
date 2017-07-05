@@ -101,29 +101,49 @@ def getToken():
 
     """
     try:
-        if token.value is not None:
-            return token.value
-        else:
-            _token = None
-            ident = identArgIdentifier()
-            for arg in sys.argv:
-                if (arg.startswith(ident)):
-                    _token = arg[len(ident):]
 
-            if _token is not None and _token != "":
-                setToken(_token)
-                return _token
+        if Config.isSciServerComputeEnvironment():
+            tokenFile = Config.KeystoneTokenPath;  # '/home/idies/keystone.token'
+            if os.path.isfile(tokenFile):
+                with open(tokenFile, 'r') as f:
+                    _token = f.read().rstrip('\n')
+                    if _token is not None and _token != "":
+                        token.value = _token;
+
+                        found = False
+                        ident = identArgIdentifier()
+                        for arg in sys.argv:
+                            if (arg.startswith(ident)):
+                                sys.argv.remove(arg)
+                                sys.argv.append(ident + _token)
+                                found = True
+                        if not found:
+                            sys.argv.append(ident + _token)
+
+                        return _token
+                    else:
+                        warnings.warn("In Authentication.getToken: Cannot find token in system token file " + str(Config.KeystoneTokenPath) + ".", Warning, stacklevel=2)
+                        return None;
             else:
-                tokenFile = Config.KeystoneTokenPath; # '/home/idies/keystone.token'
-                if os.path.isfile(tokenFile) :
-                    with open(tokenFile, 'r') as f:
-                        _token = f.read().rstrip('\n')
-                        if _token is not None and _token != "":
-                            setToken(_token)
-                            return _token
-                        else:
-                            warnings.warn("In Authentication.getToken: Keystone token is not defined. Returning a None token value. Keystone token is not stored in the command line argument --ident, nor in the system token file " + str(Config.KeystoneTokenPath) + ".", Warning, stacklevel=2)
-                            return None;
+                 warnings.warn("In Authentication.getToken: Cannot find system token file " + str(Config.KeystoneTokenPath) + ".", Warning, stacklevel=2)
+                 return None;
+        else:
+            if token.value is not None:
+                return token.value
+            else:
+                _token = None
+                ident = identArgIdentifier()
+                for arg in sys.argv:
+                    if (arg.startswith(ident)):
+                        _token = arg[len(ident):]
+
+                if _token is not None and _token != "":
+                    token.value = _token
+                    return _token
+                else:
+                    warnings.warn("In Authentication.getToken: Authentication token is not defined: the user did not log in with the Authentication.login function, or the token has not been stored in the command line argument --ident.", Warning, stacklevel=2)
+                    return None;
+
     except Exception as e:
         raise e;
 
@@ -142,18 +162,20 @@ def setToken(_token):
     if _token == "":
         warnings.warn("Authentication token is being set as an empty string.", Warning, stacklevel=2)
 
-    token.value = _token;
+    if Config.isSciServerComputeEnvironment():
+        warnings.warn("Authentication token cannot be set to arbitary value when inside SciServer-Compute environment.", Warning, stacklevel=2)
+    else:
+        token.value = _token;
 
-    found = False
-    ident = identArgIdentifier()
-    for arg in sys.argv:
-        if (arg.startswith(ident)):
-            sys.argv.remove(arg)
+        found = False
+        ident = identArgIdentifier()
+        for arg in sys.argv:
+            if (arg.startswith(ident)):
+                sys.argv.remove(arg)
+                sys.argv.append(ident + _token)
+                found = True
+        if not found:
             sys.argv.append(ident + _token)
-            found = True
-    if not found:
-        sys.argv.append(ident + _token)
-
 
 
 def identArgIdentifier():
