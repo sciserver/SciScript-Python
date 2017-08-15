@@ -43,12 +43,12 @@ def getKeystoneUserWithToken(token):
         taskName = "Compute.SciScript-Python.Authentication.getKeystoneUserWithToken"
     else:
         taskName = "SciScript-Python.Authentication.getKeystoneUserWithToken"
-    
-    loginURL = Config.AuthenticationURL + "?TaskName=" + taskName;
+
+    loginURL = Config.AuthenticationURL
     if ~loginURL.endswith("/"):
         loginURL = loginURL + "/"
 
-    loginURL = loginURL + token
+    loginURL = loginURL + token + "?TaskName=" + taskName;
 
     getResponse = requests.get(loginURL)
     if getResponse.status_code != 200:

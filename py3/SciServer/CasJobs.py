@@ -10,6 +10,16 @@ import pandas
 from SciServer import Authentication, Config
 
 
+class Task:
+    """
+    The class TaskName stores the name of the task that executes the API call.
+    """
+    name = None
+
+
+task = Task();
+
+
 def getSchemaName():
     """
     Returns the WebServiceID that identifies the schema for a user in MyScratch database with CasJobs.
@@ -114,10 +124,14 @@ def executeQuery(sql, context="MyDB", format="pandas"):
         raise Exception("Error when executing query. Illegal format parameter specification: " + str(format));
 
     taskName = "";
-    if Config.isSciServerComputeEnvironment():
-        taskName = "Compute.SciScript-Python.CasJobs.executeQuery"
+    if task.name is not None:
+        taskName = task.name;
+        task.name = None;
     else:
-        taskName = "SciScript-Python.CasJobs.executeQuery"
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.CasJobs.executeQuery"
+        else:
+            taskName = "SciScript-Python.CasJobs.executeQuery"
 
     QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"  + "?TaskName=" + taskName
 
@@ -312,6 +326,13 @@ def writeFitsFileFromQuery(fileName, queryString, context="MyDB"):
     .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.getPandasDataFrameFromQuery, CasJobs.getNumpyArrayFromQuery
     """
     try:
+
+
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.writeFitsFileFromQuery"
+        else:
+            task.name = "SciScript-Python.CasJobs.writeFitsFileFromQuery"
+
         bytesio = executeQuery(queryString, context=context, format="fits")
 
         theFile = open(fileName, "w+b")
@@ -337,6 +358,12 @@ def getPandasDataFrameFromQuery(queryString, context="MyDB"):
     .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.writeFitsFileFromQuery, CasJobs.getNumpyArrayFromQuery
     """
     try:
+
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.getPandasDataFrameFromQuery"
+        else:
+            task.name = "SciScript-Python.CasJobs.getPandasDataFrameFromQuery"
+
         cvsResponse = executeQuery(queryString, context=context,format="readable")
 
         #if the index column is not specified then it will add it's own column which causes problems when uploading the transformed data
@@ -362,7 +389,13 @@ def getNumpyArrayFromQuery(queryString, context="MyDB"):
     """
     try:
 
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.getNumpyArrayFromQuery"
+        else:
+            task.name = "SciScript-Python.CasJobs.getNumpyArrayFromQuery"
+
         dataFrame = getPandasDataFrameFromQuery(queryString, context)
+
         return dataFrame.as_matrix()
 
     except Exception as e:
@@ -384,6 +417,12 @@ def uploadPandasDataFrameToTable(dataFrame, tableName, context="MyDB"):
     .. seealso:: CasJobs.uploadCSVDataToTable
     """
     try:
+
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.uploadPandasDataFrameToTable"
+        else:
+            task.name = "SciScript-Python.CasJobs.uploadPandasDataFrameToTable"
+
         if dataFrame.index.name is not None and dataFrame.index.name != "":
             sio = dataFrame.to_csv().encode("utf8")
         else:
@@ -414,10 +453,14 @@ def uploadCSVDataToTable(csvData, tableName, context="MyDB"):
         #    print "Uploading ", sys.getsizeof(CVSdata), "bytes..."
 
         taskName = "";
-        if Config.isSciServerComputeEnvironment():
-            taskName = "Compute.SciScript-Python.CasJobs.uploadCSVDataToTable"
+        if task.name is not None:
+            taskName = task.name;
+            task.name = None;
         else:
-            taskName = "SciScript-Python.CasJobs.uploadCSVDataToTable"
+            if Config.isSciServerComputeEnvironment():
+                taskName = "Compute.SciScript-Python.CasJobs.uploadCSVDataToTable"
+            else:
+                taskName = "SciScript-Python.CasJobs.uploadCSVDataToTable"
 
         tablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables/" + tableName + "?TaskName=" + taskName
 

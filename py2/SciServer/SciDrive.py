@@ -7,6 +7,15 @@ import requests as requests
 from SciServer import Config, Authentication
 
 
+class Task:
+    """
+    The class TaskName stores the name of the task that executes the API call.
+    """
+    name = None
+
+
+task = Task();
+
 def createContainer(path):
     """
     Creates a container (directory) in SciDrive
@@ -99,10 +108,14 @@ def publicUrl(path):
     if token is not None and token != "":
 
         taskName = "";
-        if Config.isSciServerComputeEnvironment():
-            taskName = "Compute.SciScript-Python.SciDrive.publicUrl"
+        if task.name is not None:
+            taskName = task.name;
+            task.name = None;
         else:
-            taskName = "SciScript-Python.SciDrive.publicUrl"
+            if Config.isSciServerComputeEnvironment():
+                taskName = "Compute.SciScript-Python.SciDrive.publicUrl"
+            else:
+                taskName = "SciScript-Python.SciDrive.publicUrl"
 
         url = Config.SciDriveHost + '/vospace-2.0/1/media/sandbox/' + str(path) + "?TaskName=" + taskName
         headers = {'X-Auth-Token': token}
@@ -170,11 +183,11 @@ def download(path, format="text", localFilePath=""):
 
         taskName = "";
         if Config.isSciServerComputeEnvironment():
-            taskName = "Compute.SciScript-Python.SciDrive.download"
+            task.name = "Compute.SciScript-Python.SciDrive.download"
         else:
-            taskName = "SciScript-Python.SciDrive.download"
+            task.name = "SciScript-Python.SciDrive.download"
 
-        fileUrl = publicUrl(path) + "?TaskName=" + taskName
+        fileUrl = publicUrl(path)
         res = requests.get(fileUrl, stream=True)
         if res.status_code != 200:
             raise Exception("Error when downloading SciDrive file " + str(path) + ".\nHttp Response from SciDrive API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
