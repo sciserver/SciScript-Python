@@ -1,6 +1,7 @@
 #!/usr/bin/python
 from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyServer, SkyQuery, SciDrive
-import unittest2 as unittest
+#import unittest2 as unittest
+import unittest
 import os;
 import pandas;
 import sys;
@@ -10,9 +11,9 @@ from io import BytesIO
 import skimage
 
 # Define login Name and password before running the tests:
-Authentication_loginName = '***';
-Authentication_loginPassword = '***'
-
+Authentication_loginName = '****';
+Authentication_loginPassword = '****'
+SkyQuery_UserTablePrefix = 'webuser'
 
 #skyserver
 SkyServer_TestQuery = "select top 1 specobjid, ra, dec from specobj order by specobjid"
@@ -376,9 +377,9 @@ class TestSkyQuery(unittest.TestCase):
         table = SkyQuery.getTable(tableName=SkyQuery_TestTableName, datasetName="MyDB", top=10)
         self.assertEqual(SkyQuery_TestTableCSVdownloaded, table.to_csv(index=False));
 
-        info = SkyQuery.getTableInfo(tableName="webuser." + SkyQuery_TestTableName, datasetName="MyDB")
+        info = SkyQuery.getTableInfo(tableName=SkyQuery_UserTablePrefix + '.' + SkyQuery_TestTableName, datasetName="MyDB")
 
-        columns = SkyQuery.listTableColumns(tableName="webuser." + SkyQuery_TestTableName, datasetName="MyDB")
+        columns = SkyQuery.listTableColumns(tableName=SkyQuery_UserTablePrefix + '.' + SkyQuery_TestTableName, datasetName="MyDB")
 
         result = SkyQuery.dropTable(tableName=SkyQuery_TestTableName, datasetName="MyDB");
         self.assertEqual(result, True)

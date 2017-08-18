@@ -13,3 +13,8 @@
 /py3/SciServer.egg-info
 /py3/.idea
 /Examples/.ipynb_checkpoints/
+
+# Visual Studio Related
+.vs
+__pycache__
+*.user
