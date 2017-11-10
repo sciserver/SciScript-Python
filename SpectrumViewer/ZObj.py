@@ -7,3 +7,4 @@ class ZObj:
         self.LINEZ_ERR = LINEZ_ERR
         self.LINEEW = LINEEW
         self.LINEER_ERR = LINEEW_ERR
+

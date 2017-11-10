@@ -1,19 +1,14 @@
 # show plotting result in a new window interactively
 # this is actual user interface all the object are hide away from user
-import SpectrumViewer.ZObj as ZObj
-import SpectrumViewer.CoaddObj as CoaddObj
 import matplotlib
 matplotlib.use("TkAgg")
-import SpectrumViewer.SDSSDriver as driver
-import SpectrumViewer.SpecUtil as specutil
-from matplotlib.figure import Figure
-from numpy import arange, sin, pi
+from SpectrumViewer import SDSSDriver as driver
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 # implement the default mpl key bindings
 from matplotlib.backend_bases import key_press_handler
 import tkinter as Tk
 
-
+from SpectrumViewer import SpecUtil as SpecUtil
 def view(fileName,fileSource):
     coaddObj, zObj = driver.loadFITS(fileName, fileSource)
     #construn tk window and all components
@@ -91,7 +86,7 @@ class SpecController:
 
 class SpecModel:
     def __init__(self,coaddObj,zObj):
-        self.specUtilObj = specutil.SpecUtil(coaddObj,zObj)
+        self.specUtilObj = SpecUtil.SpecUtil(coaddObj, zObj)
     #take data to self construct
     # this is where plot happens
     #Figure composing
