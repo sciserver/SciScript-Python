@@ -33,12 +33,13 @@ class SpecUtil(object):
         self.skylinebutton.on_clicked(self.skylineClicked)
 
         self.axabsorbbutton = plt.axes([0.3, 0.05, 0.1, 0.075])
-        self.absorbbutton = Button(self.axabsorbbutton, 'absorption')
+        self.absorbbutton = Button(self.axabsorbbutton, 'a/e line')
         self.absorbbutton.on_clicked(self.absorbClicked)
 
-        self.axemission = plt.axes([0.4, 0.05, 0.1, 0.075])
-        self.emissionbutton = Button(self.axemission, 'emission')
-        self.emissionbutton.on_clicked(self.emissionClicked)
+        #
+        # self.axemission = plt.axes([0.4, 0.05, 0.1, 0.075])
+        # self.emissionbutton = Button(self.axemission, 'emission')
+        # self.emissionbutton.on_clicked(self.emissionClicked)
 
         self.axmodelbutton = plt.axes([0.5, 0.05, 0.1, 0.075])
         self.modelbutton = Button(self.axmodelbutton, 'model')
@@ -148,7 +149,8 @@ class SpecUtil(object):
         elif actionIndex==2:
             #plot emission line
             #self.plotSegment(axes,actionIndex)
-            self.plotVLine(axes, actionIndex)
+            #self.plotVLine(axes, actionIndex)
+            pass
         elif actionIndex ==3:
             #plot absorption line
             #self.plotSegment(axes,actionIndex)
