@@ -43,7 +43,6 @@ def loadFITS(filename,fileSource):
             LINENAME=z['LINENAME'],
             LINEWAVE=z['LINEWAVE'],
             LINEZ=z['LINEZ'],
-
             LINEEW=z['LINEEW'],
             LINEZ_ERR=z['LINEZ_ERR'],
             LINEEW_ERR=z['LINEEW_ERR'])
