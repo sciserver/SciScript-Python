@@ -12,6 +12,8 @@ Although these parameters must be set/defined by the admin or user before the in
 
 - **Config.SkyServerWSurl**: defines the base URL of the SkyServer web service API (string). E.g., "https://skyserver.sdss.org"
 
+- **Config.RacmApiURL**: defines the base URL of the RACM API (string). E.g., "https://www.sciserver.org/racm"
+
 - **Config.DataRelease**: defines the SDSS data release (string), to be used to build the full SkyServer API url along with Config.SkyServerWSurl. E.g., "DR13"
 
 - **Config.KeystoneTokenPath**: defines the local path (string) to the file containing the user's authentication token in the SciServer-Compute environment. E.g., "/home/idies/keystone.token". Unlikely to change since it is hardcoded in SciServer-Compute.
@@ -24,11 +26,11 @@ AuthenticationURL = "https://portal.sciserver.org/login-portal/keystone/v3/token
 SciDriveHost = "https://www.scidrive.org"
 SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
 SkyServerWSurl = "https://skyserver.sdss.org"
+RacmApiURL = "http://scitest12.pha.jhu.edu/racm"
 DataRelease = "DR13"
-KeystoneTokenPath =  "/home/idies/keystone.token" #this path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
+KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
 version = "sciserver-v1.10.0" #sciserver release version
-
-
+ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
 
 # returns TRUE if the library is running inside the SciServer-Compute, and FALSE if not
 import os;

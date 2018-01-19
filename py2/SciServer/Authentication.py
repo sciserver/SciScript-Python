@@ -6,7 +6,7 @@ import sys
 import requests
 import os.path
 import warnings
-
+import getpass
 from SciServer import Config
 
 
@@ -63,7 +63,7 @@ def getKeystoneUserWithToken(token):
     return ksu
 
 
-def login(UserName, Password):
+def login(UserName=None, Password=None):
     """
     Logs the user into SciServer and returns the authentication token.
     This function is useful when SciScript-Python library methods are executed outside the SciServer-Compute environment.
@@ -71,12 +71,11 @@ def login(UserName, Password):
     so the user has to use Authentication.login in order to log into SciServer manually and get the authentication token.
     Authentication.login also sets the token value in the python instance argument variable "--ident", and as the local object Authentication.token (of class Authentication.Token).
 
-    :param UserName: name of the user (string)
-    :param Password: password of the user (string)
+    :param UserName: name of the user (string). If not set, then a user name prompt will show.
+    :param Password: password of the user (string). If not set, then a password prompt will show.
     :return: authentication token (string)
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error.
-    :example: token = Authentication.login('loginName','loginPassword')
-
+    :example: token1 = Authentication.login(); token2 = Authentication.login('loginName','loginPassword');
     .. seealso:: Authentication.getKeystoneUserWithToken, Authentication.getToken, Authentication.setToken, Authentication.token.
     """
     taskName = ""
@@ -87,7 +86,14 @@ def login(UserName, Password):
 
     loginURL = Config.AuthenticationURL + "?TaskName=" + taskName
 
-    authJson = {"auth":{"identity":{"password":{"user":{"name":UserName,"password":Password}}}}}
+    userName = UserName;
+    password = Password;
+    if userName is None:
+        userName = getpass.getpass(prompt="Enter SciServer user name: ")
+    if password is None:
+        password = getpass.getpass(prompt="Enter SciServer password: ")
+
+    authJson = {"auth":{"identity":{"password":{"user":{"name":userName,"password":password}}}}}
 
     data = json.dumps(authJson).encode()
 
