@@ -24,7 +24,7 @@ def getFileServices():
         else:
             taskName = "SciScript-Python.Files.getFileServices"
 
-        url = Config.RacmApiURL + "/storem?TaskName="+taskName;
+        url = Config.RacmApiURL + "/storem/fileservices?TaskName="+taskName;
 
         headers = {'X-Auth-Token': token}
         res = requests.get(url, headers=headers)
@@ -44,7 +44,7 @@ def getFileServiceFromName(fileServiceName, fileServices=None):
     :param fileServices: a list of FileService objects (dictionaries), as returned by Jobs.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
     :return: a FileService object (dictionary) that defines a FileService. A list of these kind of objects available to the user is returned by the function Jobs.getFileServices().
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
-    :example: fileService = Files.getFileServiceFromName('fileServiceAtJHU');
+    :example: fileService = Files.getFileServiceFromName('FileServiceAtJHU');
     .. seealso:: Files.getFileServices
     """
 
@@ -74,17 +74,15 @@ def __getFileServiceAPIUrl(fileService=None):
     :example: fileServiceUrl = Files.__getFileServiceAPIUrl();
     .. seealso:: Files.getFileServiceFromName
     """
-    return 'http://scitest12.pha.jhu.edu/fileservice/'; # for now
-
     if fileService is None:
         fileServices = getFileServices();
         if fileServices.__len__() > 0:
-            return fileServices[0].get("URL");
+            return fileServices[0].get("apiEndpoint");
         else:
             raise Exception("There are no FileServices available for the user.");
 
     else:
-        return fileService.get("URL");
+        return fileService.get("apiEndpoint");
 
 
 def createDir(path, volume, ownerName=None, fileService=None):
