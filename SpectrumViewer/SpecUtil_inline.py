@@ -156,9 +156,9 @@ class SpecUtil(object):
         self.updateFig()
     def plotLines(self,axes,actionIndex):
         if actionIndex==0:
-            axes.plot(self.coaddObj.lam, self.coaddObj.flux,'C0',label='flux')
+            axes.plot(self.coaddObj.lam, self.coaddObj.flux,'k',label='flux')
         elif actionIndex==1:
-            axes.plot(self.coaddObj.lam, self.coaddObj.sky,'C1',label='skyline')
+            axes.plot(self.coaddObj.lam, self.coaddObj.sky,'y',label='skyline')
         elif actionIndex==2:
             #plot emission line
             #self.plotSegment(axes,actionIndex)
@@ -172,7 +172,7 @@ class SpecUtil(object):
         elif actionIndex ==4:
 
             #plot best fit model
-            axes.plot(self.coaddObj.lam, self.coaddObj.model, 'C3', label='best fit model')
+            axes.plot(self.coaddObj.lam, self.coaddObj.model, 'c', label='best fit model')
         elif actionIndex==5:
             #plot the redshift table
             self.plotZTable(axes)
