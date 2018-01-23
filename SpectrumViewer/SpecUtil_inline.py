@@ -14,9 +14,10 @@ class SpecUtil(object):
                          2: True,
                          3: True,
                          4: True,
-                         5: True}
+                         5: True,
+                         6: True}
         #0 flux 1 skyline 2 emission 3 absorb 4 model 5 redshift table
-
+        #6 other line
         #self.updateFig()
         self.figure = plt.figure(filename,figsize=(10, 8), dpi=100)
         #self.figure1 = plt.figure(filename, figsize=(10, 8), dpi=100)
@@ -33,19 +34,24 @@ class SpecUtil(object):
         self.skylinebutton.on_clicked(self.skylineClicked)
 
         self.axabsorbbutton = plt.axes([0.3, 0.05, 0.1, 0.075])
-        self.absorbbutton = Button(self.axabsorbbutton, 'a/e line')
+        self.absorbbutton = Button(self.axabsorbbutton, 'absorption')
         self.absorbbutton.on_clicked(self.absorbClicked)
 
-        #
-        # self.axemission = plt.axes([0.4, 0.05, 0.1, 0.075])
-        # self.emissionbutton = Button(self.axemission, 'emission')
-        # self.emissionbutton.on_clicked(self.emissionClicked)
 
-        self.axmodelbutton = plt.axes([0.5, 0.05, 0.1, 0.075])
+        self.axemission = plt.axes([0.4, 0.05, 0.1, 0.075])
+        self.emissionbutton = Button(self.axemission, 'emission')
+        self.emissionbutton.on_clicked(self.emissionClicked)
+
+
+        self.axother = plt.axes([0.5, 0.05, 0.1, 0.075])
+        self.otherbutton = Button(self.axother, 'other')
+        self.otherbutton.on_clicked(self.otherClicked)
+
+        self.axmodelbutton = plt.axes([0.6, 0.05, 0.1, 0.075])
         self.modelbutton = Button(self.axmodelbutton, 'model')
         self.modelbutton.on_clicked(self.modelClicked)
 
-        self.axzbutton = plt.axes([0.6, 0.05, 0.1, 0.075])
+        self.axzbutton = plt.axes([0.7, 0.05, 0.1, 0.075])
         self.zbutton = Button(self.axzbutton, 'redshift')
         self.zbutton.on_clicked(self.zClicked)
 
@@ -104,6 +110,13 @@ class SpecUtil(object):
         else:
             self.plotDict[3] = True
         self.updateFig()
+
+    def otherClicked(self, event):
+        if self.plotDict[6]:
+            self.plotDict[6] = False
+        else:
+            self.plotDict[6] = True
+        self.updateFig()
     def modelClicked(self, event):
         if self.plotDict[4]:
             self.plotDict[4] = False
@@ -149,8 +162,8 @@ class SpecUtil(object):
         elif actionIndex==2:
             #plot emission line
             #self.plotSegment(axes,actionIndex)
-            #self.plotVLine(axes, actionIndex)
-            pass
+            self.plotVLine(axes, actionIndex)
+            #pass
         elif actionIndex ==3:
             #plot absorption line
             #self.plotSegment(axes,actionIndex)
@@ -163,7 +176,9 @@ class SpecUtil(object):
         elif actionIndex==5:
             #plot the redshift table
             self.plotZTable(axes)
-
+        elif actionIndex ==6:
+            #plot other line
+            self.plotVLine(axes,actionIndex)
         else:
             pass
 
@@ -180,13 +195,15 @@ class SpecUtil(object):
                    colLabels=col_labels,
                    loc='right',bbox=[1.1, 0, 0.3, 0.04*len(self.zObj.LINENAME)])
         axes.text(12, 3.4, 'redshift and error', size=8)
+
     def plotVLine(self,axes,actionIndex):
         # read e/a line from zobj and plot it on axes with function from axhspan
         if actionIndex==2:#emissiaon line
             for lineIndex in range(0,len(self.zObj.LINENAME)):
 
                 width = self.zObj.LINEEW[lineIndex]
-                if width >0:
+                if self.zObj.LINEZ_type[lineIndex]=='e':
+                    #print(self.zObj.LINEZ_type[lineIndex])
                     #print(width)
                     position = self.zObj.LINEWAVE[lineIndex]
                     # startPostition = position-width/2
@@ -199,17 +216,31 @@ class SpecUtil(object):
         elif actionIndex==3:#absorption line
             for lineIndex in range(0,len(self.zObj.LINENAME)):
                 width = self.zObj.LINEEW[lineIndex]
-                if width >0:
+                if self.zObj.LINEZ_type[lineIndex]=='a':
+                    #print(self.zObj.LINEZ_type[lineIndex])
                     #print(width)
                     position = self.zObj.LINEWAVE[lineIndex]
                     #startPostition = position-width/2
                     #endPostition = position + width / 2
                     name= self.zObj.LINENAME[lineIndex]
                     #print(name)
-                    axes.axvline(position,c='b')
+                    axes.axvline(position,c='r')
                     #axes.axvspan(xmin=startPostition,xmax=endPostition, facecolor='C4')
-                    axes.text(position,0,name , rotation=90)
-
+                    axes.text(position-5,5,name , rotation=90)
+        elif actionIndex==6:#other lines
+            for lineIndex in range(0,len(self.zObj.LINENAME)):
+                width = self.zObj.LINEEW[lineIndex]
+                if self.zObj.LINEZ_type[lineIndex]=='ae' or self.zObj.LINEZ_type[lineIndex]=='other':
+                    #print(self.zObj.LINEZ_type[lineIndex])
+                    #print(width)
+                    position = self.zObj.LINEWAVE[lineIndex]
+                    #startPostition = position-width/2
+                    #endPostition = position + width / 2
+                    name= self.zObj.LINENAME[lineIndex]
+                    #print(name)
+                    axes.axvline(position,c='g')
+                    #axes.axvspan(xmin=startPostition,xmax=endPostition, facecolor='C4')
+                    axes.text(position-5,5,name , rotation=90)
     def plotSegment(self,axes,actionIndex):
 
         # read e/a line from zobj and plot it on axes with function from axhspan
