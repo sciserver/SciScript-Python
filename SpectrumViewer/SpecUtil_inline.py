@@ -194,7 +194,7 @@ class SpecUtil(object):
                    rowLabels=row_labels,
                    colLabels=col_labels,
                    loc='right',bbox=[1.1, 0, 0.3, 0.04*len(self.zObj.LINENAME)])
-        axes.text(12, 3.4, 'redshift and error', size=8)
+        #axes.text(12, 3.4, 'redshift and error', size=8)
 
     def plotVLine(self,axes,actionIndex):
         # read e/a line from zobj and plot it on axes with function from axhspan
