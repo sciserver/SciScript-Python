@@ -43,7 +43,7 @@ def loadFITS(filename,fileSource):
             LINENAME=z['LINENAME'],
             LINEWAVE=z['LINEWAVE'],
             LINEZ=z['LINEZ'],
-
+            LINENameFormatted = [x.split()[0].replace('_','') for x in z['LINENAME']],
             LINEEW=z['LINEEW'],
             LINEZ_ERR=z['LINEZ_ERR'],
             LINEEW_ERR=z['LINEEW_ERR'])
