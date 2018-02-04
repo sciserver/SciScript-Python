@@ -17,6 +17,7 @@ class KeystoneUser:
     """
     id = None
     userName = None
+    token = None
 
 class Token:
     """
@@ -26,6 +27,7 @@ class Token:
 
 
 token = Token();
+keystoneUser = KeystoneUser();
 
 def getKeystoneUserWithToken(token):
     """
@@ -38,29 +40,37 @@ def getKeystoneUserWithToken(token):
 
     .. seealso:: Authentication.getToken, Authentication.login, Authentication.setToken.
     """
-    taskName = ""
-    if Config.isSciServerComputeEnvironment():
-        taskName = "Compute.SciScript-Python.Authentication.getKeystoneUserWithToken"
+
+    if keystoneUser.token == token and keystoneUser.token is not None:
+        return keystoneUser;
+
     else:
-        taskName = "SciScript-Python.Authentication.getKeystoneUserWithToken"
-    
-    loginURL = Config.AuthenticationURL
-    if ~loginURL.endswith("/"):
-        loginURL = loginURL + "/"
+        taskName = ""
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.Authentication.getKeystoneUserWithToken"
+        else:
+            taskName = "SciScript-Python.Authentication.getKeystoneUserWithToken"
 
-    loginURL = loginURL + token + "?TaskName=" + taskName;
+        loginURL = Config.AuthenticationURL
+        if ~loginURL.endswith("/"):
+            loginURL = loginURL + "/"
 
-    getResponse = requests.get(loginURL)
-    if getResponse.status_code != 200:
-        raise Exception("Error when getting the keystone user with token " + str(token) +".\nHttp Response from the Authentication API returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+        loginURL = loginURL + token + "?TaskName=" + taskName;
 
-    responseJson = json.loads((getResponse.content.decode()))
+        getResponse = requests.get(loginURL)
+        if getResponse.status_code != 200:
+            raise Exception("Error when getting the keystone user with token " + str(token) +".\nHttp Response from the Authentication API returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
 
-    ksu = KeystoneUser()
-    ksu.userName = responseJson["token"]["user"]["name"]
-    ksu.id = responseJson["token"]["user"]["id"]
+        responseJson = json.loads((getResponse.content.decode()))
 
-    return ksu
+        ksu = KeystoneUser()
+        ksu.userName = responseJson["token"]["user"]["name"]
+        ksu.id = responseJson["token"]["user"]["id"]
+        keystoneUser.token = token;
+        keystoneUser.userName = ksu.userName
+        keystoneUser.id = ksu.id
+
+        return ksu
 
 
 def login(UserName=None, Password=None):
@@ -80,9 +90,9 @@ def login(UserName=None, Password=None):
     """
     taskName = ""
     if Config.isSciServerComputeEnvironment():
-        taskName = "Compute.SciScript-Python.Authentication.login"
+        taskName = "Compute.SciScript-Python.Authentication.Login"
     else:
-        taskName = "SciScript-Python.Authentication.login"
+        taskName = "SciScript-Python.Authentication.Login"
 
     loginURL = Config.AuthenticationURL + "?TaskName=" + taskName
 

@@ -4,7 +4,7 @@
 # In[ ]:
 
 import SciServer
-from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyQuery, SciDrive, SkyServer
+from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyQuery, SciDrive, SkyServer, Files, Jobs
 import os;
 import pandas;
 import sys;
@@ -18,6 +18,9 @@ import matplotlib.pyplot as plt
 # Define login Name and password before running these examples
 Authentication_loginName = '***';
 Authentication_loginPassword = '***'
+
+Authentication_login_sharedWithName = '***'
+Authentication_login_sharedWithPassword = '***'
 
 
 # In[ ]:
@@ -477,6 +480,11 @@ os.remove(SciDrive_FilePath)
 
 # In[ ]:
 
+token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+
+# In[ ]:
+
 #list all databses or datasets available
 
 datasets = SkyQuery.listAllDatasets()
@@ -626,4 +634,363 @@ print(columns)
 
 result = SkyQuery.dropTable(tableName=SkyQuery_TestTableName, datasetName="MyDB");
 print(result)
+
+
+# In[ ]:
+
+# *******************************************************************************************************
+# Files section:
+# *******************************************************************************************************
+
+
+# In[ ]:
+
+#help(Files)
+
+
+# In[ ]:
+
+# defining the FileService name
+
+Files_FileServiceName = "FileServiceJHU"
+Files_RootVolumeName1 = "volumes"
+Files_UserVolumeName1 = Authentication_loginName + "_UserVolume555"
+Files_RootVolumeName2 = "volumes"
+Files_UserVolumeName2 = Authentication_loginName + "_UserVolume999"
+Files_NewDirectoryName1 = "myNewDirectory555"
+Files_NewDirectoryName2 = "myNewDirectory999"
+Files_LocalFileName = "MyNewFile.txt"
+Files_LocalFileContent = "#ID,Column1,Column2\n1,4.5,5.5"
+
+
+# In[ ]:
+
+token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+
+# In[ ]:
+
+# get available FileServices
+
+fileServices = Files.getFileServices();
+print(fileServices)
+
+
+# In[ ]:
+
+# get names of file services available to the user.
+
+fileServiceNames = Files.getFileServicesNames();
+print(fileServiceNames)
+
+
+# In[ ]:
+
+# get FileService from Name
+
+fileService = Files.getFileServiceFromName(Files_FileServiceName);
+print(fileService)
+
+
+# In[ ]:
+
+# get the API endpoint URL of a FileService
+
+fileServiceAPIUrl = Files.__getFileServiceAPIUrl(fileService);
+print(fileServiceAPIUrl)
+
+
+# In[ ]:
+
+# get root volumes
+
+rootVolumes = Files.getRootVolumes(fileService)
+print(rootVolumes)
+
+
+# In[ ]:
+
+# create user volume
+
+Files.createUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1)
+Files.createUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName2)
+
+
+# In[ ]:
+
+# create a directory in the persistent volume
+
+Files.createDir(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1);
+Files.createDir(fileService, Files_RootVolumeName2, Files_UserVolumeName2, Files_NewDirectoryName2);
+
+
+# In[ ]:
+
+# upload a text string into a file in the remote directory
+
+Files.upload(fileService, Files_RootVolumeName1, Files_UserVolumeName1, 
+             Files_NewDirectoryName1 + "/" + Files_LocalFileName, 
+             data=Files_LocalFileContent);
+
+
+# In[ ]:
+
+# List content of remote directory
+
+dirList = Files.dirList(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1, level=2)
+print(dirList)
+
+
+# In[ ]:
+
+# download a remote text file into a local directory
+
+Files.download(fileService, Files_RootVolumeName1, Files_UserVolumeName1, 
+               Files_NewDirectoryName1 + "/" + Files_LocalFileName, 
+               localFilePath=Files_LocalFileName);
+
+
+# In[ ]:
+
+# Delete remote file
+
+Files.delete(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1 + "/" + Files_LocalFileName)
+
+
+# In[ ]:
+
+# upload a local file into a remote directory
+
+Files.upload(fileService, Files_RootVolumeName1, Files_UserVolumeName1,
+             Files_NewDirectoryName1 + "/" + Files_LocalFileName, localFilePath=Files_LocalFileName, quiet=False);
+
+
+# In[ ]:
+
+# copy remote file into remote directory
+
+Files.move(fileService, Files_RootVolumeName1, Files_UserVolumeName1,Files_NewDirectoryName1 + "/" + Files_LocalFileName, 
+           fileService, Files_RootVolumeName2, Files_UserVolumeName2,Files_UserVolumeName2 + "/" + Files_NewDirectoryName2 + "/" + Files_LocalFileName
+          );
+
+
+# In[ ]:
+
+# sharing user volume with another user
+
+Files.shareUserVolume(fileService, Files_RootVolumeName2, Files_UserVolumeName2, 
+                      sharedWith=Authentication_login_sharedWithName, type="USER", 
+                      userVolumeOwner=Authentication_loginName,
+                      allowedActions=["read"])
+
+
+# In[ ]:
+
+# let the other user log-in
+
+token1 = Authentication.login(Authentication_login_sharedWithName, Authentication_login_sharedWithPassword);
+
+
+# In[ ]:
+
+# the other user downloads the remote text file (from the shared user volume) into a local string variable
+
+string = Files.download(fileService, Files_RootVolumeName2, Files_UserVolumeName2, 
+                        Files_NewDirectoryName2 + "/" + Files_LocalFileName, 
+                        format="txt", userVolumeOwner=Authentication_loginName);
+print(string)
+
+
+# In[ ]:
+
+# the original user logs in again
+
+token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+
+# In[ ]:
+
+# delete folders
+
+Files.delete(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1)
+Files.delete(fileService, Files_RootVolumeName2, Files_UserVolumeName2, Files_NewDirectoryName2)
+
+
+# In[ ]:
+
+# delete user volumes
+
+Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1)
+Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName2)
+
+
+# In[ ]:
+
+# *******************************************************************************************************
+# Jobs section:
+# *******************************************************************************************************
+
+
+# In[ ]:
+
+#help(Jobs)
+
+
+# In[ ]:
+
+Jobs_DockerComputeDomainName = 'Small Jobs Batch Domain'
+
+Jobs_FileServiceName = "FileServiceJHU"
+Jobs_RootVolumeName = "volumes"
+Jobs_UserVolumeName = Authentication_loginName + "_JobsTestVolume"
+Jobs_DirectoryName = "JobsTestDirectory"
+Jobs_NotebookName = 'TestNotebook.ipynb'
+Jobs_ShellCommand = 'ls -laht'
+Jobs_DockerImageName = 'Python (astro)'
+
+Jobs_UserVolumes = [{'name':'persistent'},{'name':'scratch', 'needsWriteAccess':True}]
+Jobs_DataVolumes = [{'name':'SDSS_DAS'}]
+Jobs_Parameters =  'param1=1\nparam2=2\nparam3=3'
+Jobs_Alias = 'MyNewJob'
+
+Jobs_SqlQuery = "select 1;"
+Jobs_RBBComputeDomainName = 'Manga (long)'
+Jobs_DatabaseContextName = "manga"
+Jobs_QueryResultsFile = 'myQueryResults'
+
+
+# In[ ]:
+
+# get docker compute domains
+
+dockerComputeDomains = Jobs.getDockerComputeDomains();
+print(dockerComputeDomains)
+
+
+# In[ ]:
+
+# get names of docker compute domains available to the user
+
+dockerComputeDomainsNames = Jobs.getDockerComputeDomainsNames()
+print(dockerComputeDomainsNames)
+
+
+# In[ ]:
+
+# get docker compute domain from name
+
+dockerComputeDomain = Jobs.getDockerComputeDomainFromName(Jobs_DockerComputeDomainName)
+print(dockerComputeDomain)
+
+
+# In[ ]:
+
+# uploading Jupyter notebook to remote directory
+
+fileService = Files.getFileServiceFromName(Jobs_FileServiceName);
+Files.createUserVolume(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName)
+Files.upload(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName, 
+             Jobs_DirectoryName + "/" + Jobs_NotebookName, 
+             localFilePath=Jobs_NotebookName);
+
+
+# In[ ]:
+
+# submit a Jupyter notebook job.
+
+jobId = Jobs.submitNotebookJob('/home/idies/workspace/' + Jobs_UserVolumeName + '/' + Jobs_DirectoryName + '/' + Jobs_NotebookName,
+                             dockerComputeDomain,
+                             Jobs_DockerImageName, 
+                             Jobs_UserVolumes, Jobs_DataVolumes,
+                             Jobs_Alias)
+print(jobId)
+
+
+# In[ ]:
+
+# get job status
+
+jobStatus = Jobs.getJobStatus(jobId)
+print(jobStatus)
+
+
+# In[ ]:
+
+# get job description
+
+job = Jobs.getJobDescription(jobId)
+print(job)
+
+
+# In[ ]:
+
+# wait until job is finsihed and get job status
+
+jobId = Jobs.submitNotebookJob('/home/idies/workspace/' + Jobs_UserVolumeName + '/' + Jobs_DirectoryName + '/' + Jobs_NotebookName,
+                             dockerComputeDomain,
+                             Jobs_DockerImageName, 
+                             Jobs_UserVolumes, Jobs_DataVolumes,
+                             Jobs_Alias)
+jobStatus = Jobs.waitForJob(jobId)
+print(jobStatus)
+
+
+# In[ ]:
+
+# cancel job
+
+jobId = Jobs.submitNotebookJob('/home/idies/workspace/' + Jobs_UserVolumeName + '/' + Jobs_DirectoryName + '/' + Jobs_NotebookName,
+                             dockerComputeDomain,
+                             Jobs_DockerImageName, 
+                             Jobs_UserVolumes, Jobs_DataVolumes,
+                             Jobs_Alias)
+Jobs.cancelJob(jobId)
+
+
+# In[ ]:
+
+Files.deleteUserVolume(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName, quiet=True)
+
+
+# In[ ]:
+
+# submit shell command job
+
+jobId = Jobs.submitShellCommandJob(Jobs_ShellCommand,
+                                    dockerComputeDomain,
+                                    Jobs_DockerImageName,
+                                    Jobs_UserVolumes, Jobs_DataVolumes,
+                                    Jobs_Alias)
+
+
+# In[ ]:
+
+# get relational database (RDB) compute domains
+
+rdbComputeDomains = Jobs.getRDBComputeDomains();
+print(rdbComputeDomains)
+
+
+# In[ ]:
+
+# get names of relational database (RDB) compute domains
+
+rdbComputeDomainsNames = Jobs.getRDBComputeDomainsNames()
+print(rdbComputeDomainsNames)
+
+
+# In[ ]:
+
+# get relational database (RDB) compute domain from name
+
+rdbComputeDomain = Jobs.getRDBComputeDomainFromName(Jobs_RBBComputeDomainName);
+print(rdbComputeDomain)
+
+
+# In[ ]:
+
+# submit RDB (relatinal database) query job
+
+jobId = Jobs.submitRDBQueryJob(Jobs_SqlQuery, rdbComputeDomain, Jobs_DatabaseContextName, Jobs_QueryResultsFile, Jobs_Alias)
+print(jobId)
 

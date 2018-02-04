@@ -22,7 +22,7 @@ Although these parameters must be set/defined by the admin or user before the in
 """
 # URLs for accessing SciServer web services (API endpoints)
 CasJobsRESTUri = "https://skyserver.sdss.org/CasJobs/RestApi"
-AuthenticationURL = "https://portal.sciserver.org/login-portal/keystone/v3/tokens"
+AuthenticationURL = "http://scitest12.pha.jhu.edu/login-portal/keystone/v3/tokens"
 SciDriveHost = "https://www.scidrive.org"
 SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
 SkyServerWSurl = "https://skyserver.sdss.org"
