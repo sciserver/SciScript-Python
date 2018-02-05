@@ -608,7 +608,7 @@ class TestJobs(unittest.TestCase):
             dockerComputeDomain,
             Jobs_DockerImageName,
             Jobs_UserVolumes, Jobs_DataVolumes,
-            Jobs_Alias)
+            Jobs_Parameters, Jobs_Alias)
         Jobs.cancelJob(jobId_1)
         jobStatus = Jobs.getJobStatus(jobId_1)
         self.assertTrue(jobStatus.get('status') == 128)
@@ -618,7 +618,7 @@ class TestJobs(unittest.TestCase):
             dockerComputeDomain,
             Jobs_DockerImageName,
             Jobs_UserVolumes, Jobs_DataVolumes,
-            Jobs_Alias)
+            Jobs_Parameters, Jobs_Alias)
 
         jobStatus = Jobs.waitForJob(jobId_2)
         self.assertTrue(jobStatus == Jobs.getJobStatus(jobId_2))
@@ -628,7 +628,7 @@ class TestJobs(unittest.TestCase):
         self.assertTrue(job.get('username') == Authentication_loginName)
         self.assertTrue(job.get('dockerImageName') == Jobs_DockerImageName)
         self.assertTrue(job.get('scriptURI') == Jobs_RemoteNotebookPath)
-        #self.assertTrue(job.get('submitterDID') == Jobs_Alias)
+        self.assertTrue(job.get('submitterDID') == Jobs_Alias)
 
         jobDirectory = job.get('resultsFolderURI')
         relativePath = jobDirectory.split('scratch/')[1] + Jobs_NoteBookOutPutFile;
@@ -733,12 +733,12 @@ if __name__ == '__main__':
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
     testLoader = unittest.TestLoader()
     testLoader.sortTestMethodsUsing = lambda x, y: 0;
-    suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestFileService); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestFileService); unittest.TextTestRunner(verbosity=2).run(suite)
     suite = testLoader.loadTestsFromTestCase(TestJobs); unittest.TextTestRunner(verbosity=2).run(suite)
 
