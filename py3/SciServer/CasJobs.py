@@ -272,12 +272,13 @@ def cancelJob(jobId):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def waitForJob(jobId, verbose=True):
+def waitForJob(jobId, verbose=False, pollTime = 5):
     """
-    Queries the job status from casjobs every 2 seconds and waits for the casjobs job to return a status of 3, 4, or 5 (Cancelled, Failed or Finished, respectively).
+    Queries regularly the job status and waits until the job is completed.
 
     :param jobId: id of job (integer)
-    :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
+    :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, will suppress the printing of messages on the screen.
+    :param pollTime: idle time interval (integer, in seconds) before querying again for the job status. Minimum value allowed is 5 seconds.
     :return: After the job is finished, returns a dictionary object containing the job status and related metadata. The "Status" field can be equal to 0 (Ready), 1 (Started), 2 (Canceling), 3(Canceled), 4 (Failed) or 5 (Finished).
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
     :example: CasJobs.waitForJob(CasJobs.submitJob("select 1"))
@@ -286,6 +287,7 @@ def waitForJob(jobId, verbose=True):
     """
 
     try:
+        minPollTime = 5 # in seconds
         complete = False
 
         waitingStr = "Waiting..."
@@ -305,7 +307,7 @@ def waitForJob(jobId, verbose=True):
                     #print(back, end="")
                     print("Done!")
             else:
-                time.sleep(2)
+                time.sleep(max(minPollTime,pollTime));
 
         return jobDesc
     except Exception as e:

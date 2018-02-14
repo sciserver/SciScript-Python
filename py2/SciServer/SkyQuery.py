@@ -206,12 +206,13 @@ def submitJob(query, queue='quick'):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def waitForJob(jobId, verbose=True):
+def waitForJob(jobId, verbose=False, pollTime = 5):
     """
-    Queries the job status from SkyQuery every 2 seconds and waits for the SkyQuery job to be completed.
+    Queries regularly the job status and waits until the job is completed.
 
     :param jobId: id of job (integer)
-    :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
+    :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, will suppress the printing of messages on the screen.
+    :param pollTime: idle time interval (integer, in seconds) before querying again for the job status. Minimum value allowed is 5 seconds.
     :return: After the job is finished, returns a dictionary object containing the job status and related metadata.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
     :example: SkyQuery.waitForJob(SkyQuery.submitJob("select 1"))
@@ -219,8 +220,8 @@ def waitForJob(jobId, verbose=True):
     .. seealso:: SkyQuery.submitJob, SkyQuery.getJobStatus.
     """
     try:
+        minPollTime = 5 # in seconds
         complete = False
-
         waitingStr = "Waiting..."
         back = "\b" * len(waitingStr)
         if verbose:
@@ -231,13 +232,13 @@ def waitForJob(jobId, verbose=True):
                 #print back,
                 print waitingStr,
             jobDesc = getJobStatus(jobId)
-            if jobDesc['status'] == 'completed':
+            if jobDesc['dateFinished'] is not None:
                 complete = True
                 if verbose:
                     #print back,
                     print "Done!"
             else:
-                time.sleep(2)
+                time.sleep(max(minPollTime,pollTime));
 
         return jobDesc
     except Exception as e:

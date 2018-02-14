@@ -600,13 +600,13 @@ def cancelJob(jobId):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def waitForJob(jobId, verbose=True, pollTime = 5):
+def waitForJob(jobId, verbose=False, pollTime = 5):
     """
-    Queries regularly the job status and waits for the job to be completed.
+    Queries regularly the job status and waits until the job is completed.
 
     :param jobId: id of job (integer)
-    :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
-    :param pollTime: idle time interval (integer, in seconds) before a new query for the job status. Minimum value allowed is 5 seconds.
+    :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, will suppress the printing of messages on the screen.
+    :param pollTime: idle time interval (integer, in seconds) before querying again for the job status. Minimum value allowed is 5 seconds.
     :return: After the job is finished, returns a dictionary object containing the job definition.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
     :example:  dockerComputeDomain = Jobs.getDockerComputeDomains()[0]; job = Jobs.submitShellCommandJob(dockerComputeDomain,'pwd', 'Python (astro)');Jobs.waitForJob(job.get('id'))
