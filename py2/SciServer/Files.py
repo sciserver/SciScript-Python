@@ -462,9 +462,6 @@ def move(fileService, rootVolume, userVolume, relativePath, destinationFileServi
         else:
             taskName = "SciScript-Python.Files.DownloadFile"
 
-        if __getFileServiceAPIUrl(fileService) != __getFileServiceAPIUrl(fileService):
-            raise Exception("Use of multiple file services is not supported for now.");
-
         if not relativePath.startswith("/"):
             relativePath = "/" + relativePath;
 
