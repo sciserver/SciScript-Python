@@ -472,11 +472,11 @@ def move(fileService, rootVolume, userVolume, relativePath, destinationFileServi
             userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
 
         if destinationUserVolumeOwner is None:
-            destinationuserVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
+            destinationUserVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
 
         url = __getFileServiceAPIUrl(fileService) + "api/data/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + relativePath + "?replaceExisting=" + str(replaceExisting) + "&doCopy=" + str(doCopy) + "&TaskName=" + taskName;
         headers = {'X-Auth-Token': token}
-        jsonDict = {'destinationPath': destinationRelativePath, 'destinationRootFolder': destinationRootVolume, 'destinationUserVolume':destinationUserVolume, 'destinationOwner': destinationuserVolumeOwner, 'destinationFileService': destinationFileService};
+        jsonDict = {'destinationPath': destinationRelativePath, 'destinationRootFolder': destinationRootVolume, 'destinationUserVolume':destinationUserVolume, 'destinationOwner': destinationUserVolumeOwner, 'destinationFileService': destinationFileService};
         data = json.dumps(jsonDict).encode()
         res = requests.put(url, stream=True, headers=headers, data=data)
 
