@@ -547,7 +547,7 @@ def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = Non
         if resultsName is None:
             resultsName = 'results'
 
-        targets = [{'location':resultsName+'.csv', 'type':'FILE_CSV', 'resultNumber':1}]
+        targets = [{'location':resultsName, 'type':'FILE_CSV', 'resultNumber':1}]
         rdbDomainId = rdbComputeDomain.get('id');
 
         dockerJobModel = {
