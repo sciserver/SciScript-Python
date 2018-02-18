@@ -508,13 +508,13 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
-def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, resultsName=None, jobAlias = ""):
+def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, resultsName='queryResults', jobAlias = ""):
     """
     Submits a sql query for execution (as an asynchronous job) inside a relational database (RDB) compute domain.
     :param sqlQuery: sql query (string)
     :param rdbComputeDomain: object (dictionary) that defines a relational database (RDB) compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
     :param databaseContextName: database context name (string) on which the sql query is executed.
-    :param resultsName: name (string) of the table or file containing the query result.
+    :param resultsName: name (string) of the table or file (without file type ending) that contains the query result. In case the sql query has multiple statements, should be set to a list of names (e.g., ['result1','result2']).
     :param jobAlias: alias (string) of job, defined by the user.
     :return: a dictionary containing the definition of the submitted job.
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if the HTTP request to the JOBM API returns an error, or if the volumes defined by the user are not available in the Docker compute domain.
@@ -544,10 +544,23 @@ def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = Non
             else:
                 raise Exception("rbdComputeDomain has no database contexts available for the user.");
 
-        if resultsName is None:
-            resultsName = 'results'
+        targets = [];
+        if type(resultsName) == str:
+            targets.append({'location': resultsName, 'type': 'FILE_CSV', 'resultNumber': 1});
+        elif type(resultsName) == list:
+            if len(set(resultsName)) != len(resultsName):
+                raise Exception("Elements of parameter 'resultsName' must be unique");
 
-        targets = [{'location':resultsName, 'type':'FILE_CSV', 'resultNumber':1}]
+            for i in range(len(resultsName)):
+                if type(resultsName[i]) == str:
+                    targets.append({'location': resultsName[i], 'type': 'FILE_CSV', 'resultNumber': i+1});
+                else:
+                    raise Exception("Elements of array 'resultsName' are not strings");
+
+        else:
+            raise Exception("Type of parameter 'resultsName' is not supported");
+
+
         rdbDomainId = rdbComputeDomain.get('id');
 
         dockerJobModel = {
