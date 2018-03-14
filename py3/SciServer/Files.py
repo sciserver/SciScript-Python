@@ -59,10 +59,10 @@ def getFileServices(verbose=True):
 
 def getFileServicesNames(fileServices=None, verbose=True):
     """
-    Returns the names of the fileServices available to the user.
-    :param fileServices: a list of FileService objects (dictionaries), as returned by Jobs.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
+    Returns the names and description of the fileServices available to the user.l
+    :param fileServices: a list of FileService objects (dictionaries), as returned by Files.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
-    :return: an array of strings, each being the name of a file service available to the user.
+    :return: an array of dicts, where each dict has the name and description of a file service available to the user.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
     :example: fileServiceNames = Files.getFileServicesNames();
     .. seealso:: Files.getFileServices
@@ -72,16 +72,10 @@ def getFileServicesNames(fileServices=None, verbose=True):
         fileServices = getFileServices(verbose);
 
     fileServiceNames = [];
-    if fileServices.__len__() > 0:
-        for fileService in fileServices:
-            fileServiceNames.append(fileService.get('name'))
+    for fileService in fileServices:
+        fileServiceNames.append({"name":fileService.get('name'),"description":fileService.get('description')})
 
-        return fileServiceNames;
-    else:
-            #raise Exception("There are no FileServices available for the user.");
-        if verbose:
-            warnings.warn("There are no FileServices available for the user.", Warning, stacklevel=2)
-        return fileServiceNames
+    return fileServiceNames
 
 
 
@@ -90,8 +84,8 @@ def getFileServicesNames(fileServices=None, verbose=True):
 def getFileServiceFromName(fileServiceName, fileServices=None, verbose=True):
     """
     Returns a FileService object, given its registered name.
-    :param fileServiceName: name of the FileService, as shown within the results of Jobs.getFileServices()
-    :param fileServices: a list of FileService objects (dictionaries), as returned by Jobs.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
+    :param fileServiceName: name of the FileService, as shown within the results of Files.getFileServices()
+    :param fileServices: a list of FileService objects (dictionaries), as returned by Files.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
     :return a FileService object (dictionary) that defines a FileService. A list of these kind of objects available to the user is returned by the function Jobs.getFileServices(). If no fileService can be found, then returns None.
     :raises Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
@@ -110,12 +104,10 @@ def getFileServiceFromName(fileServiceName, fileServices=None, verbose=True):
                 if fileServiceName == fileService.get('name'):
                     return fileService;
 
-            #raise Exception("FileService of name '" + fileServiceName + "' is not available or does not exist.");
             if verbose:
-                warnings.warn("FileService of name '" + fileServiceName + "' is not available or does not exist.", Warning, stacklevel=2)
+                warnings.warn("FileService of name '" + fileServiceName + "' is not available to the user or does not exist.", Warning, stacklevel=2)
             return None
         else:
-            #raise Exception("There are no FileServices available for the user.");
             if verbose:
                 warnings.warn("There are no FileServices available for the user.", Warning, stacklevel=2)
             return None
@@ -147,25 +139,84 @@ def __getFileServiceAPIUrl(fileService):
     return url
 
 
-def getRootVolumes(fileService):
+def getRootVolumesInfo(fileService, verbose=True):
     """
-    Gets the definitions the RootVolumes available in a particular FileService, and  of the file services that a user is able to access.
+    Gets the names and descriptions of root volumes available to the user in a particular FileService.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :return: list of dictionaries, where each dictionary contains the definition of a FileService that a user is able to access.
+    :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
+    :return: list of dictionaries, where each dictionary contains the name and description of a root volume.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
-    :example: fileServices = Files.getFileServices(); rootVolumes = getRootVolumes(fileServices[0])
-    .. seealso:: Files.getFileServiceFromName
+    :example: fileServices = Files.getFileServices(); rootVolumesInfo = getRootVolumesInfo(fileServices[0])
+    .. seealso:: Files.getUserVolumesInfo
     """
-    return fileService.get("rootVolumes");
+    if type(fileService) == str:
+        fileService = getFileServiceFromName(fileService, verbose=verbose)
+
+    rootVolumes = []
+    for rootVolume in fileService.get("rootVolumes"):
+        rootVolumes.append({"rootVolumeName":rootVolume.get("name"), "rootVolumeDescription":rootVolume.get("description")})
+
+    return rootVolumes
 
 
-def createUserVolume(fileService, rootVolume, userVolume, userVolumeOwner=None, quiet=True):
+
+def getUserVolumesInfo(fileService, rootVolumeName = None, verbose=True):
+    """
+    Gets the names definitions the RootVolumes available in a particular FileService, and  of the file services that a user is able to access.
+    :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
+    :param rootVolumeName: name of root Volume (string) for which the user volumes are fetched. If set to None, then user volumes in all root folders are fetched.
+    :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
+    :return: list of dictionaries, where each dictionary contains the name and description of a root volumes that a user is able to access.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
+    :example: fileServices = Files.getFileServices(); rootVolumeNames = Files.getUserVolumesInfo(fileServices[0])
+    .. seealso:: Files.getRootVolumes,
+    """
+    if type(fileService) == str:
+        fileService = getFileServiceFromName(fileService, verbose=verbose)
+
+    userVolumes = [];
+    for rootVolume in fileService.get("rootVolumes"):
+        for userVolume in rootVolume.get('userVolumes'):
+            if rootVolumeName is not None:
+                if rootVolume.get('name') == rootVolumeName:
+                    userVolumes.append({"userVolumeName": userVolume.get('name'), "userVolumeDescription": userVolume.get('description'), "rootVolumeName":rootVolume.get("name"), "rootVolumeDescription":rootVolume.get("description")})
+
+            else:
+                userVolumes.append({"userVolumeName": userVolume.get('name'), "userVolumeDescription": userVolume.get('description'),"rootVolumeName": rootVolume.get("name"), "rootVolumeDescription": rootVolume.get("description")})
+
+
+    return userVolumes
+
+
+
+def splitPath(path):
+    """
+    Splits a path of the form rootVolume/userVolumeOwner/userVolume/relativePath/... into its 4 components: rootVolume, userVolumeOwner, userVolume, and relativePath.
+    :param path: file system path (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/relativePath...
+    :return: a tuple containing the four components: (rootVolume, userVolumeOwner, userVolume, relativePath)
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
+    :example: fileServices = Files.getFileServices(); Files.createUserVolume(fileServices[0], "volumes","newUserVolume");
+    .. seealso:: Files.getFileServices(), Files.getFileServiceFromName
+    """
+    if path.startswith("/"):
+        path = path[1:]
+
+    path = path.split("/")
+    if len(path) < 3:
+        raise Exception("path variable does not conform with the format 'rootVolume/userVolumeOwner/userVolume/relativePath...'")
+
+    rootVolume = path[0]
+    userVolumeOwner = path[1]
+    userVolume = path[2]
+    relativePath = "/".join(path[3:])
+    return (rootVolume, userVolumeOwner, userVolume, relativePath)
+
+
+def createUserVolume(fileService, path, quiet=True):
     """
     Create a user volume.
-    :param fileService: name of fileService (string), or object (dictionary) that defines the file service that contains the root volume. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: name of root volume (string) that contains the user volume to be created. A list of user volumes is given by getRootVolumes(fileService)
-    :param userVolume: name of user volume (string) to be created, one level below the root volume level.
-    :param userVolumeOwner: name (string) of owner of the userVolume. Can be left undefined if requester is the owner of the user volume.
+    :param fileService: name of fileService (string), or object (dictionary) that defines the file service that contains the user volume. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
+    :param path: path (in the remote file service) to the user volume (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume
     :param quiet: if set to False, will throw an error if the User Volume already exists. If True, won't throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.createUserVolume(fileServices[0], "volumes","newUserVolume");
@@ -179,8 +230,10 @@ def createUserVolume(fileService, rootVolume, userVolume, userVolumeOwner=None, 
         else:
             taskName = "SciScript-Python.Files.createUserVolume"
 
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
+
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
 
         url = __getFileServiceAPIUrl(fileService) + "api/volume/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "?quiet="+str(quiet) + "&TaskName="+taskName;
 
@@ -190,18 +243,16 @@ def createUserVolume(fileService, rootVolume, userVolume, userVolumeOwner=None, 
         if res.status_code >= 200 and res.status_code < 300:
             pass;
         else:
-            raise Exception("Error when creating user volume  '" + userVolume + "' in root volume '" + rootVolume + "' in file service named '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when creating user volume  '" + str(path) + "' in file service '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def deleteUserVolume(fileService, rootVolume, userVolume, userVolumeOwner=None, quiet=True):
+def deleteUserVolume(fileService, path, quiet=True):
     """
     Delete a user volume.
     :param fileService: name of fileService (string), or object (dictionary) that defines the file service that contains the root volume. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the user volume to be deleted. A list of user volumes is given by getRootVolumes(fileService)
-    :param userVolume: user volume name (string) to be deleted.
-    :param userVolumeOwner: name (string) of owner of the userVolume. Can be left undefined if requester is the owner of the user volume.
+    :param path: path (in the remote file service) to the user volume (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume
     :param quiet: If set to False, it will throw an error if user volume does not exists. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.deleteUserVolume("volumes","newUserVolume",fileServices[0]);
@@ -215,8 +266,10 @@ def deleteUserVolume(fileService, rootVolume, userVolume, userVolumeOwner=None, 
         else:
             taskName = "SciScript-Python.Files.createUserVolume"
 
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
+
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
 
         url = __getFileServiceAPIUrl(fileService) + "api/volume/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "?quiet="+str(quiet)+"&TaskName="+taskName;
 
@@ -226,19 +279,16 @@ def deleteUserVolume(fileService, rootVolume, userVolume, userVolumeOwner=None, 
         if res.status_code >= 200 and res.status_code < 300:
             pass
         else:
-            raise Exception("Error when deleting user volume  '" + userVolume + "' in root volume '" + rootVolume + "' in file service named '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when deleting user volume '" + str(path) + "' in file service '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def createDir(fileService, rootVolume, userVolume, relativePath, userVolumeOwner=None, quiet=True):
+def createDir(fileService, path, quiet=True):
     """
     Create a directory.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileSerive object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param relativePath: path (string) to the directory, relative to the userVolume level. E.g: path="/newDirectory"
-    :param userVolumeOwner: name (string) of owner of the userVolume. Can be left undefined if requester is the owner of the user volume.
+    :param path: path (in the remote file service) to the directory (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/directory
     :param quiet: If set to False, it will throw an error if the directory already exists. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.createDir(fileServices[0], "myRootVolume","myUserVolume", "myNewDir");
@@ -252,13 +302,19 @@ def createDir(fileService, rootVolume, userVolume, relativePath, userVolumeOwner
         else:
             taskName = "SciScript-Python.Files.createDir"
 
+
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
+
         if not relativePath.startswith("/"):
             relativePath = "/" + relativePath;
 
         if userVolumeOwner is None:
             userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
 
-        url =  __getFileServiceAPIUrl(fileService) + "api/folder/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + relativePath + "?quiet=" + str(quiet) + "&TaskName=" + taskName;
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
+
+        url =  __getFileServiceAPIUrl(fileService) + "api/folder/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "/" + relativePath + "?quiet=" + str(quiet) + "&TaskName=" + taskName;
 
         headers = {'X-Auth-Token': token}
         res = requests.put(url, headers=headers)
@@ -266,18 +322,16 @@ def createDir(fileService, rootVolume, userVolume, relativePath, userVolumeOwner
         if res.status_code >= 200 and res.status_code < 300:
             pass;
         else:
-            raise Exception("Error when creating directory '" + relativePath + "' in user volume  '" + userVolume + "' in root volume '" + rootVolume + "' in file service named '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when creating directory '" + str(path) + "' in file service '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def upload(fileService, rootVolume, userVolume, relativePath, data="", localFilePath=None, userVolumeOwner=None, quiet=True):
+def upload(fileService, path, data="", localFilePath=None, quiet=True):
     """
     Uploads data or a local file into a path defined in the file system.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileSerive object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param relativePath: destination path (string) of the file to be uploaded, relative to the user volume level. E.g: path="/newDirectory/myNewFile.txt".
+    :param path: path (in the remote file service) to the destination file (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/destinationFile.txt
     :param data: string containing data to be uploaded, in case localFilePath is not set.
     :param localFilePath: path to a local file to be uploaded (string),
     :param userVolumeOwner: name (string) of owner of the userVolume. Can be left undefined if requester is the owner of the user volume.
@@ -294,13 +348,12 @@ def upload(fileService, rootVolume, userVolume, relativePath, data="", localFile
         else:
             taskName = "SciScript-Python.Files.UploadFile"
 
-        if not relativePath.startswith("/"):
-            relativePath = "/" + relativePath;
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
 
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
 
-        url = __getFileServiceAPIUrl(fileService) + "api/file/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + relativePath + "?quiet=" + str(quiet) + "&TaskName="+taskName
+        url = __getFileServiceAPIUrl(fileService) + "api/file/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "/" + relativePath + "?quiet=" + str(quiet) + "&TaskName="+taskName
 
         headers = {'X-Auth-Token': token}
 
@@ -316,18 +369,16 @@ def upload(fileService, rootVolume, userVolume, relativePath, data="", localFile
         if res.status_code >= 200 and res.status_code < 300:
             pass;
         else:
-            raise Exception("Error when uploading file '" + relativePath + "' in user volume  '" + userVolume + "' in root volume '" + rootVolume + "' in file service named '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when uploading file to '" + str(path) + "' in file service '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def download(fileService, rootVolume, userVolume, relativePath, localFilePath=None, format="txt", userVolumeOwner=None, quiet=True):
+def download(fileService, path, localFilePath=None, format="txt", quiet=True):
     """
     Downloads a file from the remote file system into the local file system, or returns the file content as an object in several formats.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileSerive object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param relativePath: remote path (string) of the file to be downloaded, relative to the user volume level. E.g: path="/newDirectory/myNewFile.txt"
+    :param path: String defining the path (in the remote file service) of the file to be downloaded, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/fileToBeDownloaded.txt.
     :param localFilePath: local destination path of the file to be downloaded. If set to None, then an object of format 'format' will be returned.
     :param format: name (string) of the returned object's type (if localFilePath is not defined). This parameter can be "StringIO" (io.StringIO object containing readable text), "BytesIO" (io.BytesIO object containing readable binary data), "response" ( the HTTP response as an object of class requests.Response) or "txt" (a text string). If the parameter 'localFilePath' is defined, then the 'format' parameter is not used and the file is downloaded to the local file system instead.
     :param userVolumeOwner: name (string) of owner of the volume. Can be left undefined if requester is the owner of the volume.
@@ -340,29 +391,27 @@ def download(fileService, rootVolume, userVolume, relativePath, localFilePath=No
     token = Authentication.getToken()
     if token is not None and token != "":
 
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
+
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
 
         if localFilePath is not None:
             if os.path.isfile(localFilePath) and not quiet:
-                raise Exception("Error when downloading from remote File Syatem the file " + str(relativePath) + ".\nLocal file '" + localFilePath + "' already exists.");
+                raise Exception("Error when downloading '" + str(path) + "' from file service '" + fileService.get("name") + "'. Local file '" + localFilePath + "' already exists.");
 
         if Config.isSciServerComputeEnvironment():
             taskName = "Compute.SciScript-Python.Files.DownloadFile"
         else:
             taskName = "SciScript-Python.Files.DownloadFile"
 
-        if not relativePath.startswith("/"):
-            relativePath = "/" + relativePath;
-
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
-
-        url = __getFileServiceAPIUrl(fileService) + "api/file/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + relativePath + "?TaskName=" + taskName;
+        url = __getFileServiceAPIUrl(fileService) + "api/file/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "/" + relativePath + "?TaskName=" + taskName;
         headers = {'X-Auth-Token': token}
 
         res = requests.get(url, stream=True, headers=headers)
 
         if res.status_code < 200 or res.status_code >= 300:
-            raise Exception("Error when downloading from remote File Syatem the file " + str(relativePath) + ".\nHttp Response from FileSystem API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when downloading '" + str(path) + "' from file service '" + fileService.get("name") + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
 
         if localFilePath is not None and localFilePath != "":
 
@@ -393,16 +442,13 @@ def download(fileService, rootVolume, userVolume, relativePath, localFilePath=No
 
 
 
-def dirList(fileService, rootVolume, userVolume, relativePath, level=1, options='', userVolumeOwner=None):
+def dirList(fileService, path, level=1, options=''):
     """
     Lists the contents of a directory.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileSerive object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param relativePath: remote path (string) of the directory, relative to the user volume level. E.g: path="/newDirectory/myNewFile.txt"
+    :param path: String defining the path (in the remote file service) of the directory to be listed, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/directoryToBeListed.
     :param level: amount (int) of listed directory levels that are below or at the same level to that of the relativePath.
     :param options: string of file filtering options.
-    :param userVolumeOwner: name (string) of owner of the volume. Can be left undefined if requester is the owner of the volume.
     :return: dictionary containing the directory listing.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); dirs = Files.dirList("/","persistent","myUserName", fileServices[0], 2);
@@ -416,13 +462,12 @@ def dirList(fileService, rootVolume, userVolume, relativePath, level=1, options=
         else:
             taskName = "SciScript-Python.Files.dirList"
 
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
 
-        if not relativePath.startswith("/"):
-            path = "/" + relativePath;
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
 
-        url = __getFileServiceAPIUrl(fileService) + "api/jsontree/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + path + "?options=" + options + "&level=" + str(level) + "&TaskName=" + taskName;
+        url = __getFileServiceAPIUrl(fileService) + "api/jsontree/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "/" + relativePath + "?options=" + options + "&level=" + str(level) + "&TaskName=" + taskName;
 
         headers = {'X-Auth-Token': token}
         res = requests.get(url, headers=headers)
@@ -430,26 +475,20 @@ def dirList(fileService, rootVolume, userVolume, relativePath, level=1, options=
         if res.status_code >= 200 and res.status_code < 300:
             return json.loads(res.content.decode());
         else:
-            raise Exception("Error when listing directory.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when listing contents of '" + str(path) + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def move(fileService, rootVolume, userVolume, relativePath, destinationFileService, destinationRootVolume, destinationUserVolume, destinationRelativePath, replaceExisting=True, doCopy=True, userVolumeOwner=None, destinationUserVolumeOwner=None):
+def move(fileService, path, destinationFileService, destinationPath, replaceExisting=True, doCopy=True):
     """
     Moves or copies a file or folder.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileService object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param relativePath: remote path (string) of the file to be moved/copied, relative to the user volume level. E.g: path="/newDirectory/myNewFile.txt"
+    :param path: String defining the origin path (in the remote fileService) of the file or directory to be copied/moved, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/fileToBeMoved.txt.
     :param destinationFileService: name of fileService (string), or object (dictionary) that defines a destination file service (where the file is moved/copied into). A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param destinationRootVolume: root volume name (string) that contains the userVolume where the file is moved/copied into. A list of root volumes is contained by the fileService object.
-    :param destinationUserVolume: user volume name (string) that contains the relativePath where the file is moved/copied into.
-    :param destinationRelativePath: remote path (string) of the destination file, relative to the user volume level. E.g: path="/newDirectory2/myNewFile.txt"
+    :param destinationRelativePath: String defining the destination path (in the remote destinationFileService) of the file or directory to be copied/moved, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/recentlyMovedFile.txt.
     :param replaceExisting: If set to False, it will throw an error if the file already exists, If set to True, it will not throw and eeror in that case.
     :param doCopy: if set to True, then it will copy the file or folder. If set to False, then the file or folder will be moved.
-    :param userVolumeOwner: name (string) of owner of the user volume. Can be left undefined if requester is the owner of the volume.
-    :param destinationUserVolumeOwner: name (string) of owner of the destination user volume. Can be left undefined if requester is the owner of it.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); isDownloaded = Files.upload("/myUploadedFile.txt","persistent","myUserName", fileServices[0], localFilePath="/myDownloadedFile.txt");
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.createDir, Files.delete, Files.upload, Files.dirList
@@ -458,15 +497,12 @@ def move(fileService, rootVolume, userVolume, relativePath, destinationFileServi
     if token is not None and token != "":
 
         if Config.isSciServerComputeEnvironment():
-            taskName = "Compute.SciScript-Python.Files.DownloadFile"
+            taskName = "Compute.SciScript-Python.Files.Move"
         else:
-            taskName = "SciScript-Python.Files.DownloadFile"
+            taskName = "SciScript-Python.Files.Move"
 
-        if not relativePath.startswith("/"):
-            relativePath = "/" + relativePath;
-
-        if not destinationRelativePath.startswith("/"):
-            destinationRelativePath = "/" + destinationRelativePath;
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
+        (destinationRootVolume, destinationUserVolumeOwner, destinationUserVolume, destinationRelativePath) = splitPath(destinationPath);
 
         if userVolumeOwner is None:
             userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
@@ -474,28 +510,36 @@ def move(fileService, rootVolume, userVolume, relativePath, destinationFileServi
         if destinationUserVolumeOwner is None:
             destinationUserVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
 
-        url = __getFileServiceAPIUrl(fileService) + "api/data/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + relativePath + "?replaceExisting=" + str(replaceExisting) + "&doCopy=" + str(doCopy) + "&TaskName=" + taskName;
-        headers = {'X-Auth-Token': token}
-        jsonDict = {'destinationPath': destinationRelativePath, 'destinationRootFolder': destinationRootVolume, 'destinationUserVolume':destinationUserVolume, 'destinationOwner': destinationUserVolumeOwner, 'destinationFileService': destinationFileService};
+        if type(fileService) == str:
+            fileService = getFileServiceFromName(fileService)
+
+        if type(destinationFileService) == str:
+            destinationFileService = getFileServiceFromName(destinationFileService)
+
+        url = __getFileServiceAPIUrl(fileService) + "api/data/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "/" + relativePath + "?replaceExisting=" + str(replaceExisting) + "&doCopy=" + str(doCopy) + "&TaskName=" + taskName;
+        headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
+
+        if type(destinationFileService) == dict:
+            destinationFileService = destinationFileService['name']
+
+
+        jsonDict = {'destinationPath': destinationRelativePath, 'destinationRootVolume': destinationRootVolume, 'destinationUserVolume':destinationUserVolume, 'destinationOwnerName': destinationUserVolumeOwner, 'destinationFileService': destinationFileService};
         data = json.dumps(jsonDict).encode()
-        res = requests.put(url, stream=True, headers=headers, data=data)
+        res = requests.put(url, stream=True, headers=headers, json=jsonDict)
 
         if res.status_code < 200 or res.status_code >= 300:
-            raise Exception("Error when downloading from remote File System the file " + str(relativePath) + ".\nHttp Response from FileSystem API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when moving '" + str(path) + "' in file service '" + fileService.get("name") + "' to '" + str(path) + "' in file service '" + destinationFileService.get("name)") + "'. \nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
 
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
 
-def delete(fileService, rootVolume, userVolume, relativePath, userVolumeOwner=None, quiet=True):
+def delete(fileService, path, quiet=True):
     """
     Deletes a directory or file in the File System.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileSerive object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param relativePath: remote path (string) of the directory or file to be deleted, relative to the user volume level. E.g: path="/newDirectory/myNewFile.txt"
-    :param userVolumeOwner: name (string) of owner of the volume. Can be left undefined if requester is the owner of the volume.
+    :param path: String defining the path (in the remote fileService) of the file or directory to be deleted, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/fileToBeDeleted.txt.
     :param quiet: If set to False, it will throw an error if the file does not exist. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); isDeleted = Files.delete("/myUselessFile.txt","persistent","myUserName", fileServices[0]);
@@ -509,13 +553,9 @@ def delete(fileService, rootVolume, userVolume, relativePath, userVolumeOwner=No
         else:
             taskName = "SciScript-Python.Files.delete"
 
-        if not relativePath.startswith("/"):
-            relativePath = "/" + relativePath;
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
 
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
-
-        url = __getFileServiceAPIUrl(fileService) + "api/data/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + relativePath + "?quiet=" + str(quiet) + "&TaskName="+taskName
+        url = __getFileServiceAPIUrl(fileService) + "api/data/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "/" + relativePath + "?quiet=" + str(quiet) + "&TaskName="+taskName
 
         headers = {'X-Auth-Token': token}
         res = requests.delete(url, headers=headers)
@@ -523,17 +563,17 @@ def delete(fileService, rootVolume, userVolume, relativePath, userVolumeOwner=No
         if res.status_code >= 200 and res.status_code < 300:
             pass;
         else:
-            raise Exception("Error when deleting " + relativePath + ".\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+            raise Exception("Error when deleting '" + str(path) + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
 
 
-def shareUserVolume(fileService, rootVolume, userVolume, sharedWith, allowedActions, type="USER", userVolumeOwner=None):
+def shareUserVolume(fileService, path, sharedWith, allowedActions, type="USER"):
     """
     Deletes a directory or file in the File System.
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileSerive object.
+    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileService object.
     :param userVolume: user volume name (string) that contains the relativePath.
     :param sharedWith: name (string) of user or group that the userVolume is shared with.
     :param allowedActions: array of strings defining actions the user or group is allowed to do with respect to the shared user volume. E.g.: ["read","write","grant","delete"]. The "grant" action means that the user or group can also share the user volume with another user or group. The "delete" action meand ability to delete the user volume (use with care).
@@ -551,8 +591,7 @@ def shareUserVolume(fileService, rootVolume, userVolume, sharedWith, allowedActi
         else:
             taskName = "SciScript-Python.Files.ShareUserVolume"
 
-        if userVolumeOwner is None:
-            userVolumeOwner = Authentication.getKeystoneUserWithToken(token).userName;
+        (rootVolume, userVolumeOwner, userVolume, relativePath) = splitPath(path);
 
 
         data = [{'name': sharedWith, 'type':type, 'allowedActions': allowedActions }]
@@ -566,7 +605,6 @@ def shareUserVolume(fileService, rootVolume, userVolume, sharedWith, allowedActi
         if res.status_code >= 200 and res.status_code < 300:
             pass;
         else:
-            raise Exception("Error when sharing userVolume '" + userVolume + "' in rootVolume '" + rootVolume + "' with '" + sharedWith + "' in file service named '" + fileService.get(
-                    'name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode())
+            raise Exception("Error when sharing userVolume '" + str(path) + "' in file service '" + fileService.get('name') + "'.\nHttp Response from FileService API returned status code " + str(res.status_code) + ":\n" + res.content.decode())
     else:
         raise Exception("User token is not defined. First log into SciServer.")
