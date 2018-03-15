@@ -41,17 +41,15 @@ SciDrive_Directory = "/SciScriptPython"
 SciDrive_FileName = "TestFile.csv"
 SciDrive_FileContent = "Column1,Column2\n4.5,5.5\n"
 
-
-Files_FileServiceName = "FileServiceJHU"
-Files_RootVolumeName1 = "volumes"
-Files_UserVolumeName1 = Authentication_loginName + "_UserVolume555"
-Files_RootVolumeName2 = "volumes"
-Files_UserVolumeName2 = Authentication_loginName + "_UserVolume999"
+Files_FileServiceName = "NewFileServiceScitest12_1 INSECURE"
+Files_RootVolumeName1 = "persistent"
+Files_UserVolumeName1 = "UserVolume555"
+Files_RootVolumeName2 = "persistent"
+Files_UserVolumeName2 = "UserVolume999"
 Files_NewDirectoryName1 = "myNewDirectory555"
 Files_NewDirectoryName2 = "myNewDirectory999"
 Files_LocalFileName = "MyNewFile.txt"
 Files_LocalFileContent = "#ID,Column1,Column2\n1,4.5,5.5"
-
 
 
 Jobs_DockerComputeDomainName = 'Small Jobs Batch Domain'
@@ -456,32 +454,42 @@ class TestFileService(unittest.TestCase):
 
     def test_Files_getFileServicesNames(self):
         fileServiceNames = Files.getFileServicesNames();
-        self.assertTrue(Files_FileServiceName in fileServiceNames)
+        found = False;
+        for fileService in fileServiceNames:
+            if fileService.get('name') == Files_FileServiceName:
+                found=True;
+
+        self.assertTrue(found)
 
     def test_Files_getFileServiceFromName(self):
         fileService = Files.getFileServiceFromName(Files_FileServiceName);
         self.assertTrue(fileService.get('name') == Files_FileServiceName);
 
-    def test_Files_getRootVolumes(self):
+    def test_Files_getRootVolumesInfo(self):
         fileService = Files.getFileServiceFromName(Files_FileServiceName);
-        rootVolumes = Files.getRootVolumes(fileService)
+        rootVolumes = Files.getRootVolumesInfo(fileService)
         self.assertTrue(rootVolumes.__len__() > 0)
         found = False
         for rootVolume in rootVolumes:
-            if rootVolume.get('name') == Files_RootVolumeName1:
+            if rootVolume.get('rootVolumeName') == Files_RootVolumeName1:
                 found = True
         self.assertTrue(found)
 
         found = False
         for rootVolume in rootVolumes:
-            if rootVolume.get('name') == Files_RootVolumeName2:
+            if rootVolume.get('rootVolumeName') == Files_RootVolumeName2:
                 found = True
         self.assertTrue(found)
 
+    def test_Files_getUserVolumesInfo(self):
+        fileService = Files.getFileServiceFromName(Files_FileServiceName);
+        userVolumesInfo = Files.getUserVolumesInfo(fileService)
+        self.assertTrue(userVolumesInfo.__len__() > 0)
+
     def test_Files_createUserVolume_deleteUserVolume(self):
         fileService = Files.getFileServiceFromName(Files_FileServiceName);
-        Files.createUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1,quiet=False)
-        Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1,quiet=False)
+        Files.createUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=False)
+        Files.deleteUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=False)
 
     def test_Files_createDir_upload_dirList_download_download_shareUserVolume(self):
 
@@ -495,55 +503,41 @@ class TestFileService(unittest.TestCase):
 
         try:
             fileService = Files.getFileServiceFromName(Files_FileServiceName);
-            Files.createUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1,quiet=False)
-            Files.createUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName2,quiet=False)
 
-            Files.createDir(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1);
-            Files.createDir(fileService, Files_RootVolumeName2, Files_UserVolumeName2, Files_NewDirectoryName2);
+            Files.createUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=False)
+            Files.createUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName2]),quiet=False)
 
-            dirList = Files.dirList(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1,level=2)
+            Files.createDir(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]));
+            Files.createDir(fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2, Files_NewDirectoryName2]));
+
+            dirList = Files.dirList(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]),level=2)
             self.assertTrue(dirList.get('root').get('name') == Files_NewDirectoryName1)
 
-            Files.upload(fileService, Files_RootVolumeName1, Files_UserVolumeName1,
-                             Files_NewDirectoryName1 + "/" + Files_LocalFileName,
-                             data=Files_LocalFileContent);
+            Files.upload(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]),data=Files_LocalFileContent);
 
-            dirList = Files.dirList(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1,level=2)
+            dirList = Files.dirList(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]) ,level=2)
             self.assertTrue(dirList.get('root').get('files')[0].get('name') == Files_LocalFileName)
 
-            Files.download(fileService, Files_RootVolumeName1, Files_UserVolumeName1,
-                               Files_NewDirectoryName1 + "/" + Files_LocalFileName,
-                               localFilePath=Files_LocalFileName);
+            Files.download(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1,Files_NewDirectoryName1, Files_LocalFileName]),localFilePath=Files_LocalFileName);
 
             with open(Files_LocalFileName, 'r') as myfile:
                 downloadedFileContent = myfile.read()
                 assert(downloadedFileContent == Files_LocalFileContent)
 
-            Files.delete(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1 + "/" + Files_LocalFileName)
+            Files.delete(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]))
 
-            dirList = Files.dirList(fileService, Files_RootVolumeName1, Files_UserVolumeName1, Files_NewDirectoryName1,level=2)
+            dirList = Files.dirList(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]),level=2)
             self.assertIsNone(dirList.get('root').get('files'))
 
-            Files.upload(fileService, Files_RootVolumeName1, Files_UserVolumeName1,
-                             Files_NewDirectoryName1 + "/" + Files_LocalFileName, localFilePath=Files_LocalFileName,
-                             quiet=False);
+            Files.upload(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]), localFilePath=Files_LocalFileName,quiet=False);
 
-            Files.move(fileService, Files_RootVolumeName1, Files_UserVolumeName1,
-                           Files_NewDirectoryName1 + "/" + Files_LocalFileName,
-                           fileService, Files_RootVolumeName2, Files_UserVolumeName2,
-                           Files_UserVolumeName2 + "/" + Files_NewDirectoryName2 + "/" + Files_LocalFileName
-                       );
+            Files.move(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]), fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2, Files_NewDirectoryName2, Files_LocalFileName]));
 
-            Files.shareUserVolume(fileService, Files_RootVolumeName2, Files_UserVolumeName2,
-                                      sharedWith=Authentication_login_sharedWithName, type="USER",
-                                      userVolumeOwner=Authentication_loginName,
-                                      allowedActions=["read"])
+            Files.shareUserVolume(fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2]), sharedWith=Authentication_login_sharedWithName, type="USER",allowedActions=["read"])
 
             token1 = Authentication.login(Authentication_login_sharedWithName, Authentication_login_sharedWithPassword);
 
-            string = Files.download(fileService, Files_RootVolumeName2, Files_UserVolumeName2,
-                                        Files_NewDirectoryName2 + "/" + Files_LocalFileName,
-                                        format="txt", userVolumeOwner=Authentication_loginName);
+            string = Files.download(fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2, Files_NewDirectoryName2, Files_LocalFileName]), format="txt");
 
             self.assertTrue(string, Files_LocalFileContent)
 
@@ -552,8 +546,8 @@ class TestFileService(unittest.TestCase):
         finally:
             try:
                 os.remove(Files_LocalFileName);
-                Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1,quiet=True)
-                Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName2,quiet=True)
+                Files.deleteUserVolume(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=True)
+                Files.deleteUserVolume(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName2]),quiet=True)
             except:
                 pass;
 
@@ -733,12 +727,12 @@ if __name__ == '__main__':
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
     testLoader = unittest.TestLoader()
     testLoader.sortTestMethodsUsing = lambda x, y: 0;
-    suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
     suite = testLoader.loadTestsFromTestCase(TestFileService); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestJobs); unittest.TextTestRunner(verbosity=2).run(suite)
 
