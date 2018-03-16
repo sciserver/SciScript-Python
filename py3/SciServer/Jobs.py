@@ -286,7 +286,7 @@ def getJobStatus(jobId):
         raise Exception("Invalid integer value given to job status.")
 
 
-def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=None, userVolumes=None,  dataVolumes=None, parameters="", jobAlias= ""):
+def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=None, userVolumes=None,  dataVolumes=None, resultsFolderPath="", parameters="", jobAlias= ""):
     """
     Submits a Jupyter Notebook for execution (as an asynchronous job) inside a Docker compute domain,
     :param notebookPath: path of the notebook within the filesystem mounted in SciServer-Compute (string). Example: notebookPath = '/home/idies/worskpace/persistent/JupyterNotebook.ipynb'
@@ -298,6 +298,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
     :param dataVolumes: a list with the names of data volumes that will be mounted to the docker Image.
            E.g., dataVolumes=[{"name":"SDSS_DAS"}, {"name":"Recount"}].
            A list of available data volumes can be found as the 'volumes' property in the dockerComputeDomain object. If dataVolumes=None, then all available data volumes are mounted.
+    :param resultsFolderPath: full path to results folder (string) where the original notebook is copied to and executed. E.g.: /home/idies/workspace/rootVolume/username/userVolume/jobsFolder. If not set, then a default folder will be set automatically.
     :param parameters: string containing parameters that the notebook might need during its execution. This string is written in the 'parameters.txt' file in the same directory level where the notebook is being executed.
     :param jobAlias: alias (string) of job, defined by the user.
     :return: the job ID (int)
@@ -382,6 +383,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
             "submitterDID": jobAlias,
             "dockerComputeEndpoint": dockerComputeEndpoint,
             "dockerImageName": dockerImageName,
+            "resultsFolderURI": resultsFolderPath,
             "volumeContainers": datVols,
             "userVolumes": uVols
         }
@@ -398,7 +400,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageName = None, userVolumes = None,  dataVolumes = None, jobAlias = ""):
+def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageName = None, userVolumes = None, dataVolumes = None, resultsFolderPath = "", jobAlias = ""):
     """
     Submits a shell command for execution (as an asynchronous job) inside a Docker compute domain.
     :param shellCommand: shell command (string) defined by the user.
@@ -410,6 +412,7 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
     :param dataVolumes: a list with the names of data volumes that will be mounted to the docker Image.
            E.g., dataVolumes=[{"name":"SDSS_DAS"}, {"name":"Recount"}].
            A list of available data volumes can be found as the 'volumes' property in the dockerComputeDomain object. If dataVolumes=None, then all available data volumes are mounted.
+    :param resultsFolderPath: full path to results folder (string) where the shell command is executed. E.g.: /home/idies/workspace/rootVolume/username/userVolume/jobsFolder. If not set, then a default folder will be set automatically.
     :param jobAlias: alias (string) of job, defined by the user.
     :return: the job ID (int)
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if the HTTP request to the JOBM API returns an error, or if the volumes defined by the user are not available in the Docker compute domain.
@@ -494,7 +497,8 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
             "dockerComputeEndpoint": dockerComputeEndpoint,
             "dockerImageName": dockerImageName,
             "volumeContainers": datVols,
-            "userVolumes": uVols
+            "userVolumes": uVols,
+            "resultsFolderURI": resultsFolderPath
         }
         data = json.dumps(dockerJobModel).encode()
         url = Config.RacmApiURL + "/jobm/rest/jobs/docker?TaskName="+taskName;
@@ -508,13 +512,14 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
-def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, resultsName='queryResults', jobAlias = ""):
+def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, resultsName='queryResults', resultsFolderPath="", jobAlias = ""):
     """
     Submits a sql query for execution (as an asynchronous job) inside a relational database (RDB) compute domain.
     :param sqlQuery: sql query (string)
     :param rdbComputeDomain: object (dictionary) that defines a relational database (RDB) compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
     :param databaseContextName: database context name (string) on which the sql query is executed.
     :param resultsName: name (string) of the table or file (without file type ending) that contains the query result. In case the sql query has multiple statements, should be set to a list of names (e.g., ['result1','result2']).
+    :param resultsFolderPath: full path to results folder (string) where query output tables are written into. E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If not set, then a default folder will be set automatically.
     :param jobAlias: alias (string) of job, defined by the user.
     :return: a dictionary containing the definition of the submitted job.
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if the HTTP request to the JOBM API returns an error, or if the volumes defined by the user are not available in the Docker compute domain.
@@ -568,7 +573,8 @@ def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = Non
             "submitterDID": jobAlias,
             "databaseContextName": databaseContextName,
             "rdbDomainId": rdbDomainId,
-            "targets": targets
+            "targets": targets,
+            "resultsFolderURI":resultsFolderPath
         }
 
         data = json.dumps(dockerJobModel).encode()
@@ -631,7 +637,7 @@ def waitForJob(jobId, verbose=False, pollTime = 5):
         waitingStr = "Waiting..."
         back = "\b" * len(waitingStr)
         if verbose:
-            print waitingStr,
+            print(waitingStr)
 
         while not complete:
             if verbose:
