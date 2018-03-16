@@ -571,14 +571,12 @@ def delete(fileService, path, quiet=True):
 
 def shareUserVolume(fileService, path, sharedWith, allowedActions, type="USER"):
     """
-    Deletes a directory or file in the File System.
+    Shares a user volume with another user or group
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
-    :param rootVolume: root volume name (string) that contains the userVolume. A list of root volumes is contained by the fileService object.
-    :param userVolume: user volume name (string) that contains the relativePath.
-    :param sharedWith: name (string) of user or group that the userVolume is shared with.
+    :param path: String defining the path (in the remote fileService) of the user volume to be shared, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume.
+    :param sharedWith: name (string) of user or group that the user volume is shared with.
     :param allowedActions: array of strings defining actions the user or group is allowed to do with respect to the shared user volume. E.g.: ["read","write","grant","delete"]. The "grant" action means that the user or group can also share the user volume with another user or group. The "delete" action meand ability to delete the user volume (use with care).
     :param type: type (string) of the entity defined by the "sharedWith" parameter. Can be set to "USER" or "GROUP".
-    :param userVolumeOwner: name (string) of owner of the user volume. Can be left undefined if requester is the owner of the volume.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.shareUserVolume(); isDeleted = Files.delete("/myUselessFile.txt","persistent","myUserName", fileServices[0]);
     .. seealso:: Files.getFileServices(), Files.getFilrmsieServiceFromName, Files.createDir, Files.upload, Files.download, Files.dirList
