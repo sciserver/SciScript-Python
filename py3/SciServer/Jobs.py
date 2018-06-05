@@ -344,7 +344,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                 for vol in dockerComputeDomain.get('userVolumes'):
                     if vol.get('name') == uVol.get('name'):
                         found = True;
-                        if (uVol.has_key('needsWriteAccess')):
+                        if (uVol.get('needsWriteAccess')):
                             if uVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
                                 uVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
                             else:
@@ -458,7 +458,7 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                 for vol in dockerComputeDomain.get('userVolumes'):
                     if vol.get('name') == uVol.get('name'):
                         found = True;
-                        if (uVol.has_key('needsWriteAccess')):
+                        if (uVol.get('needsWriteAccess')):
                             if uVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
                                 uVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
                             else:
