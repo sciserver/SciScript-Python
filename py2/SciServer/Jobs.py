@@ -342,7 +342,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
             for uVol in userVolumes:
                 found = False;
                 for vol in dockerComputeDomain.get('userVolumes'):
-                    if vol.get('name') == uVol.get('name'):
+                    if vol.get('name') == uVol.get('name') and vol.get('rootVolumeName') == uVol.get('rootVolumeName') and vol.get('owner') == uVol.get('owner'):
                         found = True;
                         if (uVol.has_key('needsWriteAccess')):
                             if uVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
