@@ -61,3 +61,20 @@ SciServer.SkyQuery module
     :members:
     :undoc-members:
     :show-inheritance:
+
+SciServer.Files module
+------------------------
+
+.. automodule:: SciServer.Files
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+SciServer.Jobs module
+------------------------
+
+.. automodule:: SciServer.Jobs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

@@ -29,9 +29,9 @@ SciDriveHost = "https://www.scidrive.org"
 SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
 SkyServerWSurl = "https://skyserver.sdss.org"
 RacmApiURL = "http://scitest12.pha.jhu.edu/racm"
-DataRelease = "DR13"
+DataRelease = "DR14"
 KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
-version = "sciserver-v1.10.0" #sciserver release version
+version = "sciserver-v2.0.0" #sciserver release version
 ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
 
 _CONFIG_DIR = os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
