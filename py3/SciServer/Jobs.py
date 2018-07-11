@@ -10,25 +10,6 @@ import time;
 
 
 
-def getJobDirectory():
-    """
-    Gets the root directory path where the job is being executed. Since its value depends on the value of jobId, the path will be defined only after the job is submitted. It can be called within Jupyter notebooks or shell commands running as jobs.
-    :return: a string defining the path to the job directory.
-    :raises: Throws an exception if job directory cannot be found.
-    :example: jobDirectory =  getJobDirectory();
-    .. seealso:: Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getRDBComputeDomains, Jobs.cancelJob
-    """
-    computeJobDirectoryFile = Config.ComputeJobDirectoryFile
-    if os.path.isfile(computeJobDirectoryFile):
-        jobDirectory = None;
-        with open(computeJobDirectoryFile, 'r') as f:
-            jobDirectory = f.read().rstrip('\n')
-
-        return jobDirectory
-    else:
-        raise OSError("Cannot find job execution directory")
-
-
 def getDockerComputeDomains():
     """
     Gets a list of all registered Docker compute domains that the user has access to.
