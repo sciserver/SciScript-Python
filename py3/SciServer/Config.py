@@ -34,21 +34,25 @@ KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containi
 version = "sciserver-v2.0.0" #sciserver release version
 ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
 
+def _load_config(filename):
+    if os.path.exists(filename):
+        with open(filename) as f:
+            _config_data = json.load(f)
+            CasJobsRESTUri = _config_data.get('CasJobsRESTUri', CasJobsRESTUri)
+            AuthenticationURL = _config_data.get('AuthenticationURL', AuthenticationURL)
+            SciDriveHost = _config_data.get('SciDriveHost', SciDriveHost)
+            SkyQueryUrl = _config_data.get('SkyQueryUrl', SkyQueryUrl)
+            SkyServerWSurl = _config_data.get('SkyServerWSurl', SkyServerWSurl)
+            RacmApiURL = _config_data.get('RacmApiURL', RacmApiURL)
+            DataRelease = _config_data.get('DataRelease', DataRelease)
+            KeystoneTokenPath = _config_data.get('KeystoneTokenPath', KeystoneTokenPath)
+            version = _config_data.get('version', version)
+            ComputeJobDirectoryFile = _config_data.get('ComputeJobDirectoryFile', ComputeJobDirectoryFile)
+
 _CONFIG_DIR = os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
-_SCISERVER_CONFIG_FILE = os.path.join(_CONFIG_DIR, 'sciserver', 'sciscript.json')
-if os.path.exists(_SCISERVER_CONFIG_FILE):
-    with open(_SCISERVER_CONFIG_FILE) as f:
-        _config_data = json.load(f)
-        CasJobsRESTUri = _config_data.get('CasJobsRESTUri', CasJobsRESTUri)
-        AuthenticationURL = _config_data.get('AuthenticationURL', AuthenticationURL)
-        SciDriveHost = _config_data.get('SciDriveHost', SciDriveHost)
-        SkyQueryUrl = _config_data.get('SkyQueryUrl', SkyQueryUrl)
-        SkyServerWSurl = _config_data.get('SkyServerWSurl', SkyServerWSurl)
-        RacmApiURL = _config_data.get('RacmApiURL', RacmApiURL)
-        DataRelease = _config_data.get('DataRelease', DataRelease)
-        KeystoneTokenPath = _config_data.get('KeystoneTokenPath', KeystoneTokenPath)
-        version = _config_data.get('version', version)
-        ComputeJobDirectoryFile = _config_data.get('ComputeJobDirectoryFile', ComputeJobDirectoryFile)
+_SCISERVER_SYSTEM_CONFIG_DIR = '/etc/' # will not likely exist on non *nix systems
+for config_dir in [_SCISERVER_SYSTEM_CONFIG_DIR, _CONFIG_DIR]:
+    _load_config(os.path.join(config_dir, 'sciserver', 'sciscript.json'))
 
 # returns TRUE if the library is running inside the SciServer-Compute, and FALSE if not
 def isSciServerComputeEnvironment():
