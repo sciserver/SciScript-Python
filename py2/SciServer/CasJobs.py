@@ -151,8 +151,16 @@ def executeQuery(sql, context="MyDB", format="pandas"):
     if (format == "readable") or (format == "StringIO"):
         return StringIO(postResponse.content.decode())
     elif format == "pandas":
-        r=json.loads(postResponse.content.decode())
-        return pandas.DataFrame(r['Result'][0]['Data'],columns=r['Result'][0]['Columns'])
+        r = json.loads(postResponse.content.decode())
+        if len(r['Result']) > 1:
+            res = []
+            for result in r['Result']:
+                res.append(pandas.DataFrame(result['Data'], columns=result['Columns']))
+
+            return res
+        else:
+            return pandas.DataFrame(r['Result'][0]['Data'], columns=r['Result'][0]['Columns'])
+
     elif format == "csv":
         return postResponse.content.decode()
     elif format == "dict":
