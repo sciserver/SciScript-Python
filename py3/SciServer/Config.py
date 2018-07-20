@@ -38,6 +38,8 @@ def _load_config(filename):
     if os.path.exists(filename):
         with open(filename) as f:
             _config_data = json.load(f)
+            global CasJobsRESTUri, AuthenticationURL, SciDriveHost, SkyQueryUrl, SkyServerWSurl
+            global RacmApiURL, DataRelease, KeystoneTokenPath, version, ComputeJobDirectoryFile
             CasJobsRESTUri = _config_data.get('CasJobsRESTUri', CasJobsRESTUri)
             AuthenticationURL = _config_data.get('AuthenticationURL', AuthenticationURL)
             SciDriveHost = _config_data.get('SciDriveHost', SciDriveHost)
