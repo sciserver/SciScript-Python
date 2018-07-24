@@ -598,7 +598,7 @@ def shareUserVolume(fileService, path, sharedWith, allowedActions, type="USER"):
 
         url = __getFileServiceAPIUrl(fileService) + "api/share/" + rootVolume + "/" + userVolumeOwner + "/" + userVolume + "?TaskName="+taskName
 
-        headers = {'X-Auth-Token': token}
+        headers = {'X-Auth-Token': token,'Content-Type':'application/json'}
         res = requests.patch(url, headers=headers, data=body)
 
         if res.status_code >= 200 and res.status_code < 300:
