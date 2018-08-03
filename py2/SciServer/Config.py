@@ -24,11 +24,11 @@ Although these parameters must be set/defined by the admin or user before the in
 """
 # URLs for accessing SciServer web services (API endpoints)
 CasJobsRESTUri = "https://skyserver.sdss.org/CasJobs/RestApi"
-AuthenticationURL = "http://scitest12.pha.jhu.edu/login-portal/keystone/v3/tokens"
+AuthenticationURL = "https://apps.sciserver.org/login-portal/keystone/v3/tokens"
 SciDriveHost = "https://www.scidrive.org"
 SkyQueryUrl = "http://voservices.net/skyquery/Api/V1"
 SkyServerWSurl = "https://skyserver.sdss.org"
-RacmApiURL = "http://scitest12.pha.jhu.edu/racm"
+RacmApiURL = "https://apps.sciserver.org/racm"
 DataRelease = "DR14"
 KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containing the user's keystone token is hardcoded in the sciserver-compute environment
 version = "sciserver-v2.0.0" #sciserver release version
