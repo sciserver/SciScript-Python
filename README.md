@@ -17,6 +17,10 @@ Some SciServer tools you can access with this package:
  * [SkyServer](http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
 
  * [SkyQuery](http://www.voservices.net/skyquery): Cross-match of astronomical source catalogs.
+ 
+ * [Compute Jobs](http://apps.sciserver.org/compute/jobs) and [SciQuery Jobs](http://apps.sciserver.org/sciquery-ui/): Synch and asynch submission of Jupyter notebooks, shell commands and SQL queries.
+ 
+ * [Files](http://apps.sciserver.org/dashboard/files): Interact with the SciServer file system.
 
 Maintainer: Manuchehr Taghizadeh-Popp.
 

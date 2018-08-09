@@ -7,6 +7,15 @@ import requests as requests
 from SciServer import Config, Authentication
 
 
+class Task:
+    """
+    The class TaskName stores the name of the task that executes the API call.
+    """
+    name = None
+
+
+task = Task();
+
 def createContainer(path):
     """
     Creates a container (directory) in SciDrive
@@ -25,7 +34,13 @@ def createContainer(path):
                          'uri="vos://' + Config.SciDriveHost + '!vospace/' + path + '">'
                                                                                     '<vos:properties/><vos:accepts/><vos:provides/><vos:capabilities/>'
                                                                                     '</vos:node>')
-        url = Config.SciDriveHost + '/vospace-2.0/nodes/' + path
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SciDrive.createContainer"
+        else:
+            taskName = "SciScript-Python.SciDrive.createContainer"
+
+        url = Config.SciDriveHost + '/vospace-2.0/nodes/' + path + "?TaskName=" + taskName;
         data = str.encode(containerBody)
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/xml'}
         res = requests.put(url, data=data, headers=headers)
@@ -52,7 +67,14 @@ def upload(path, data="", localFilePath=""):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
-        url = Config.SciDriveHost + '/vospace-2.0/1/files_put/dropbox/' + path
+
+        taskName = ""
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SciDrive.upload"
+        else:
+            taskName = "SciScript-Python.SciDrive.upload"
+
+        url = Config.SciDriveHost + '/vospace-2.0/1/files_put/dropbox/' + path + "?TaskName=" + taskName;
         headers = {'X-Auth-Token': token}
         if(localFilePath != ""):
             with open(localFilePath, "rb") as file:
@@ -85,7 +107,17 @@ def publicUrl(path):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        url = Config.SciDriveHost + '/vospace-2.0/1/media/sandbox/' + str(path)
+        taskName = "";
+        if task.name is not None:
+            taskName = task.name;
+            task.name = None;
+        else:
+            if Config.isSciServerComputeEnvironment():
+                taskName = "Compute.SciScript-Python.SciDrive.publicUrl"
+            else:
+                taskName = "SciScript-Python.SciDrive.publicUrl"
+
+        url = Config.SciDriveHost + '/vospace-2.0/1/media/sandbox/' + str(path) + "?TaskName=" + taskName
         headers = {'X-Auth-Token': token}
         res = requests.get(url, headers=headers)
         if res.status_code != 200:
@@ -113,7 +145,13 @@ def directoryList(path=""):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        url = Config.SciDriveHost + "/vospace-2.0/1/metadata/sandbox/" + str(path) + "?list=True&path="  + str(path)
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SciDrive.directoryList"
+        else:
+            taskName = "SciScript-Python.SciDrive.directoryList"
+
+        url = Config.SciDriveHost + "/vospace-2.0/1/metadata/sandbox/" + str(path) + "?list=True&path="  + str(path) + "&TaskName=" + taskName;
         headers = {'X-Auth-Token': token}
         res = requests.get(url, headers=headers)
         if res.status_code != 200:
@@ -142,6 +180,12 @@ def download(path, format="text", localFilePath=""):
     """
     token = Authentication.getToken()
     if token is not None and token != "":
+
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.SciDrive.download"
+        else:
+            task.name = "SciScript-Python.SciDrive.download"
 
         fileUrl = publicUrl(path)
         res = requests.get(fileUrl, stream=True)
@@ -194,7 +238,13 @@ def delete(path):
                          'uri="vos://' + Config.SciDriveHost + '!vospace/' + path + '">'
                                                                                     '<vos:properties/><vos:accepts/><vos:provides/><vos:capabilities/>'
                                                                                     '</vos:node>')
-        url = Config.SciDriveHost + '/vospace-2.0/nodes/' + path
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SciDrive.delete"
+        else:
+            taskName = "SciScript-Python.SciDrive.delete"
+
+        url = Config.SciDriveHost + '/vospace-2.0/nodes/' + path + "?TaskName=" + taskName;
         data = str.encode(containerBody)
         headers = {'X-Auth-Token': token, 'Content-Type': 'application/xml'}
         res = requests.delete(url, data=data, headers=headers)

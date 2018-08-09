@@ -10,6 +10,16 @@ import pandas
 from SciServer import Authentication, Config
 
 
+class Task:
+    """
+    The class TaskName stores the name of the task that executes the API call.
+    """
+    name = None
+
+
+task = Task();
+
+
 def getSchemaName():
     """
     Returns the WebServiceID that identifies the schema for a user in MyScratch database with CasJobs.
@@ -24,7 +34,14 @@ def getSchemaName():
     if token is not None and token != "":
 
         keystoneUserId = Authentication.getKeystoneUserWithToken(token).id
-        usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId
+
+        taskName = ""
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.CasJobs.getSchemaName"
+        else:
+            taskName = "SciScript-Python.CasJobs.getSchemaName"
+
+        usersUrl = Config.CasJobsRESTUri + "/users/" + keystoneUserId + "?TaskName=" + taskName
         headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
         getResponse = requests.get(usersUrl,headers=headers)
         if getResponse.status_code != 200:
@@ -51,7 +68,13 @@ def getTables(context="MyDB"):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables"
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.CasJobs.getTables"
+        else:
+            taskName = "SciScript-Python.CasJobs.getTables"
+
+        TablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables" + "?TaskName=" + taskName
 
         headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
 
@@ -100,15 +123,19 @@ def executeQuery(sql, context="MyDB", format="pandas"):
     else:
         raise Exception("Error when executing query. Illegal format parameter specification: " + str(format));
 
-    QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"
-
-    TaskName = "";
-    if Config.isSciServerComputeEnvironment():
-        TaskName = "Compute.SciScript-Python.CasJobs.executeQuery"
+    taskName = "";
+    if task.name is not None:
+        taskName = task.name;
+        task.name = None;
     else:
-        TaskName = "SciScript-Python.CasJobs.executeQuery"
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.CasJobs.executeQuery"
+        else:
+            taskName = "SciScript-Python.CasJobs.executeQuery"
 
-    query = {"Query": sql, "TaskName": TaskName}
+    QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/query"  + "?TaskName=" + taskName
+
+    query = {"Query": sql, "TaskName": taskName}
 
     data = json.dumps(query).encode()
 
@@ -124,8 +151,16 @@ def executeQuery(sql, context="MyDB", format="pandas"):
     if (format == "readable") or (format == "StringIO"):
         return StringIO(postResponse.content.decode())
     elif format == "pandas":
-        r=json.loads(postResponse.content.decode())
-        return pandas.DataFrame(r['Result'][0]['Data'],columns=r['Result'][0]['Columns'])
+        r = json.loads(postResponse.content.decode())
+        if len(r['Result']) > 1:
+            res = []
+            for result in r['Result']:
+                res.append(pandas.DataFrame(result['Data'], columns=result['Columns']))
+
+            return res
+        else:
+            return pandas.DataFrame(r['Result'][0]['Data'], columns=r['Result'][0]['Columns'])
+
     elif format == "csv":
         return postResponse.content.decode()
     elif format == "dict":
@@ -154,15 +189,15 @@ def submitJob(sql, context="MyDB"):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/jobs"
-
-        TaskName = "";
+        taskName = "";
         if Config.isSciServerComputeEnvironment():
-            TaskName = "Compute.SciScript-Python.CasJobs.submitJob"
+            taskName = "Compute.SciScript-Python.CasJobs.submitJob"
         else:
-            TaskName = "SciScript-Python.CasJobs.submitJob"
+            taskName = "SciScript-Python.CasJobs.submitJob"
 
-        query = {"Query": sql, "TaskName": TaskName}
+        QueryUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/jobs" + "?TaskName=" + taskName
+
+        query = {"Query": sql, "TaskName": taskName}
 
         data = json.dumps(query).encode()
 
@@ -193,7 +228,13 @@ def getJobStatus(jobId):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobId)
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.CasJobs.getJobStatus"
+        else:
+            taskName = "SciScript-Python.CasJobs.getJobStatus"
+
+        QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobId) + "?TaskName=" + taskName
 
         headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
 
@@ -220,7 +261,13 @@ def cancelJob(jobId):
     token = Authentication.getToken()
     if token is not None and token != "":
 
-        QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobId)
+        taskName = "";
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.CasJobs.cancelJob"
+        else:
+            taskName = "SciScript-Python.CasJobs.cancelJob"
+
+        QueryUrl = Config.CasJobsRESTUri + "/jobs/" + str(jobId) + "?TaskName=" + taskName
 
         headers={'X-Auth-Token': token,'Content-Type': 'application/json'}
 
@@ -233,12 +280,13 @@ def cancelJob(jobId):
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def waitForJob(jobId, verbose=True):
+def waitForJob(jobId, verbose=False, pollTime = 5):
     """
-    Queries the job status from casjobs every 2 seconds and waits for the casjobs job to return a status of 3, 4, or 5 (Cancelled, Failed or Finished, respectively).
+    Queries regularly the job status and waits until the job is completed.
 
     :param jobId: id of job (integer)
-    :param verbose: if True, will print "wait" messages on the screen while the job is not done. If False, will suppress printing messages on the screen.
+    :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, will suppress the printing of messages on the screen.
+    :param pollTime: idle time interval (integer, in seconds) before querying again for the job status. Minimum value allowed is 5 seconds.
     :return: After the job is finished, returns a dictionary object containing the job status and related metadata. The "Status" field can be equal to 0 (Ready), 1 (Started), 2 (Canceling), 3(Canceled), 4 (Failed) or 5 (Finished).
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the CasJobs API returns an error.
     :example: CasJobs.waitForJob(CasJobs.submitJob("select 1"))
@@ -247,6 +295,7 @@ def waitForJob(jobId, verbose=True):
     """
 
     try:
+        minPollTime = 5 # in seconds
         complete = False
 
         waitingStr = "Waiting..."
@@ -266,14 +315,14 @@ def waitForJob(jobId, verbose=True):
                     #print back,
                     print "Done!"
             else:
-                time.sleep(2)
+                time.sleep(max(minPollTime,pollTime));
 
         return jobDesc
     except Exception as e:
         raise e;
 
 
-def writeFitsFileFromQuery(fileName, queryString, context="MyDB"):
+def  writeFitsFileFromQuery(fileName, queryString, context="MyDB"):
     """
     Executes a quick CasJobs query and writes the result to a local Fits file (http://www.stsci.edu/institute/software_hardware/pyfits).
 
@@ -287,6 +336,13 @@ def writeFitsFileFromQuery(fileName, queryString, context="MyDB"):
     .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.getPandasDataFrameFromQuery, CasJobs.getNumpyArrayFromQuery
     """
     try:
+
+
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.writeFitsFileFromQuery"
+        else:
+            task.name = "SciScript-Python.CasJobs.writeFitsFileFromQuery"
+
         bytesio = executeQuery(queryString, context=context, format="fits")
 
         theFile = open(fileName, "w+b")
@@ -312,6 +368,12 @@ def getPandasDataFrameFromQuery(queryString, context="MyDB"):
     .. seealso:: CasJobs.submitJob, CasJobs.getJobStatus, CasJobs.executeQuery, CasJobs.writeFitsFileFromQuery, CasJobs.getNumpyArrayFromQuery
     """
     try:
+
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.getPandasDataFrameFromQuery"
+        else:
+            task.name = "SciScript-Python.CasJobs.getPandasDataFrameFromQuery"
+
         cvsResponse = executeQuery(queryString, context=context,format="readable")
 
         #if the index column is not specified then it will add it's own column which causes problems when uploading the transformed data
@@ -337,7 +399,13 @@ def getNumpyArrayFromQuery(queryString, context="MyDB"):
     """
     try:
 
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.getNumpyArrayFromQuery"
+        else:
+            task.name = "SciScript-Python.CasJobs.getNumpyArrayFromQuery"
+
         dataFrame = getPandasDataFrameFromQuery(queryString, context)
+
         return dataFrame.as_matrix()
 
     except Exception as e:
@@ -359,6 +427,12 @@ def uploadPandasDataFrameToTable(dataFrame, tableName, context="MyDB"):
     .. seealso:: CasJobs.uploadCSVDataToTable
     """
     try:
+
+        if Config.isSciServerComputeEnvironment():
+            task.name = "Compute.SciScript-Python.CasJobs.uploadPandasDataFrameToTable"
+        else:
+            task.name = "SciScript-Python.CasJobs.uploadPandasDataFrameToTable"
+
         if dataFrame.index.name is not None and dataFrame.index.name != "":
             sio = dataFrame.to_csv().encode("utf8")
         else:
@@ -387,7 +461,18 @@ def uploadCSVDataToTable(csvData, tableName, context="MyDB"):
 
         #if (Config.executeMode == "debug"):
         #    print "Uploading ", sys.getsizeof(CVSdata), "bytes..."
-        tablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables/" + tableName
+
+        taskName = "";
+        if task.name is not None:
+            taskName = task.name;
+            task.name = None;
+        else:
+            if Config.isSciServerComputeEnvironment():
+                taskName = "Compute.SciScript-Python.CasJobs.uploadCSVDataToTable"
+            else:
+                taskName = "SciScript-Python.CasJobs.uploadCSVDataToTable"
+
+        tablesUrl = Config.CasJobsRESTUri + "/contexts/" + context + "/Tables/" + tableName + "?TaskName=" + taskName
 
         headers={}
         headers['X-Auth-Token']= token

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyServer, SkyQuery, SciDrive
+from SciServer import Authentication, LoginPortal, Config, CasJobs, SkyServer, SkyQuery, SciDrive, Files, Jobs
 import unittest2 as unittest
 import os;
 import pandas;
@@ -13,6 +13,8 @@ import skimage
 Authentication_loginName = '***';
 Authentication_loginPassword = '***'
 
+Authentication_login_sharedWithName = '***'
+Authentication_login_sharedWithPassword = '***'
 
 #skyserver
 SkyServer_TestQuery = "select top 1 specobjid, ra, dec from specobj order by specobjid"
@@ -39,11 +41,38 @@ SciDrive_Directory = "/SciScriptPython"
 SciDrive_FileName = "TestFile.csv"
 SciDrive_FileContent = "Column1,Column2\n4.5,5.5\n"
 
+Files_FileServiceName = "NewFileServiceScitest12_1 INSECURE"
+Files_RootVolumeName1 = "persistent"
+Files_UserVolumeName1 = "UserVolume555"
+Files_RootVolumeName2 = "persistent"
+Files_UserVolumeName2 = "UserVolume999"
+Files_NewDirectoryName1 = "myNewDirectory555"
+Files_NewDirectoryName2 = "myNewDirectory999"
+Files_LocalFileName = "MyNewFile.txt"
+Files_LocalFileContent = "#ID,Column1,Column2\n1,4.5,5.5"
 
-#class TestVariables:
-#    SkyQuery_jobId = None;
-#    def __init__(self):
-#        pass
+
+Jobs_DockerComputeDomainName = 'Small Jobs Batch Domain'
+Jobs_FileServiceName = "FileServiceJHU"
+Jobs_RootVolumeName = "volumes"
+Jobs_UserVolumeName = Authentication_loginName + "_JobsTestVolume"
+Jobs_DirectoryName = "JobsTestDirectory"
+Jobs_NotebookName = 'TestNotebook.ipynb'
+Jobs_NoteBookOutPutFile = 'HelloWorld.txt'
+Jobs_ShellCommand = 'pwd'
+Jobs_DockerImageName = 'Python (astro)'
+
+Jobs_UserVolumes = [{'name':'persistent'},{'name':'scratch', 'needsWriteAccess':True}]
+Jobs_DataVolumes = [{'name':'SDSS_DAS'}]
+Jobs_Parameters =  'param1=1\nparam2=2\nparam3=3'
+Jobs_Alias = 'MyNewJob'
+
+Jobs_SqlQuery = 'select 1;'
+Jobs_SqlQueryResult = 'column1\n1\n'
+Jobs_RDBComputeDomainName = 'Manga (long)'
+Jobs_DatabaseContextName = "manga"
+Jobs_RemoteNotebookPath='/home/idies/workspace/' + Jobs_UserVolumeName + '/' + Jobs_DirectoryName + '/' + Jobs_NotebookName
+Jobs_QueryResultsFile = 'myQueryResults'
 
 
 class TestAuthentication(unittest.TestCase):
@@ -239,6 +268,9 @@ class TestSkyServer(unittest.TestCase):
         self.maxDiff = None;
         self.assertEqual(SkyServer_RadialSearchResultCSV, df.to_csv(index=False, float_format="%.6f"))
 
+
+
+
     def test_SkyServer_rectangularSearch(self):
         #rectangular search
         df = SkyServer.rectangularSearch(min_ra=258.3, max_ra=258.31, min_dec=64,max_dec=64.01, dataRelease=SkyServer_DataRelease)
@@ -398,15 +430,309 @@ class TestSkyQuery(unittest.TestCase):
     def test_SkyQuery_listDatasetTables(self):
         tables = SkyQuery.listDatasetTables("MyDB")
 
+
+
+
+
+class TestFileService(unittest.TestCase):
+
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+    def setUp(self):
+        pass
+
+    # *******************************************************************************************************
+    # Files section
+
+    def test_Files_getFileServices(self):
+        fileServices = Files.getFileServices();
+        self.assertTrue(fileServices.__len__() > 0)
+
+    def test_Files_getFileServicesNames(self):
+        fileServiceNames = Files.getFileServicesNames();
+        self.assertTrue(fileServiceNames.__len__() > 0)
+
+    def test_Files_getFileServicesNames(self):
+        fileServiceNames = Files.getFileServicesNames();
+        found = False;
+        for fileService in fileServiceNames:
+            if fileService.get('name') == Files_FileServiceName:
+                found=True;
+
+        self.assertTrue(found)
+
+    def test_Files_getFileServiceFromName(self):
+        fileService = Files.getFileServiceFromName(Files_FileServiceName);
+        self.assertTrue(fileService.get('name') == Files_FileServiceName);
+
+    def test_Files_getRootVolumesInfo(self):
+        fileService = Files.getFileServiceFromName(Files_FileServiceName);
+        rootVolumes = Files.getRootVolumesInfo(fileService)
+        self.assertTrue(rootVolumes.__len__() > 0)
+        found = False
+        for rootVolume in rootVolumes:
+            if rootVolume.get('rootVolumeName') == Files_RootVolumeName1:
+                found = True
+        self.assertTrue(found)
+
+        found = False
+        for rootVolume in rootVolumes:
+            if rootVolume.get('rootVolumeName') == Files_RootVolumeName2:
+                found = True
+        self.assertTrue(found)
+
+    def test_Files_getUserVolumesInfo(self):
+        fileService = Files.getFileServiceFromName(Files_FileServiceName);
+        userVolumesInfo = Files.getUserVolumesInfo(fileService)
+        self.assertTrue(userVolumesInfo.__len__() > 0)
+
+    def test_Files_createUserVolume_deleteUserVolume(self):
+        fileService = Files.getFileServiceFromName(Files_FileServiceName);
+        Files.createUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=False)
+        Files.deleteUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=False)
+
+    def test_Files_createDir_upload_dirList_download_download_shareUserVolume(self):
+
+        try:
+            fileService = Files.getFileServiceFromName(Files_FileServiceName);
+            os.remove(Files_LocalFileName);
+            Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName1, quiet=True)
+            Files.deleteUserVolume(fileService, Files_RootVolumeName1, Files_UserVolumeName2, quiet=True)
+        except:
+            pass;
+
+        try:
+            fileService = Files.getFileServiceFromName(Files_FileServiceName);
+
+            Files.createUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=False)
+            Files.createUserVolume(fileService,"/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName2]),quiet=False)
+
+            Files.createDir(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]));
+            Files.createDir(fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2, Files_NewDirectoryName2]));
+
+            dirList = Files.dirList(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]),level=2)
+            self.assertTrue(dirList.get('root').get('name') == Files_NewDirectoryName1)
+
+            Files.upload(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]),data=Files_LocalFileContent);
+
+            dirList = Files.dirList(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]) ,level=2)
+            self.assertTrue(dirList.get('root').get('files')[0].get('name') == Files_LocalFileName)
+
+            Files.download(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1,Files_NewDirectoryName1, Files_LocalFileName]),localFilePath=Files_LocalFileName);
+
+            with open(Files_LocalFileName, 'r') as myfile:
+                downloadedFileContent = myfile.read()
+                assert(downloadedFileContent == Files_LocalFileContent)
+
+            Files.delete(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]))
+
+            dirList = Files.dirList(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1]),level=2)
+            self.assertIsNone(dirList.get('root').get('files'))
+
+            Files.upload(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]), localFilePath=Files_LocalFileName,quiet=False);
+
+            Files.move(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1, Files_NewDirectoryName1, Files_LocalFileName]), fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2, Files_NewDirectoryName2, Files_LocalFileName]));
+
+            Files.shareUserVolume(fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2]), sharedWith=Authentication_login_sharedWithName, type="USER",allowedActions=["read"])
+
+            token1 = Authentication.login(Authentication_login_sharedWithName, Authentication_login_sharedWithPassword);
+
+            string = Files.download(fileService, "/".join([Files_RootVolumeName2, Authentication_loginName, Files_UserVolumeName2, Files_NewDirectoryName2, Files_LocalFileName]), format="txt");
+
+            self.assertTrue(string, Files_LocalFileContent)
+
+            token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+        finally:
+            try:
+                os.remove(Files_LocalFileName);
+                Files.deleteUserVolume(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName1]),quiet=True)
+                Files.deleteUserVolume(fileService, "/".join([Files_RootVolumeName1, Authentication_loginName, Files_UserVolumeName2]),quiet=True)
+            except:
+                pass;
+
+
+class TestJobs(unittest.TestCase):
+
+    token1 = Authentication.login(Authentication_loginName, Authentication_loginPassword);
+
+
+    def setUp(self):
+        pass
+
+    # *******************************************************************************************************
+    # Jobs section
+
+    # Docker Jobs   ################################################################################################
+
+    def test_Jobs_getDockerComputeDomains(self):
+        dockerComputeDomains = Jobs.getDockerComputeDomains()
+        self.assertTrue(dockerComputeDomains.__len__() > 0)
+        found = False
+        for dockerComputeDomain in dockerComputeDomains:
+            if dockerComputeDomain.get('name') == Jobs_DockerComputeDomainName:
+                found = True
+        self.assertTrue(found)
+
+    def test_Jobs_getDockerComputeDomainsNames(self):
+        dockerComputeDomainsNames = Jobs.getDockerComputeDomainsNames()
+        self.assertTrue(Jobs_DockerComputeDomainName in dockerComputeDomainsNames)
+
+    def test_Jobs_getDockerComputeDomainFromName(self):
+        dockerComputeDomain = Jobs.getDockerComputeDomainFromName(Jobs_DockerComputeDomainName)
+        self.assertTrue(dockerComputeDomain.get('name') in Jobs_DockerComputeDomainName)
+
+    def test_Jobs_submitNotebookJob_cancel_waitForJob_getJobStatus_getJobDescription_submitShellCommandJob(self):
+
+        fileService = Files.getFileServiceFromName(Jobs_FileServiceName);
+        try:
+            Files.deleteUserVolume(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName)
+        except:
+            pass
+
+        Files.createUserVolume(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName)
+        Files.upload(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName,
+                     Jobs_DirectoryName + "/" + Jobs_NotebookName,
+                     localFilePath=Jobs_NotebookName);
+
+        dockerComputeDomain = Jobs.getDockerComputeDomainFromName(Jobs_DockerComputeDomainName)
+
+        jobId_1 = Jobs.submitNotebookJob(
+            '/home/idies/workspace/' + Jobs_UserVolumeName + '/' + Jobs_DirectoryName + '/' + Jobs_NotebookName,
+            dockerComputeDomain,
+            Jobs_DockerImageName,
+            Jobs_UserVolumes, Jobs_DataVolumes,
+            Jobs_Parameters, Jobs_Alias)
+        Jobs.cancelJob(jobId_1)
+        jobStatus = Jobs.getJobStatus(jobId_1)
+        self.assertTrue(jobStatus.get('status') == 128)
+
+        jobId_2 = Jobs.submitNotebookJob(
+            Jobs_RemoteNotebookPath,
+            dockerComputeDomain,
+            Jobs_DockerImageName,
+            Jobs_UserVolumes, Jobs_DataVolumes,
+            Jobs_Parameters, Jobs_Alias)
+
+        jobStatus = Jobs.waitForJob(jobId_2)
+        self.assertTrue(jobStatus == Jobs.getJobStatus(jobId_2))
+        self.assertTrue(jobStatus.get('status') == 32)
+
+        job = Jobs.getJobDescription(jobId_2)
+        self.assertTrue(job.get('username') == Authentication_loginName)
+        self.assertTrue(job.get('dockerImageName') == Jobs_DockerImageName)
+        self.assertTrue(job.get('scriptURI') == Jobs_RemoteNotebookPath)
+        self.assertTrue(job.get('submitterDID') == Jobs_Alias)
+
+        jobDirectory = job.get('resultsFolderURI')
+        relativePath = jobDirectory.split('scratch/')[1] + Jobs_NoteBookOutPutFile;
+        string = Files.download(fileService, 'scratch', '',relativePath,format="txt", userVolumeOwner=Authentication_loginName);
+        string.rstrip("\n")
+        self.assertTrue(string, job.get('resultsFolderURI') )
+
+        jobs = Jobs.getJobsList(top=2)
+        found = False
+        for job in jobs:
+            if jobId_1 == job.get("id"):
+                found = True;
+        self.assertTrue(found)
+
+        found = False
+        for job in jobs:
+            if jobId_2 == job.get("id"):
+                found = True;
+        self.assertTrue(found)
+
+
+        jobId = Jobs.submitShellCommandJob(Jobs_ShellCommand,
+                                           dockerComputeDomain,
+                                           Jobs_DockerImageName,
+                                           Jobs_UserVolumes, Jobs_DataVolumes,
+                                           Jobs_Alias)
+
+        jobStatus = Jobs.waitForJob(jobId)
+        self.assertTrue(jobStatus == Jobs.getJobStatus(jobId))
+        self.assertTrue(jobStatus.get('status') == 32)
+
+        job = Jobs.getJobDescription(jobId)
+        self.assertTrue(job.get('username') == Authentication_loginName)
+        self.assertTrue(job.get('dockerImageName') == Jobs_DockerImageName)
+        self.assertTrue(job.get('command') == Jobs_ShellCommand)
+        self.assertTrue(job.get('submitterDID') == Jobs_Alias)
+
+        jobDirectory = job.get('resultsFolderURI')
+        relativePath = jobDirectory.split('scratch/')[1] + "command.txt";
+        string = Files.download(fileService, 'scratch', '',relativePath,format="txt", userVolumeOwner=Authentication_loginName);
+        string.rstrip("\n")
+        self.assertTrue(string, job.get('resultsFolderURI') )
+
+        Files.deleteUserVolume(fileService, Jobs_RootVolumeName, Jobs_UserVolumeName)
+
+
+
+    # RDB Jobs   ################################################################################################
+
+    def test_Jobs_getRDBComputeDomains(self):
+        rdbComputeDomains = Jobs.getRDBComputeDomains()
+        self.assertTrue(rdbComputeDomains.__len__() > 0)
+        found = False
+        for rdbComputeDomain in rdbComputeDomains:
+            if rdbComputeDomain.get('name') == Jobs_RDBComputeDomainName:
+                found = True
+        self.assertTrue(found)
+
+    def test_Jobs_getRDBComputeDomainsNames(self):
+        rdbComputeDomainsNames = Jobs.getRDBComputeDomainsNames()
+        self.assertTrue(Jobs_RDBComputeDomainName in rdbComputeDomainsNames)
+
+    def test_Jobs_getRDBComputeDomainFromName(self):
+        rdbComputeDomain = Jobs.getRDBComputeDomainFromName(Jobs_RDBComputeDomainName)
+        self.assertTrue(rdbComputeDomain.get('name') in Jobs_RDBComputeDomainName)
+
+
+    def test_Jobs_submitRDBJob(self):
+
+        rdbComputeDomain = Jobs.getRDBComputeDomainFromName(Jobs_RDBComputeDomainName)
+
+        jobId = Jobs.submitRDBQueryJob(Jobs_SqlQuery, rdbComputeDomain, Jobs_DatabaseContextName, Jobs_QueryResultsFile,Jobs_Alias)
+
+        jobStatus = Jobs.waitForJob(jobId)
+        self.assertTrue(jobStatus == Jobs.getJobStatus(jobId))
+        self.assertTrue(jobStatus.get('status') == 32)
+
+        job = Jobs.getJobDescription(jobId)
+        self.assertTrue(job.get('username') == Authentication_loginName)
+        self.assertTrue(job.get('rdbDomainName') == Jobs_RDBComputeDomainName)
+        self.assertTrue(job.get('databaseContextName') == Jobs_DatabaseContextName)
+        self.assertTrue(job.get('inputSql') == Jobs_SqlQuery)
+        self.assertTrue(job.get('submitterDID') == Jobs_Alias)
+
+        fileService = Files.getFileServiceFromName(Jobs_FileServiceName);
+        jobDirectory = job.get('resultsFolderURI')
+        relativePath = jobDirectory.split('scratch/')[1] + Jobs_QueryResultsFile + '.csv';
+        string = Files.download(fileService, 'scratch', '',relativePath,format="txt", userVolumeOwner=Authentication_loginName);
+        string.rstrip("\n")
+        self.assertTrue(string, Jobs_SqlQueryResult)
+
+
+    def test_Jobs_getJobDirectory(self):
+        #TBD
+        pass;
+
+
+
+
 if __name__ == '__main__':
     #unittest.main()
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
     testLoader = unittest.TestLoader()
     testLoader.sortTestMethodsUsing = lambda x, y: 0;
-    suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
-    suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestFileService); unittest.TextTestRunner(verbosity=2).run(suite)
+    #suite = testLoader.loadTestsFromTestCase(TestJobs); unittest.TextTestRunner(verbosity=2).run(suite)
 

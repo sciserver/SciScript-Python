@@ -15,7 +15,7 @@ SciServer.CasJobs module
     :show-inheritance:
 
 SciServer.Config module
-------------------------
+-----------------------
 
 .. automodule:: SciServer.Config
     :members:
@@ -23,7 +23,7 @@ SciServer.Config module
     :show-inheritance:
 
 SciServer.Authentication module
-------------------------
+-------------------------------
 
 .. automodule:: SciServer.Authentication
     :members:
@@ -31,7 +31,7 @@ SciServer.Authentication module
     :show-inheritance:
 
 SciServer.LoginPortal module
-------------------------
+----------------------------
 
 .. automodule:: SciServer.LoginPortal
     :members:
@@ -39,7 +39,7 @@ SciServer.LoginPortal module
     :show-inheritance:
 
 SciServer.SciDrive module
-------------------------
+-------------------------
 
 .. automodule:: SciServer.SciDrive
     :members:
@@ -47,7 +47,7 @@ SciServer.SciDrive module
     :show-inheritance:
 
 SciServer.SkyServer module
-------------------------
+--------------------------
 
 .. automodule:: SciServer.SkyServer
     :members:
@@ -55,9 +55,27 @@ SciServer.SkyServer module
     :show-inheritance:
 
 SciServer.SkyQuery module
-------------------------
+-------------------------
 
 .. automodule:: SciServer.SkyQuery
     :members:
     :undoc-members:
     :show-inheritance:
+
+SciServer.Files module
+----------------------
+
+.. automodule:: SciServer.Files
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+SciServer.Jobs module
+---------------------
+
+.. automodule:: SciServer.Jobs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+

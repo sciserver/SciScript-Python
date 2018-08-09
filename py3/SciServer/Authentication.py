@@ -6,7 +6,7 @@ import sys
 import requests
 import os.path
 import warnings
-
+import getpass
 from SciServer import Config
 
 
@@ -17,6 +17,7 @@ class KeystoneUser:
     """
     id = None
     userName = None
+    token = None
 
 class Token:
     """
@@ -26,6 +27,7 @@ class Token:
 
 
 token = Token();
+keystoneUser = KeystoneUser();
 
 def getKeystoneUserWithToken(token):
     """
@@ -38,25 +40,40 @@ def getKeystoneUserWithToken(token):
 
     .. seealso:: Authentication.getToken, Authentication.login, Authentication.setToken.
     """
-    loginURL = Config.AuthenticationURL
-    if ~loginURL.endswith("/"):
-        loginURL = loginURL + "/"
-    loginURL = loginURL + token
 
-    getResponse = requests.get(loginURL)
-    if getResponse.status_code != 200:
-        raise Exception("Error when getting the keystone user with token " + str(token) +".\nHttp Response from the Authentication API returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+    if keystoneUser.token == token and keystoneUser.token is not None:
+        return keystoneUser;
 
-    responseJson = json.loads((getResponse.content.decode()))
+    else:
+        taskName = ""
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.Authentication.getKeystoneUserWithToken"
+        else:
+            taskName = "SciScript-Python.Authentication.getKeystoneUserWithToken"
 
-    ksu = KeystoneUser()
-    ksu.userName = responseJson["token"]["user"]["name"]
-    ksu.id = responseJson["token"]["user"]["id"]
+        loginURL = Config.AuthenticationURL
+        if ~loginURL.endswith("/"):
+            loginURL = loginURL + "/"
 
-    return ksu
+        loginURL = loginURL + token + "?TaskName=" + taskName;
+
+        getResponse = requests.get(loginURL)
+        if getResponse.status_code != 200:
+            raise Exception("Error when getting the keystone user with token " + str(token) +".\nHttp Response from the Authentication API returned status code " + str(getResponse.status_code) + ":\n" + getResponse.content.decode());
+
+        responseJson = json.loads((getResponse.content.decode()))
+
+        ksu = KeystoneUser()
+        ksu.userName = responseJson["token"]["user"]["name"]
+        ksu.id = responseJson["token"]["user"]["id"]
+        keystoneUser.token = token;
+        keystoneUser.userName = ksu.userName
+        keystoneUser.id = ksu.id
+
+        return ksu
 
 
-def login(UserName, Password):
+def login(UserName=None, Password=None):
     """
     Logs the user into SciServer and returns the authentication token.
     This function is useful when SciScript-Python library methods are executed outside the SciServer-Compute environment.
@@ -64,17 +81,30 @@ def login(UserName, Password):
     so the user has to use Authentication.login in order to log into SciServer manually and get the authentication token.
     Authentication.login also sets the token value in the python instance argument variable "--ident", and as the local object Authentication.token (of class Authentication.Token).
 
-    :param UserName: name of the user (string)
-    :param Password: password of the user (string)
+    :param UserName: name of the user (string). If not set, then a user name prompt will show.
+    :param Password: password of the user (string). If not set, then a password prompt will show.
     :return: authentication token (string)
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error.
-    :example: token = Authentication.login('loginName','loginPassword')
+    :example: token1 = Authentication.login(); token2 = Authentication.login('loginName','loginPassword');
 
     .. seealso:: Authentication.getKeystoneUserWithToken, Authentication.getToken, Authentication.setToken, Authentication.token.
     """
-    loginURL = Config.AuthenticationURL
+    taskName = ""
+    if Config.isSciServerComputeEnvironment():
+        taskName = "Compute.SciScript-Python.Authentication.Login"
+    else:
+        taskName = "SciScript-Python.Authentication.Login"
 
-    authJson = {"auth":{"identity":{"password":{"user":{"name":UserName,"password":Password}}}}}
+    loginURL = Config.AuthenticationURL + "?TaskName=" + taskName
+
+    userName = UserName;
+    password = Password;
+    if userName is None:
+        userName = getpass.getpass(prompt="Enter SciServer user name: ")
+    if password is None:
+        password = getpass.getpass(prompt="Enter SciServer password: ")
+
+    authJson = {"auth":{"identity":{"password":{"user":{"name":userName,"password":password}}}}}
 
     data = json.dumps(authJson).encode()
 
