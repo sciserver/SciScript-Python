@@ -41,10 +41,10 @@ SciDrive_Directory = "/SciScriptPython"
 SciDrive_FileName = "TestFile.csv"
 SciDrive_FileContent = "Column1,Column2\n4.5,5.5\n"
 
-Files_FileServiceName = "NewFileServiceScitest12_1 INSECURE"
-Files_RootVolumeName1 = "persistent"
+Files_FileServiceName = "FileServiceJHU"
+Files_RootVolumeName1 = "Storage"
 Files_UserVolumeName1 = "UserVolume555"
-Files_RootVolumeName2 = "persistent"
+Files_RootVolumeName2 = "Storage"
 Files_UserVolumeName2 = "UserVolume999"
 Files_NewDirectoryName1 = "myNewDirectory555"
 Files_NewDirectoryName2 = "myNewDirectory999"
@@ -52,18 +52,19 @@ Files_LocalFileName = "MyNewFile.txt"
 Files_LocalFileContent = "#ID,Column1,Column2\n1,4.5,5.5"
 
 
-Jobs_DockerComputeDomainName = 'Small Jobs Batch Domain'
+Jobs_DockerComputeDomainName = 'Small Jobs Domain'
 Jobs_FileServiceName = "FileServiceJHU"
-Jobs_RootVolumeName = "volumes"
-Jobs_UserVolumeName = Authentication_loginName + "_JobsTestVolume"
+Jobs_RootVolumeName = "Storage"
+Jobs_UserVolumeName = "JobsTestVolume"
 Jobs_DirectoryName = "JobsTestDirectory"
 Jobs_NotebookName = 'TestNotebook.ipynb'
 Jobs_NoteBookOutPutFile = 'HelloWorld.txt'
 Jobs_ShellCommand = 'pwd'
-Jobs_DockerImageName = 'Python (astro)'
+Jobs_DockerImageName = 'Python + R'
 
-Jobs_UserVolumes = [{'name':'persistent'},{'name':'scratch', 'needsWriteAccess':True}]
-Jobs_DataVolumes = [{'name':'SDSS_DAS'}]
+Jobs_UserVolumes = [{'name':Jobs_UserVolumeName, 'rootVolumeName':Jobs_RootVolumeName, 'owner':Authentication_loginName, 'needsWriteAccess':True},
+                    {'name':'scratch', 'rootVolumeName':'Temporary', 'owner':Authentication_loginName, 'needsWriteAccess':True}]
+Jobs_DataVolumes = [{'name':'SDSS DAS'}]
 Jobs_Parameters =  'param1=1\nparam2=2\nparam3=3'
 Jobs_Alias = 'MyNewJob'
 
@@ -727,12 +728,12 @@ if __name__ == '__main__':
     unittest.TestLoader.sortTestMethodsUsing = lambda x, y: cmp(x,y);
     testLoader = unittest.TestLoader()
     testLoader.sortTestMethodsUsing = lambda x, y: 0;
-    #suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
-    #suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
-    #suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
-    #suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
-    #suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
-    #suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestAuthentication); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestLoginPortal); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestCasJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestSkyServer); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestSciDrive); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestSkyQuery); unittest.TextTestRunner(verbosity=2).run(suite)
     suite = testLoader.loadTestsFromTestCase(TestFileService); unittest.TextTestRunner(verbosity=2).run(suite)
-    #suite = testLoader.loadTestsFromTestCase(TestJobs); unittest.TextTestRunner(verbosity=2).run(suite)
+    suite = testLoader.loadTestsFromTestCase(TestJobs); unittest.TextTestRunner(verbosity=2).run(suite)
 
