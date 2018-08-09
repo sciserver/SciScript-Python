@@ -232,7 +232,7 @@ def waitForJob(jobId, verbose=False, pollTime = 5):
                 #print(back, end="")
                 print(waitingStr, end="")
             jobDesc = getJobStatus(jobId)
-            if jobDesc['dateFinished'] is not None:
+            if jobDesc.get('dateFinished') is not None:
                 complete = True
                 if verbose:
                     #print(back, end="")
