@@ -12,10 +12,12 @@ import os
 def getFileServices(verbose=True):
     """
     Gets the definitions of file services that a user is able to access. A FileService represents a file system that contains root volumes accessible to the user for public/private data storage. Within each rootVolume, users can create sharable userVolumes for storing files.
+
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
     :return: list of dictionaries, where each dictionary represents the description of a FileService that the user is able to access.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
     :example: fileServices = Files.getFileServices();
+
     .. seealso:: Files.getFileServiceFromName
     """
     token = Authentication.getToken()
@@ -59,12 +61,14 @@ def getFileServices(verbose=True):
 
 def getFileServicesNames(fileServices=None, verbose=True):
     """
-    Returns the names and description of the fileServices available to the user.l
+    Returns the names and description of the fileServices available to the user.
+
     :param fileServices: a list of FileService objects (dictionaries), as returned by Files.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
     :return: an array of dicts, where each dict has the name and description of a file service available to the user.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
     :example: fileServiceNames = Files.getFileServicesNames();
+
     .. seealso:: Files.getFileServices
     """
 
@@ -84,12 +88,14 @@ def getFileServicesNames(fileServices=None, verbose=True):
 def getFileServiceFromName(fileServiceName, fileServices=None, verbose=True):
     """
     Returns a FileService object, given its registered name.
+
     :param fileServiceName: name of the FileService, as shown within the results of Files.getFileServices()
     :param fileServices: a list of FileService objects (dictionaries), as returned by Files.getFileServices(). If not set, then an extra internal call to Jobs.getFileServices() is made.
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
-    :return a FileService object (dictionary) that defines a FileService. A list of these kind of objects available to the user is returned by the function Jobs.getFileServices(). If no fileService can be found, then returns None.
-    :raises Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
+    :return: a FileService object (dictionary) that defines a FileService. A list of these kind of objects available to the user is returned by the function Jobs.getFileServices(). If no fileService can be found, then returns None.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
     :example: fileService = Files.getFileServiceFromName('FileServiceAtJHU');
+
     .. seealso:: Files.getFileServices
     """
 
@@ -118,9 +124,11 @@ def getFileServiceFromName(fileServiceName, fileServices=None, verbose=True):
 def __getFileServiceAPIUrl(fileService):
     """
     Gets the API endpoint URL of a FileService.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :return: API endpoint URL of the FileService (string).
     :example: fileServiceAPIUrl = Files.__getFileServiceAPIUrl();
+
     .. seealso:: Files.getFileServiceFromName
     """
 
@@ -142,11 +150,13 @@ def __getFileServiceAPIUrl(fileService):
 def getRootVolumesInfo(fileService, verbose=True):
     """
     Gets the names and descriptions of root volumes available to the user in a particular FileService.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
     :return: list of dictionaries, where each dictionary contains the name and description of a root volume.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
     :example: fileServices = Files.getFileServices(); rootVolumesInfo = getRootVolumesInfo(fileServices[0])
+
     .. seealso:: Files.getUserVolumesInfo
     """
     if type(fileService) == str:
@@ -163,12 +173,14 @@ def getRootVolumesInfo(fileService, verbose=True):
 def getUserVolumesInfo(fileService, rootVolumeName = None, verbose=True):
     """
     Gets the names definitions the RootVolumes available in a particular FileService, and  of the file services that a user is able to access.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param rootVolumeName: name of root Volume (string) for which the user volumes are fetched. If set to None, then user volumes in all root folders are fetched.
     :param verbose: boolean parameter defining whether warnings will be printed (set to True) or not (set to False).
     :return: list of dictionaries, where each dictionary contains the name and description of a root volumes that a user is able to access.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
     :example: fileServices = Files.getFileServices(); rootVolumeNames = Files.getUserVolumesInfo(fileServices[0])
+
     .. seealso:: Files.getRootVolumes,
     """
     if type(fileService) == str:
@@ -193,10 +205,12 @@ def getUserVolumesInfo(fileService, rootVolumeName = None, verbose=True):
 def splitPath(path):
     """
     Splits a path of the form rootVolume/userVolumeOwner/userVolume/relativePath/... into its 4 components: rootVolume, userVolumeOwner, userVolume, and relativePath.
+
     :param path: file system path (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/relativePath...
     :return: a tuple containing the four components: (rootVolume, userVolumeOwner, userVolume, relativePath)
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.createUserVolume(fileServices[0], "volumes","newUserVolume");
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName
     """
     if path.startswith("/"):
@@ -216,11 +230,13 @@ def splitPath(path):
 def createUserVolume(fileService, path, quiet=True):
     """
     Create a user volume.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines the file service that contains the user volume. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: path (in the remote file service) to the user volume (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume
     :param quiet: if set to False, will throw an error if the User Volume already exists. If True, won't throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.createUserVolume(fileServices[0], "volumes","newUserVolume");
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.delete, Files.upload, Files.download, Files.dirList
     """
     token = Authentication.getToken()
@@ -252,11 +268,13 @@ def createUserVolume(fileService, path, quiet=True):
 def deleteUserVolume(fileService, path, quiet=True):
     """
     Delete a user volume.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines the file service that contains the root volume. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: path (in the remote file service) to the user volume (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume
     :param quiet: If set to False, it will throw an error if user volume does not exists. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.deleteUserVolume("volumes","newUserVolume",fileServices[0]);
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.delete, Files.upload, Files.download, Files.dirList
     """
     token = Authentication.getToken()
@@ -288,11 +306,13 @@ def deleteUserVolume(fileService, path, quiet=True):
 def createDir(fileService, path, quiet=True):
     """
     Create a directory.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: path (in the remote file service) to the directory (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/directory
     :param quiet: If set to False, it will throw an error if the directory already exists. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.createDir(fileServices[0], "myRootVolume","myUserVolume", "myNewDir");
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.delete, Files.upload, Files.download, Files.dirList
     """
     token = Authentication.getToken()
@@ -331,6 +351,7 @@ def createDir(fileService, path, quiet=True):
 def upload(fileService, path, data="", localFilePath=None, quiet=True):
     """
     Uploads data or a local file into a path defined in the file system.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: path (in the remote file service) to the destination file (string), starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/destinationFile.txt
     :param data: string containing data to be uploaded, in case localFilePath is not set.
@@ -339,6 +360,7 @@ def upload(fileService, path, data="", localFilePath=None, quiet=True):
     :param quiet: If set to False, it will throw an error if the file already exists. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); Files.upload(fileServices[0], "myRootVolume", "myUserVolume", "/myUploadedFile.txt", None, None, localFilePath="/myFile.txt");
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.createDir, Files.delete, Files.download, Files.dirList
     """
     token = Authentication.getToken()
@@ -378,6 +400,7 @@ def upload(fileService, path, data="", localFilePath=None, quiet=True):
 def download(fileService, path, localFilePath=None, format="txt", quiet=True):
     """
     Downloads a file from the remote file system into the local file system, or returns the file content as an object in several formats.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: String defining the path (in the remote file service) of the file to be downloaded, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/fileToBeDownloaded.txt.
     :param localFilePath: local destination path of the file to be downloaded. If set to None, then an object of format 'format' will be returned.
@@ -387,6 +410,7 @@ def download(fileService, path, localFilePath=None, format="txt", quiet=True):
     :return: If the 'localFilePath' parameter is defined, then it will return True when the file is downloaded successfully in the local file system. If the 'localFilePath' is not defined, then the type of the returned object depends on the value of the 'format' parameter (either io.StringIO, io.BytesIO, requests.Response or string).
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); isDownloaded = Files.upload("/myUploadedFile.txt","persistent","myUserName", fileServices[0], localFilePath="/myDownloadedFile.txt");
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.createDir, Files.delete, Files.upload, Files.dirList
     """
     token = Authentication.getToken()
@@ -446,6 +470,7 @@ def download(fileService, path, localFilePath=None, format="txt", quiet=True):
 def dirList(fileService, path, level=1, options=''):
     """
     Lists the contents of a directory.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: String defining the path (in the remote file service) of the directory to be listed, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/directoryToBeListed.
     :param level: amount (int) of listed directory levels that are below or at the same level to that of the relativePath.
@@ -453,6 +478,7 @@ def dirList(fileService, path, level=1, options=''):
     :return: dictionary containing the directory listing.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); dirs = Files.dirList("/","persistent","myUserName", fileServices[0], 2);
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.delete, Files.upload, Files.download, Files.createDir
     """
     token = Authentication.getToken()
@@ -484,6 +510,7 @@ def dirList(fileService, path, level=1, options=''):
 def move(fileService, path, destinationFileService, destinationPath, replaceExisting=True, doCopy=True):
     """
     Moves or copies a file or folder.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: String defining the origin path (in the remote fileService) of the file or directory to be copied/moved, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/fileToBeMoved.txt.
     :param destinationFileService: name of fileService (string), or object (dictionary) that defines a destination file service (where the file is moved/copied into). A list of these kind of objects available to the user is returned by the function Files.getFileServices().
@@ -492,6 +519,7 @@ def move(fileService, path, destinationFileService, destinationPath, replaceExis
     :param doCopy: if set to True, then it will copy the file or folder. If set to False, then the file or folder will be moved.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); isDownloaded = Files.upload("/myUploadedFile.txt","persistent","myUserName", fileServices[0], localFilePath="/myDownloadedFile.txt");
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.createDir, Files.delete, Files.upload, Files.dirList
     """
     token = Authentication.getToken()
@@ -539,11 +567,13 @@ def move(fileService, path, destinationFileService, destinationPath, replaceExis
 def delete(fileService, path, quiet=True):
     """
     Deletes a directory or file in the File System.
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: String defining the path (in the remote fileService) of the file or directory to be deleted, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume/fileToBeDeleted.txt.
     :param quiet: If set to False, it will throw an error if the file does not exist. If set to True. it will not throw an error.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.getFileServices(); isDeleted = Files.delete("/myUselessFile.txt","persistent","myUserName", fileServices[0]);
+
     .. seealso:: Files.getFileServices(), Files.getFileServiceFromName, Files.createDir, Files.upload, Files.download, Files.dirList
     """
     token = Authentication.getToken()
@@ -573,6 +603,7 @@ def delete(fileService, path, quiet=True):
 def shareUserVolume(fileService, path, sharedWith, allowedActions, type="USER"):
     """
     Shares a user volume with another user or group
+
     :param fileService: name of fileService (string), or object (dictionary) that defines a file service. A list of these kind of objects available to the user is returned by the function Files.getFileServices().
     :param path: String defining the path (in the remote fileService) of the user volume to be shared, starting from the root volume level. Example: rootVolume/userVolumeOwner/userVolume.
     :param sharedWith: name (string) of user or group that the user volume is shared with.
@@ -580,6 +611,7 @@ def shareUserVolume(fileService, path, sharedWith, allowedActions, type="USER"):
     :param type: type (string) of the entity defined by the "sharedWith" parameter. Can be set to "USER" or "GROUP".
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the FileService API returns an error.
     :example: fileServices = Files.shareUserVolume(); isDeleted = Files.delete("/myUselessFile.txt","persistent","myUserName", fileServices[0]);
+
     .. seealso:: Files.getFileServices(), Files.getFilrmsieServiceFromName, Files.createDir, Files.upload, Files.download, Files.dirList
     """
     token = Authentication.getToken()

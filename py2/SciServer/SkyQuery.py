@@ -133,7 +133,7 @@ def getQueueInfo(queue):
     """
  	Returns information about a particular job queue (more info in http://www.voservices.net/skyquery).
 
- 	:param queue: queue name (string)
+    :param queue: queue name (string)
     :return: a dictionary containing information associated to the queue.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
     :example: queueInfo = SkyQuery.getQueueInfo('quick')
@@ -555,7 +555,7 @@ def uploadTable(uploadData, tableName, datasetName="MyDB", format="csv"):
     :param format: format of the 'data' parameter. Set to 'csv' for now.
     :return: returns True if the table was uploaded successfully.
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the SkyQuery API returns an error.
-    :example: result = SkyQuery.uploadTable("Column1,Column2\n4.5,5.5\n", tableName="myTable", datasetName="MyDB", format="csv")
+    :example: result = SkyQuery.uploadTable("Column1,Column2\\n4.5,5.5\\n", tableName="myTable", datasetName="MyDB", format="csv")
 
     .. seealso:: SkyQuery.listQueues, SkyQuery.listAllDatasets, SkyQuery.getDatasetInfo, SkyQuery.listDatasetTables, SkyQuery.getTableInfo, SkyQuery.getTable, SkyQuery.submitJob
     """

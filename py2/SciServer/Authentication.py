@@ -86,6 +86,7 @@ def login(UserName=None, Password=None):
     :return: authentication token (string)
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error.
     :example: token1 = Authentication.login(); token2 = Authentication.login('loginName','loginPassword');
+
     .. seealso:: Authentication.getKeystoneUserWithToken, Authentication.getToken, Authentication.setToken, Authentication.token.
     """
     taskName = ""
