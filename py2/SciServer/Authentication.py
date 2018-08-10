@@ -192,18 +192,20 @@ def setToken(_token):
     if _token == "":
         warnings.warn("Authentication token is being set as an empty string.", Warning, stacklevel=2)
 
-    token.value = _token;
+    if Config.isSciServerComputeEnvironment():
+        warnings.warn("Authentication token cannot be set to arbitary value when inside SciServer-Compute environment.", Warning, stacklevel=2)
+    else:
+        token.value = _token;
 
-    found = False
-    ident = identArgIdentifier()
-    for arg in sys.argv:
-        if (arg.startswith(ident)):
-            sys.argv.remove(arg)
+        found = False
+        ident = identArgIdentifier()
+        for arg in sys.argv:
+            if (arg.startswith(ident)):
+                sys.argv.remove(arg)
+                sys.argv.append(ident + _token)
+                found = True
+        if not found:
             sys.argv.append(ident + _token)
-            found = True
-    if not found:
-        sys.argv.append(ident + _token)
-
 
 
 def identArgIdentifier():
