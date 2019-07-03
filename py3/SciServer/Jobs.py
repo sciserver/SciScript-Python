@@ -7,6 +7,7 @@ from SciServer import Authentication, Config
 import requests
 import json
 import time;
+import pandas as pd
 
 
 
@@ -181,7 +182,7 @@ def getJobsList(top=10, open=None, start=None, end=None, type='all'):
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error, and if the HTTP request to the JOBM API returns an error.
     :example: jobs = Jobs.getJobsList(top=2);
 
-    .. seealso:: Jobs.submitNotebookJob, Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains, Jobs.cancelJob
+    .. seealso:: Jobs.getDockerJobsListQuick, Jobs.submitNotebookJob, Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains, Jobs.cancelJob
     """
     token = Authentication.getToken()
     if token is not None and token != "":
@@ -220,6 +221,57 @@ def getJobsList(top=10, open=None, start=None, end=None, type='all'):
             return json.loads(res.content.decode())
     else:
         raise Exception("User token is not defined. First log into SciServer.")
+
+
+def getDockerJobsListQuick(top=10, open=None, start=None, end=None, labelReg=None, returnType="pandas"):
+    """
+    Gets the list of Jobs submitted by the user using the "quick" endpoint.
+    :param top: top number of jobs (integer) returned. If top=None, then all jobs are returned.
+    :param open: If set to 'True', then only returns jobs that have not finished executing and wrapped up  (status <= FINISHED). If set to 'False' then only returnes jobs that are still running. If set to 'None', then returns both finished and unfinished jobs.
+    :param start: The earliest date (inclusive) to search for jobs, in string format yyyy-MM-dd hh:mm:ss.SSS. If set to 'None', then there is no lower bound on date.
+    :param end: The latest date (inclusive) to search for jobs, in string format yyyy-MM-dd hh:mm:ss.SSS. If set to 'None', then there is no upper bound on date.
+    :param labelReg: A string occurring in the submitterDIDtype of jobs returned.
+    :param returnType: if set To "pandas" (default setting), then it returns a pandas dataframe. Else, it will return a dictionary with the jobs list.
+    :return: a pandas dataframe by default, with each row containing information about a submitted job. See the 'returnType' parameter for other return options.
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error, and if the HTTP request to the JOBM API returns an error.
+    :example: jobs = Jobs.getDockerJobsListQuick(top=2,labelReg='__turbcutout__');
+    .. seealso:: Jobs.getJobsList, Jobs.submitNotebookJob, Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains, Jobs.cancelJob,
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+        topString = ("top={top}".format(top=top) if top != None else None)
+        startString = ("start={start}".format(start=start) if start != None else None)
+        endString = ("end={end}".format(end=end) if end != None else None)
+        labelReg=("labelReg={labelReg}".format(labelReg=labelReg) if labelReg != None else None)
+        openString=(("open={0}".format("true" if open == True else "false") if open is not None else None))
+
+        params=[s for s in [topString,startString,endString,labelReg,openString] if s is not None]
+        if len(params)>0:
+            params="?"+"&".join(params)
+        else:
+            params=""
+        url = Config.RacmApiURL + "/jobm/rest/dockerjobs/quick" + params
+
+        headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
+        res = requests.get(url, headers=headers, stream=True)
+
+        if res.status_code != 200:
+            raise Exception("Error when getting list of docker jobs from JOBM API.\nHttp Response from JOBM API returned status code " +
+                str(res.status_code) + ":\n" + res.content.decode());
+        j = json.loads(res.content.decode())
+        # change dict 'j' so it can be used to create a pandas dataframe
+        if returnType=="pandas":
+            j['data']=j.pop('rows')
+            j.pop('hrNames')
+            df=pd.read_json(json.dumps(j), orient='split')
+            df.fillna('',inplace=True)
+            return df
+        else:
+            return j
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
 
 def getJobDescription(jobId):
     """
