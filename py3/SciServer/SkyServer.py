@@ -60,12 +60,11 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     """
     Gets a rectangular image cutout from a region of the sky in SDSS, centered at (ra,dec). Return type is numpy.ndarray.\n
 
-    :param ra: Right Ascension of the image's center.
-    :param dec: Declination of the image's center.
-    :param scale: scale of the image, measured in [arcsec/pix]
-    :param width: Right Ascension of the image's center.
-    :param ra: Right Ascension of the image's center.
-    :param height: Height of the image, measured in [pix].
+    :param ra: Right Ascension of the image's center in floating point ICRS J2000 coordinates.
+    :param dec: Declination of the image's center in floating point ICRS J2000 coordinates.
+    :param scale: Scale of the image, measured in [arcsec/pix]
+    :param width: Width of image, measured in pixels (width in arcsec = width * scale). If larger than 2048, silently truncated to 2048.
+    :param height: Height of image, measured in pixels (width in arcsec = width * scale). If larger than 2048, silently truncated to 2048.
     :param opt: Optional drawing options, expressed as concatenation of letters (string). The letters options are \n
     \t"G": Grid. Draw a N-S E-W grid through the center\n
     \t"L": Label. Draw the name, scale, ra, and dec on image.\n
