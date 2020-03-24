@@ -410,7 +410,10 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
         datVols = [];
         if dataVolumes is None:
             for vol in dockerComputeDomain.get('volumes'):
-                datVols.append({'name': vol.get('name')});
+                if 'write' in vol.get('allowedActions'):
+                    datVols.append({'name': vol.get('name'), 'needsWriteAccess': True});
+                else:
+                    datVols.append({'name': vol.get('name'), 'needsWriteAccess': False});
 
         else:
             for dVol in dataVolumes:
@@ -418,7 +421,16 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                 for vol in dockerComputeDomain.get('volumes'):
                     if vol.get('name') == dVol.get('name'):
                         found = True;
-                        datVols.append({'name': vol.get('name')});
+                        if (dVol.get('needsWriteAccess')):
+                            if dVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
+                            else:
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': False});
+                        else:
+                            if 'write' in vol.get('allowedActions'):
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
+                            else:
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': False});
 
                 if not found:
                     raise Exception("Data volume '" + dVol.get('name') + "' not found within Compute domain")
@@ -507,7 +519,7 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
             for uVol in userVolumes:
                 found = False;
                 for vol in dockerComputeDomain.get('userVolumes'):
-                    if vol.get('name') == uVol.get('name'):
+                    if vol.get('name') == uVol.get('name') and vol.get('rootVolumeName') == uVol.get('rootVolumeName') and vol.get('owner') == uVol.get('owner'):
                         found = True;
                         if (uVol.get('needsWriteAccess')):
                             if uVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
@@ -526,7 +538,10 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
         datVols = [];
         if dataVolumes is None:
             for vol in dockerComputeDomain.get('volumes'):
-                datVols.append({'name': vol.get('name')});
+                if 'write' in vol.get('allowedActions'):
+                    datVols.append({'name': vol.get('name'), 'needsWriteAccess': True});
+                else:
+                    datVols.append({'name': vol.get('name'), 'needsWriteAccess': False});
 
         else:
             for dVol in dataVolumes:
@@ -534,7 +549,16 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                 for vol in dockerComputeDomain.get('volumes'):
                     if vol.get('name') == dVol.get('name'):
                         found = True;
-                        datVols.append({'name': vol.get('name')});
+                        if (dVol.get('needsWriteAccess')):
+                            if dVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
+                            else:
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': False});
+                        else:
+                            if 'write' in vol.get('allowedActions'):
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
+                            else:
+                                datVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': False});
 
                 if not found:
                     raise Exception("Data volume '" + dVol.get('name') + "' not found within Compute domain")
