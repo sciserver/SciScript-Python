@@ -421,8 +421,8 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                 for vol in dockerComputeDomain.get('volumes'):
                     if vol.get('name') == dVol.get('name'):
                         found = True;
-                        if (dVol.get('needsWriteAccess')):
-                            if dVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
+                        if dVol.get('needsWriteAccess'):
+                            if dVol.get('needsWriteAccess') is True and 'write' in vol.get('allowedActions'):
                                 datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
                             else:
                                 datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
@@ -539,9 +539,9 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
         if dataVolumes is None:
             for vol in dockerComputeDomain.get('volumes'):
                 if 'write' in vol.get('allowedActions'):
-                    datVols.append({'id': vol.get('id'),'name': vol.get('name'), 'writable': True});
+                    datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
                 else:
-                    datVols.append({'id': vol.get('id'),'name': vol.get('name'), 'writable': False});
+                    datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
 
         else:
             for dVol in dataVolumes:
@@ -549,8 +549,8 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                 for vol in dockerComputeDomain.get('volumes'):
                     if vol.get('name') == dVol.get('name'):
                         found = True;
-                        if (dVol.get('needsWriteAccess')):
-                            if dVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
+                        if dVol.get('needsWriteAccess'):
+                            if dVol.get('needsWriteAccess') is True and 'write' in vol.get('allowedActions'):
                                 datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
                             else:
                                 datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
