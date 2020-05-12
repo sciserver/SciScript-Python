@@ -10,6 +10,29 @@ import time;
 import pandas as pd
 
 
+class QueryOutputType:
+    FILE_CSV = "FILE_CSV"
+    FILE_TSV = "FILE_TSV"
+    FILE_BSV = "FILE_BSV"
+    FILE_JSON = "FILE_JSON"
+    FILE_FITS = "FILE_FITS"
+    FILE_VOTABLE = "FILE_VOTABLE"
+    TABLE = "TABLE"
+
+class QueryOutput:
+
+    def __init__(self):
+        self.outputs = []
+
+    def add_output(self, output_name="query_result.json", output_type = QueryOutputType.FILE_JSON, result_number=1):
+        if output_type not in [type for type in dir(Jobs.QueryOutputType) if not type.startswith("__")]:
+            raise Exception("Unsupported output_type " + str(output_type))
+        self.outputs.append({'location':output_name, 'type':output_type , 'resultNumber':result_number})
+
+    def get_outputs(self):
+        return self.outputs
+
+
 
 def getDockerComputeDomains():
     """
@@ -270,6 +293,54 @@ def getDockerJobsListQuick(top=10, open=None, start=None, end=None, labelReg=Non
             return j
     else:
         raise Exception("User token is not defined. First log into SciServer.")
+
+
+
+def getJobQueues(returnType="pandas"):
+    """
+    Gets information about queues of jobs submitted to all compute domains, including the ranking jobs that users have
+    already submitted to the queue for execution, as well as the ranking that a new job would get if submitted to a queue.
+    :param returnType: if set To "pandas" (default setting), then it returns a pandas dataframe. Else, it will return a dictionary object.
+    :return: a pandas dataframe by default, with each row containing information about a submitted job. See the 'returnType' parameter for other return options.
+    The resultset columns are: the name of the compute domain, the type or class of compute domain, the queue Id
+    (that uniquely identifies the compute domain), the ranking of a job in the queue (smaller ranking has higher priority),
+    the name of the user owner of the job (names other than the requestor's are hashed as a number), the job status
+    (rows with status=0 are placeholders to see where a newly submitted job to the queue would be placed in the ranking),
+    job submission time, and job start time.
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error, and if the HTTP request to the JOBM API returns an error.
+    :example: queues = Jobs.getJobQueues();
+    .. seealso:: Jobs.getJobsList, Jobs.submitNotebookJob, Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains, Jobs.cancelJob,
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.Jobs.getJobQueues"
+        else:
+            taskName = "SciScript-Python.Jobs.getJobQueues"
+
+
+        url = Config.RacmApiURL + "/jobm/rest/jobs/queues?TaskName=" + taskName
+
+        headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
+        res = requests.get(url, headers=headers, stream=True)
+
+        if res.status_code != 200:
+            raise Exception("Error when getting job queues from JOBM API.\nHttp Response from JOBM API returned status code " +
+                str(res.status_code) + ":\n" + res.content.decode());
+        j = json.loads(res.content.decode())
+        # change dict 'j' so it can be used to create a pandas dataframe
+        if returnType=="pandas":
+            j['data']=j.pop('rows')
+            j.pop('hrNames')
+            df=pd.read_json(json.dumps(j), orient='split')
+            df.fillna('',inplace=True)
+            return df
+        else:
+            return j
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
 
 
 
@@ -587,14 +658,14 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
     else:
         raise Exception("User token is not defined. First log into SciServer.")
 
-def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, resultsName='queryResults', resultsFolderPath="", jobAlias = ""):
+def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, query_output = None, resultsFolderPath="", jobAlias = ""):
     """
     Submits a sql query for execution (as an asynchronous job) inside a relational database (RDB) compute domain.
 
-    :param sqlQuery: sql query (string)
+    :param sqlQuery: sql query statement (string)
     :param rdbComputeDomain: object (dictionary) that defines a relational database (RDB) compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
     :param databaseContextName: database context name (string) on which the sql query is executed.
-    :param resultsName: name (string) of the table or file (without file type ending) that contains the query result. In case the sql query has multiple statements, should be set to a list of names (e.g., ['result1','result2']).
+    :param query_output: if a string, then it is the name of the json file that contains the query output result. Otherwise, it is a parameter of class QueryOutput, which contains the definitions of the output result types for each each subquery in the sql query statement.
     :param resultsFolderPath: full path to results folder (string) where query output tables are written into. E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If not set, then a default folder will be set automatically.
     :param jobAlias: alias (string) of job, defined by the user.
     :return: a dictionary containing the definition of the submitted job.
@@ -626,21 +697,17 @@ def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = Non
             else:
                 raise Exception("rbdComputeDomain has no database contexts available for the user.");
 
-        targets = [];
-        if type(resultsName) == str:
-            targets.append({'location': resultsName, 'type': 'FILE_CSV', 'resultNumber': 1});
-        elif type(resultsName) == list:
-            if len(set(resultsName)) != len(resultsName):
-                raise Exception("Elements of parameter 'resultsName' must be unique");
-
-            for i in range(len(resultsName)):
-                if type(resultsName[i]) == str:
-                    targets.append({'location': resultsName[i], 'type': 'FILE_CSV', 'resultNumber': i+1});
-                else:
-                    raise Exception("Elements of array 'resultsName' are not strings");
-
+        if type(query_output) == str or query_output is None:
+            targets = QueryOutput()
+            if type(query_output) == str:
+                name = query_output
+            else:
+                name = "queryResult.json"
+            targets.add_output(output_name=name, output_type=QueryOutputType.FILE_JSON, result_number=1)
+        elif type(query_output) == QueryOutput:
+            targets = query_output
         else:
-            raise Exception("Type of parameter 'resultsName' is not supported");
+            raise Exception("Unsupported query_output type " + str(type(query_output)))
 
 
         rdbDomainId = rdbComputeDomain.get('id');
