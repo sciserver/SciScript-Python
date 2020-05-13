@@ -464,7 +464,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                 for vol in dockerComputeDomain.get('userVolumes'):
                     if vol.get('name') == uVol.get('name') and vol.get('rootVolumeName') == uVol.get('rootVolumeName') and vol.get('owner') == uVol.get('owner'):
                         found = True;
-                        if (uVol.get('needsWriteAccess')):
+                        if uVol.get('needsWriteAccess') is not None:
                             if uVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
                                 uVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
                             else:
@@ -492,7 +492,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                 for vol in dockerComputeDomain.get('volumes'):
                     if vol.get('name') == dVol.get('name'):
                         found = True;
-                        if dVol.get('needsWriteAccess'):
+                        if dVol.get('needsWriteAccess') is not None:
                             if dVol.get('needsWriteAccess') is True:
                                 datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
                             else:
@@ -592,7 +592,7 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                 for vol in dockerComputeDomain.get('userVolumes'):
                     if vol.get('name') == uVol.get('name') and vol.get('rootVolumeName') == uVol.get('rootVolumeName') and vol.get('owner') == uVol.get('owner'):
                         found = True;
-                        if (uVol.get('needsWriteAccess')):
+                        if uVol.get('needsWriteAccess') is not None:
                             if uVol.get('needsWriteAccess') == True and 'write' in vol.get('allowedActions'):
                                 uVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
                             else:
@@ -620,7 +620,7 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                 for vol in dockerComputeDomain.get('volumes'):
                     if vol.get('name') == dVol.get('name'):
                         found = True;
-                        if dVol.get('needsWriteAccess'):
+                        if dVol.get('needsWriteAccess') is not None:
                             if dVol.get('needsWriteAccess') is True:
                                 datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
                             else:
