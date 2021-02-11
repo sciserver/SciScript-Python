@@ -78,4 +78,10 @@ SciServer.Jobs module
     :undoc-members:
     :show-inheritance:
 
+SciServer.Dask module
+---------------------
 
+.. automodule:: SciServer.Dask
+    :members:
+    :undoc-members:
+    :show-inheritance:
