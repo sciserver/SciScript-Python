@@ -12,10 +12,15 @@ def getClient(compute_url=None, ref_id=None):
     """
     Creates a new client for the specified Dask cluster.
     
-    If `compute_url` and `ref_id` are not set, cluster connection properties will be read from the ``~/dask-cluster.json`` file injected into new SciServer Compute containers automatically when they are created with an attached Dask cluster.
+    If `compute_url` and `ref_id` are not set, cluster connection
+    properties will be read from the ``~/dask-cluster.json`` file
+    injected into new SciServer Compute containers automatically
+    when they are created with an attached Dask cluster.
     
-    :param compute_url: the URL of a SciServer Compute instance used to manage Dask clusters, defaults to `None`
-    :param ref_id: Dask cluster reference ID in SciServer Compute, defaults to `None`
+    :param compute_url: the URL of a SciServer Compute instance
+        used to manage Dask clusters, defaults to `None`
+    :param ref_id: Dask cluster reference ID in SciServer Compute,
+        defaults to `None`
     
     :return: Dask client object
     :rtype: :class:`dask.distributed.Client`
