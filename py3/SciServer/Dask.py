@@ -6,19 +6,18 @@ from dask.distributed import Client
 from distributed.security import Security
 from os.path import expanduser
 import SciServer.Authentication
+import SciServer.Config
 import json
 
-def getClient(compute_url=None, ref_id=None):
+def getClient(ref_id=None):
     """
     Creates a new client for the specified Dask cluster.
     
-    If `compute_url` and `ref_id` are not set, cluster connection
+    If `ref_id` is not set, cluster connection
     properties will be read from the ``~/dask-cluster.json`` file
     injected into new SciServer Compute containers automatically
     when they are created with an attached Dask cluster.
     
-    :param compute_url: the URL of a SciServer Compute instance
-        used to manage Dask clusters, defaults to `None`
     :param ref_id: Dask cluster reference ID in SciServer Compute,
         defaults to `None`
     
@@ -27,12 +26,12 @@ def getClient(compute_url=None, ref_id=None):
     """
     token = SciServer.Authentication.getToken()
     data = None
-    if (compute_url is None):
+    if (ref_id is None):
         with open(expanduser('~/dask-cluster.json')) as f:
             data = json.load(f)
     else:
         try:
-            response = requests.get(''.join([compute_url.rstrip('/'), '/api/dask/clusters/', ref_id]),
+            response = requests.get(''.join([SciServer.Config.ComputeUrl.rstrip('/'), '/api/dask/clusters/', ref_id]),
                                     params = {'connectionInfo': 'true'},
                                     headers = {'X-Auth-Token': token})
             response.raise_for_status()
