@@ -2,7 +2,7 @@
 
 ## Python libraries for Jupyter Notebooks
 
-This python package provides functions for quick access of [SciServer](http://www.sciserver.org) APIs (web services) and tools.
+This python package provides functions for quick access to [SciServer](http://www.sciserver.org) APIs (web services) and tools.
 [SciServer](http://www.sciserver.org) provides a new online framework for data-intensive scientifc computing in the cloud,
 where the motto is to bring the computation close where the data is stored, and allow seamless access and sharing of big data sets within the scientific community.
 
