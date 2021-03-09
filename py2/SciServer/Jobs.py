@@ -408,7 +408,7 @@ def getJobStatus(jobId):
         raise Exception("Invalid integer value given to job status.")
 
 
-def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName='all', userVolumes='all',  dataVolumes=None, resultsFolderPath="", parameters="", jobAlias= ""):
+def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=None, userVolumes='all',  dataVolumes='all', resultsFolderPath="", parameters="", jobAlias= ""):
     """
     Submits a Jupyter Notebook for execution (as an asynchronous job) inside a Docker compute domain.
 
