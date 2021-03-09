@@ -408,15 +408,15 @@ def getJobStatus(jobId):
         raise Exception("Invalid integer value given to job status.")
 
 
-def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=None, userVolumes=None,  dataVolumes=None, resultsFolderPath="", parameters="", jobAlias= ""):
+def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=None, userVolumes='all',  dataVolumes='all', resultsFolderPath="", parameters="", jobAlias= ""):
     """
     Submits a Jupyter Notebook for execution (as an asynchronous job) inside a Docker compute domain.
 
     :param notebookPath: path of the notebook within the filesystem mounted in SciServer-Compute (string). Example: notebookPath = '/home/idies/worskpace/persistent/JupyterNotebook.ipynb'
     :param dockerComputeDomain: object (dictionary) that defines a Docker compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getDockerComputeDomains().
     :param dockerImageName: name (string) of the Docker image for executing the notebook. E.g.,  dockerImageName="Python (astro)". An array of available Docker images is defined as the 'images' property in the dockerComputeDomain object.
-    :param userVolumes: a list with the names of user volumes (with optional write permissions) that will be mounted to the docker Image. E.g.: userVolumes = [{'name':'persistent', 'needsWriteAccess':False},{'name':'scratch', , 'needsWriteAccess':True}] . A list of available user volumes can be found as the 'userVolumes' property in the dockerComputeDomain object. If userVolumes=None, then all available user volumes are mounted, with 'needsWriteAccess' = True if the user has Write permissions on the volume.
-    :param dataVolumes: a list with the names of data volumes (with optional write permissions) that will be mounted to the docker Image. E.g.: dataVolumes=[{"name":"SDSS_DAS", 'needsWriteAccess':False}, {"name":"Recount"}]. A list of available data volumes can be found as the 'volumes' property in the dockerComputeDomain object. If dataVolumes=None, then all available data volumes are mounted.
+    :param userVolumes: a list with the names of user volumes (with optional write permissions) that will be mounted to the docker Image. E.g.: userVolumes = [{'name':'persistent', 'needsWriteAccess':False},{'name':'scratch', , 'needsWriteAccess':True}] . A list of available user volumes can be found as the 'userVolumes' property in the dockerComputeDomain object. If userVolumes='all', then all available user volumes are mounted, with 'needsWriteAccess' = True if the user has Write permissions on the volume.
+    :param dataVolumes: a list with the names of data volumes (with optional write permissions) that will be mounted to the docker Image. E.g.: dataVolumes=[{"name":"SDSS_DAS", 'needsWriteAccess':False}, {"name":"Recount"}]. A list of available data volumes can be found as the 'volumes' property in the dockerComputeDomain object. If dataVolumes='all', then all available data volumes are mounted (without write permissions).
     :param resultsFolderPath: full path to results folder (string) where the original notebook is copied to and executed. E.g.: /home/idies/workspace/rootVolume/username/userVolume/jobsFolder. If not set, then a default folder will be set automatically.
     :param parameters: string containing parameters that the notebook might need during its execution. This string is written in the 'parameters.txt' file in the same directory level where the notebook is being executed.
     :param jobAlias: alias (string) of job, defined by the user.
@@ -450,7 +450,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                 raise Exception("dockerComputeDomain has no docker images available for the user.");
 
         uVols = [];
-        if userVolumes is None:
+        if userVolumes == 'all':
             for vol in dockerComputeDomain.get('userVolumes'):
                 if 'write' in vol.get('allowedActions'):
                     uVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
@@ -479,12 +479,9 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
                     raise Exception("User volume '" + uVol.get('name') + "' not found within Compute domain")
 
         datVols = [];
-        if dataVolumes is None:
+        if dataVolumes == "all":
             for vol in dockerComputeDomain.get('volumes'):
-                if vol.get('writable') is True:
-                    datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
-                else:
-                    datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
+                datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
 
         else:
             for dVol in dataVolumes:
@@ -541,10 +538,10 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
     :param dockerImageName: name (string) of the Docker image for executing the notebook. E.g.,  dockerImageName="Python (astro)". An array of available Docker images is defined as the 'images' property in the dockerComputeDomain object.
     :param userVolumes: a list with the names of user volumes (with optional write permissions) that will be mounted to the docker Image.
            E.g., userVolumes = [{'name':'persistent', 'needsWriteAccess':False},{'name':'scratch', 'needsWriteAccess':True}]
-           A list of available user volumes can be found as the 'userVolumes' property in the dockerComputeDomain object. If userVolumes=None, then all available user volumes are mounted, with 'needsWriteAccess' = True if the user has Write permissions on the volume.
+           A list of available user volumes can be found as the 'userVolumes' property in the dockerComputeDomain object. If userVolumes='all', then all available user volumes are mounted, with 'needsWriteAccess' = True if the user has Write permissions on the volume.
     :param dataVolumes: a list with the names of data volumes (with optional write permissions) that will be mounted to the docker Image.
            E.g., dataVolumes=[{"name":"SDSS_DAS", 'needsWriteAccess':False}, {"name":"Recount"}].
-           A list of available data volumes can be found as the 'volumes' property in the dockerComputeDomain object. If dataVolumes=None, then all available data volumes are mounted.
+           A list of available data volumes can be found as the 'volumes' property in the dockerComputeDomain object. If dataVolumes='all', then all available data volumes are mounted (without write permissions).
     :param resultsFolderPath: full path to results folder (string) where the shell command is executed. E.g.: /home/idies/workspace/rootVolume/username/userVolume/jobsFolder. If not set, then a default folder will be set automatically.
     :param jobAlias: alias (string) of job, defined by the user.
     :return: the job ID (int)
@@ -578,7 +575,7 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                 raise Exception("dockerComputeDomain has no docker images available for the user.");
 
         uVols = [];
-        if userVolumes is None:
+        if userVolumes == 'all':
             for vol in dockerComputeDomain.get('userVolumes'):
                 if 'write' in vol.get('allowedActions'):
                     uVols.append({'userVolumeId': vol.get('id'), 'needsWriteAccess': True});
@@ -607,12 +604,9 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
                     raise Exception("User volume '" + uVol.get('name') + "' not found within Compute domain")
 
         datVols = [];
-        if dataVolumes is None:
+        if dataVolumes == "all":
             for vol in dockerComputeDomain.get('volumes'):
-                if vol.get('writable') is True:
-                    datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': True});
-                else:
-                    datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
+                datVols.append({'id': vol.get('id'), 'name': vol.get('name'), 'writable': False});
 
         else:
             for dVol in dataVolumes:
