@@ -430,6 +430,9 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
     token = Authentication.getToken()
     if token is not None and token != "":
 
+        if userVolumes is None or dataVolumes is None:
+            raise ValueError("None value not supported for userVolumes or dataVolumes parameters. Use 'all' instead.")
+
         if Config.isSciServerComputeEnvironment():
             taskName = "Compute.SciScript-Python.Jobs.submitNotebookJob"
         else:
@@ -553,6 +556,9 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
 
     token = Authentication.getToken()
     if token is not None and token != "":
+
+        if userVolumes is None or dataVolumes is None:
+            raise ValueError("None value not supported for userVolumes or dataVolumes parameters. Use 'all' instead.")
 
         if Config.isSciServerComputeEnvironment():
             taskName = "Compute.SciScript-Python.Jobs.submitShellCommandJob"
