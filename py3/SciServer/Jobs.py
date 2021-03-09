@@ -532,7 +532,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageName = None, userVolumes = None, dataVolumes = None, resultsFolderPath = "", jobAlias = ""):
+def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageName = 'all', userVolumes = 'all', dataVolumes = None, resultsFolderPath = "", jobAlias = ""):
     """
     Submits a shell command for execution (as an asynchronous job) inside a Docker compute domain.
 

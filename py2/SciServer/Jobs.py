@@ -408,7 +408,7 @@ def getJobStatus(jobId):
         raise Exception("Invalid integer value given to job status.")
 
 
-def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=None, userVolumes=None,  dataVolumes=None, resultsFolderPath="", parameters="", jobAlias= ""):
+def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName='all', userVolumes='all',  dataVolumes=None, resultsFolderPath="", parameters="", jobAlias= ""):
     """
     Submits a Jupyter Notebook for execution (as an asynchronous job) inside a Docker compute domain.
 
@@ -529,7 +529,7 @@ def submitNotebookJob(notebookPath, dockerComputeDomain=None, dockerImageName=No
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageName = None, userVolumes = None, dataVolumes = None, resultsFolderPath = "", jobAlias = ""):
+def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageName = None, userVolumes = 'all', dataVolumes = 'all', resultsFolderPath = "", jobAlias = ""):
     """
     Submits a shell command for execution (as an asynchronous job) inside a Docker compute domain.
 
