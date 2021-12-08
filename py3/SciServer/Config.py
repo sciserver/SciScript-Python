@@ -36,6 +36,8 @@ KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containi
 version = "sciserver-v2.1.0" #sciserver release version
 ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
 ComputeUrl = "https://apps.sciserver.org/compute"
+SciqueryURL = "https://apps.sciserver.org/sciquery"
+ComputeWorkDir = "/home/idies/workspace/"
 
 def _load_config(filename):
     if os.path.exists(filename):
