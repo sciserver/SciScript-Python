@@ -7,7 +7,7 @@ from functools import lru_cache
 from datetime import datetime
 
 def _get_default_rdb_domain():
-    rdb_domains = Jobs.getRDBComputeDomainsNames()
+    rdb_domains = getRDBComputeDomainNames()
     if len(rdb_domains) > 0:
         return rdb_domains[0]
     else:
@@ -204,7 +204,6 @@ class RDBJob:
 
 @lru_cache(128)
 def _get_file_service(file_service_id=""):
-    print(file_service_id)
     file_services = Files.getFileServices(verbose=False)
     for file_service in file_services:
         if file_service["name"] == file_service_id or file_service["identifier"] == file_service_id:
@@ -219,33 +218,32 @@ def _get_file_service(file_service_id=""):
 def submitQueryJob(sqlQuery,
                    rdbComputeDomain=None,
                    databaseContextName=None,
-                   output_targets=FileOutput.get_default(),
+                   outputTargets=FileOutput.get_default(),
                    resultsFolderPath="",
                    jobAlias="",
-                   file_service_name=""):
+                   fileServiceName=""):
     """
     Submits a sql query for execution (as an asynchronous job) inside a relational database (RDB) compute domain.
 
     :param sqlQuery: sql query (string)
     :param rdbComputeDomain: object (dictionary) that defines a relational database (RDB) compute domain. A list of
-            these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
+            these kind of objects available to the user is returned by the function 'getRDBComputeDomains'.
     :param databaseContextName: database context name (string) on which the sql query is executed.
-    :param output_targets: object of type SciQuery.OutputTarget defining the output of one or multiple statements
+    :param outputTargets: object of type SciQuery.OutputTarget defining the output of one or multiple statements
     within the input query. Could also be a list of OutputTarget objects.
     :param resultsFolderPath: full path to results folder (string) where query output tables are written into.
     E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If not set,
     then a default folder will be set automatically.
     :param jobAlias: alias (string) of job, defined by the user.
-    :param file_service_name: name or uuid (string) of FileService where the results folder (resultsFolderPath) is
+    :param fileServiceName: name or uuid (string) of FileService where the results folder (resultsFolderPath) is
     going to be created. If not defined, then the first available FileService is chosen by default.
     :return: the ID (integer) that labels the job.
     :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if
      the HTTP request to the SciQuery API returns an error, or if the volumes defined by the user are not available in
      the Docker compute domain.
-    :example: job_id = SciQuery.submitQueryJob('select 1';,None, None, 'myQueryResults', 'myNewJob')
+    :example: job_id = SciQuery.submitQueryJob('select 1;')
 
-    .. seealso:: Jobs.submitNotebookJob, Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains,
-    Jobs.cancelJob
+    .. seealso:: SciQuery.submitQueryJob, SciQuery.getJobStatus, SciQuery.getJob
     """
 
     token = Authentication.getToken()
@@ -257,7 +255,7 @@ def submitQueryJob(sqlQuery,
             taskName = "SciScript-Python.Sciquery.submitQueryJob"
 
         if rdbComputeDomain is None:
-            rdbComputeDomains = Jobs.getRDBComputeDomains();
+            rdbComputeDomains = getRDBComputeDomains();
             if len(rdbComputeDomains) > 0:
                 rdbComputeDomain = rdbComputeDomains[0];
             else:
@@ -270,17 +268,17 @@ def submitQueryJob(sqlQuery,
             else:
                 raise Exception("rbdComputeDomain has no database contexts available for the user.");
 
-        if type(output_targets) != list:
-            output_targets = [output_targets]
+        if type(outputTargets) != list:
+            outputTargets = [outputTargets]
 
         targets = []
-        for target in output_targets:
+        for target in outputTargets:
             for index in target.statement_indexes:
                 targets.append({'location': target.target_name, 'type': target.target_type, 'resultNumber': index})
 
         rdbDomainId = rdbComputeDomain.get('id');
 
-        file_service = _get_file_service(file_service_name)
+        file_service = _get_file_service(fileServiceName)
         resultsFolderPath = file_service['identifier'] + ":" + resultsFolderPath
 
         dockerJobModel = {
@@ -292,12 +290,9 @@ def submitQueryJob(sqlQuery,
             "resultsFolderURI": resultsFolderPath
         }
 
-        print(dockerJobModel)
-
         data = json.dumps(dockerJobModel).encode()
         url = Config.SciqueryURL + "/api/jobs/" + str(rdbDomainId) + "?TaskName=" + taskName;
         headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
-        print(url)
         res = requests.post(url, data=data, headers=headers, stream=True)
 
         if res.status_code < 200 or res.status_code >= 300:
@@ -309,19 +304,40 @@ def submitQueryJob(sqlQuery,
         raise Exception("User token is not defined. First log into SciServer.")
 
 
-def execute_query(query,
-                  rdb_compute_domain=None,
-                  database_context=None,
-                  results_folder_path="",
-                  job_alias="",
+def executeQuery(sqlQuery,
+                  rdbComputeDomain=None,
+                  databaseContextName=None,
+                  resultsFolderPath="",
+                  jobAlias="",
                   poll_time=0.2,
-                  file_service_name=""):
+                  fileServiceName=""):
+    """
+    Returns the query result (as a Pandas data frame) of a sql query submitted as a job to a relational database (RDB) compute domain.
+
+    :param sqlQuery: sql query (string)
+    :param rdbComputeDomain: object (dictionary) that defines a relational database (RDB) compute domain. A list of
+            these kind of objects available to the user is returned by the function 'getRDBComputeDomains'.
+    :param databaseContextName: database context name (string) on which the sql query is executed.
+    :param resultsFolderPath: full path to results folder (string) where query output tables are written into.
+    E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If not set,
+    then a default folder will be set automatically.
+    :param jobAlias: alias (string) of job, defined by the user.
+    :param fileServiceName: name or uuid (string) of FileService where the results folder (resultsFolderPath) is
+    going to be created. If not defined, then the first available FileService is chosen by default.
+    :return: Pandas data frame containing the result of the query.
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if
+     the HTTP request to the SciQuery API returns an error.
+    :example: df = SciQuery.executeQuery('select 1;')
+
+    .. seealso:: SciQuery.submitQueryJob, SciQuery.getJobStatus, SciQuery.getJob
+    Jobs.cancelJob
+    """
     output_target = FileOutput("result1.json", OutputTargetType.FILE_JSON).set_statement_indexes([1])
 
-    jobId = submitQueryJob(sqlQuery=query, rdbComputeDomain=rdb_compute_domain, databaseContextName=database_context,
-                           output_targets=output_target,
-                           resultsFolderPath=results_folder_path,
-                           jobAlias=job_alias, file_service_name=file_service_name)
+    jobId = submitQueryJob(sqlQuery=sqlQuery, rdbComputeDomain=rdbComputeDomain, databaseContextName=databaseContextName,
+                           outputTargets=output_target,
+                           resultsFolderPath=resultsFolderPath,
+                           jobAlias=jobAlias, fileServiceName=fileServiceName)
 
     job_status = Jobs.waitForJob(jobId, verbose=False, pollTime=poll_time)
     job = RDBJob(jobId)
@@ -343,10 +359,157 @@ def execute_query(query,
         s = Files.download(file_service, path, format="txt", quiet=True)
         j = json.loads(s)
 
-    data = np.asarray(j['Result'][0]['Data'])
-    column_names = j['Result'][0]['ColumnNames']
-    name = j['Result'][0]['TableName']
-
-    df = pd.DataFrame(data=data, columns=column_names)
-    df.name = name
+    result=j['Result'][0]
+    df=pd.DataFrame(result['Data'],columns=result['ColumnNames'])
+    df.name = result['TableName']
     return df
+
+
+def getRDBComputeDomains():
+    """
+    Gets a list of all registered Relational Database (RDB) compute domains that the user has access to.
+
+    :return: a list of dictionaries, each one containing the definition of an RDB compute domain.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
+    :example: rdb_compute_domains = SciQuery.getRDBComputeDomains();
+
+    .. seealso:: SciQuery.executeQuery, SciQuery.submitQueryJob
+    """
+    token = Authentication.getToken()
+    if token is not None and token != "":
+
+        if Config.isSciServerComputeEnvironment():
+            taskName = "Compute.SciScript-Python.SciQuery.get_compute_domains"
+        else:
+            taskName = "SciScript-Python.SciQuery.get_compute_domains"
+
+        url = Config.RacmApiURL + "/jobm/rest/computedomains/rdb?TaskName=" + taskName
+        headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
+        res = requests.get(url, headers=headers, stream=True)
+        if res.status_code != 200:
+            raise Exception("Error when getting RDB Compute Domains from JOBM API.\nHttp Response from JOBM API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
+        else:
+            return json.loads(res.content.decode())
+    else:
+        raise Exception("User token is not defined. First log into SciServer.")
+
+
+def getRDBComputeDomainNames(rdbComputeDomains=None):
+    """
+    Returns the names of the RDB compute domains available to the user.
+
+    :param rdbComputeDomains: a list of rdbComputeDomain objects (dictionaries), as returned by Jobs.getRDBComputeDomains(). If not set, then an extra internal call to Jobs.getRDBComputeDomains() is made.
+    :return: an array of strings, each being the name of a rdb compute domain available to the user.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
+    :example: dockerComputeDomainsNames = Files.getDockerComputeDomainsNames();
+
+    .. seealso:: Files.getRDBComputeDomains
+    """
+    if rdbComputeDomains is None:
+        rdbComputeDomains = getRDBComputeDomains();
+
+    rdbComputeDomainsNames = [];
+    for rdbComputeDomain in rdbComputeDomains:
+        rdbComputeDomainsNames.append(rdbComputeDomain.get('name'))
+
+    return rdbComputeDomainsNames;
+
+def getRDBComputeDomainFromName(rdbComputeDomainName, rdbComputeDomains = None):
+    """
+    Returns an RDBComputeDomain object, given its registered name.
+
+    :param rdbComputeDomainName: name of the RDBComputeDomainName, as shown within the results of Jobs.getRDBComputeDomains()
+    :param rdbComputeDomains: a list of rdbComputeDomain objects (dictionaries), as returned by Jobs.getRDBComputeDomains(). If not set, then an extra internal call to Jobs.getRDBComputeDomains() is made.
+    :return: an RDBComputeDomain object (dictionary) that defines an RDB compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
+    :example: rdbComputeDomain = SciQuery.getRDBComputeDomainFromName(rdbComputeDomainName);
+
+    .. seealso:: SciQuery.getRDBComputeDomains
+    """
+    if rdbComputeDomainName is None:
+        raise Exception("rdbComputeDomainName is not defined.")
+    else:
+        if rdbComputeDomains is None:
+            rdbComputeDomains = getRDBComputeDomains();
+
+        if rdbComputeDomains.__len__() > 0:
+            for rdbComputeDomain in rdbComputeDomains:
+                if rdbComputeDomainName == rdbComputeDomain.get('name'):
+                    return rdbComputeDomain;
+        else:
+            raise Exception("There are no RDBComputeDomains available for the user.");
+
+        raise Exception("RDBComputeDomain of name '" + rdbComputeDomainName + "' is not available or does not exist.");
+
+def getJobsList(top=10, open=None, start=None, end=None):
+    """
+    Gets the list of SciQuery Jobs submitted by the user.
+
+    :param top: top number of jobs (integer) returned. If top=None, then all jobs are returned.
+    :param open: If set to 'True', then only returns jobs that have not finished executing and wrapped up  (status <= FINISHED). If set to 'False' then only returnes jobs that are still running. If set to 'None', then returns both finished and unfinished jobs.
+    :param start: The earliest date (inclusive) to search for jobs, in string format yyyy-MM-dd hh:mm:ss.SSS. If set to 'None', then there is no lower bound on date.
+    :param end: The latest date (inclusive) to search for jobs, in string format yyyy-MM-dd hh:mm:ss.SSS. If set to 'None', then there is no upper bound on date.
+    :return: a list of dictionaries, each one containing the definition of a submitted job.
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error, and if the HTTP request to the JOBM API returns an error.
+    :example: jobs = SciQuery.getJobsList(top=2);
+
+    .. seealso:: SciQuery,getJob, SciQuery.getJobStatus, SciQuery.cancelJob
+    """
+    job_dict_list = Jobs.getJobsList(top=top, open=open, start=start, end=end, type='rdb')
+    rdb_job_list = []
+    for job_dict in job_dict_list:
+        rdb_job_list.append(RDBJob(job_dict))
+    return rdb_job_list
+
+def getJob(jobId):
+    """
+    Gets the definition of the job as a RDBJob object.
+
+    :param jobId: Id of job
+    :return: RDBJob object containing the description or definition of the job.
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error, and if the HTTP request to the JOBM API returns an error.
+    :example: job = SciQuery.getJob(jobId)
+
+    .. seealso:: SciQuery.getJob, SciQuery.cancelJob, SciQuery.submitQueryJob
+    """
+    return RDBJob(Jobs.getJobDescription(jobId))
+
+def getJobStatus(jobId):
+    """
+    Gets a dictionary with the job status as an integer value, together with its semantic meaning. The integer value is a power of 2, that is, 1:PENDING, 2:QUEUED, 4:ACCEPTED, 8:STARTED, 16:FINISHED, 32:SUCCESS, 64:ERROR and 128:CANCELED
+
+    :param jobId: Id of job (integer).
+    :return: dictionary with the integer value of the job status, as well as its semantic meaning.
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error, and if the HTTP request to the JOBM API returns an error.
+    :example: status = SciQuery.getJobStatus(jobId)
+
+    .. seealso:: SciQuery.cancelJob, SciQuery.waitForJob, SciQuery.getJob, SciQuery.cancelJob
+    """
+    return Jobs.getJobStatus(jobId)
+
+def cancelJob(jobId):
+    """
+    Cancels the execution of a job.
+
+    :param jobId: Id of the job (integer)
+    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if the HTTP request to the JOBM API returns an error.
+    :example: SciQuery.cancelJob(jobId);
+
+    .. seealso:: SciQuery.getJobStatus, SciQuery.getJobDescription
+    """
+    Jobs.cancelJob(jobId)
+
+def waitForJob(jobId, verbose=False, pollTime = 5):
+    """
+    Queries the job status regularly and waits until the job is completed.
+
+    :param jobId: id of job (integer)
+    :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, will suppress the printing of messages on the screen.
+    :param pollTime: idle time interval (integer, in seconds) before querying again for the job status. Minimum value allowed is 5 seconds.
+    :return: After the job is finished, returns a dictionary object containing the job status.
+    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
+    :example: jobStatus = SciQuery.waitForJob(jobId)
+
+    .. seealso:: SciQuery.getJobStatus, SciQuery.getJobDescription
+    """
+    return Jobs.waitForJob(jobId=jobId, verbose=verbose, pollTime = pollTime)
