@@ -353,7 +353,7 @@ def executeQuery(sqlQuery,
     job_status = Jobs.waitForJob(jobId, verbose=False, pollTime=poll_time)
     job = RDBJob(jobId)
     if job.status > 32:
-        messages = ". ".join(job.messages) if len(job.messages) > 0 else ""
+        messages = ". ".join([j.get('content') for j in job.messages if j.get('content') is not None])
         if (job.status == 64):
             raise Exception("Query ended with an error. " + messages)
         if (job.status == 128):
