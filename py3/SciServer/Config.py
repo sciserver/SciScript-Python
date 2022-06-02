@@ -22,6 +22,8 @@ Although these parameters must be set/defined by the admin or user before the in
 
 - **Config.ComputeUrl**: defines the base URL of the Compute webapp (string). E.g., "https://apps.sciserver.org/compute".
 
+- **Config.SciqueryURL**: defines the base URL of the SciQuery web API (string). E.g., "https://apps.sciserver.org/sciquery-api".
+
 - **Config.version**: defines the SciServer release version tag (string), to which this package belongs. E.g., "sciserver-v1.9.3"
 """
 # URLs for accessing SciServer web services (API endpoints)
@@ -36,8 +38,9 @@ KeystoneTokenPath =  "/home/idies/keystone.token" #the path to the file containi
 version = "sciserver-v2.1.0" #sciserver release version
 ComputeJobDirectoryFile = "/home/idies/jobs.path" #the path to the file in the "Docker job container" that shows the directory path where the asynchronous compute job is being executed.
 ComputeUrl = "https://apps.sciserver.org/compute"
-SciqueryURL = "https://apps.sciserver.org/sciquery"
+SciqueryURL = "https://apps.sciserver.org/sciquery-api"
 ComputeWorkDir = "/home/idies/workspace/"
+
 
 def _load_config(filename):
     if os.path.exists(filename):
@@ -45,7 +48,7 @@ def _load_config(filename):
             _config_data = json.load(f)
             global CasJobsRESTUri, AuthenticationURL, SciDriveHost, SkyQueryUrl, SkyServerWSurl
             global RacmApiURL, DataRelease, KeystoneTokenPath, version, ComputeJobDirectoryFile
-            global ComputeUrl
+            global ComputeUrl, SciqueryURL, ComputeWorkDir
             CasJobsRESTUri = _config_data.get('CasJobsRESTUri', CasJobsRESTUri)
             AuthenticationURL = _config_data.get('AuthenticationURL', AuthenticationURL)
             SciDriveHost = _config_data.get('SciDriveHost', SciDriveHost)
@@ -57,6 +60,8 @@ def _load_config(filename):
             version = _config_data.get('version', version)
             ComputeJobDirectoryFile = _config_data.get('ComputeJobDirectoryFile', ComputeJobDirectoryFile)
             ComputeUrl = _config_data.get('ComputeUrl', ComputeUrl)
+            SciqueryURL = _config_data.get('SciqueryURL', SciqueryURL)
+            ComputeWorkDir = _config_data.get('ComputeWorkDir', ComputeWorkDir)
 
 _CONFIG_DIR = os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
 _SCISERVER_SYSTEM_CONFIG_DIR = '/etc/' # will not likely exist on non *nix systems
