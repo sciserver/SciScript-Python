@@ -66,6 +66,7 @@ def getKeystoneUserWithToken(token):
         ksu = KeystoneUser()
         ksu.userName = responseJson["token"]["user"]["name"]
         ksu.id = responseJson["token"]["user"]["id"]
+        ksu.token = token
         keystoneUser.token = token;
         keystoneUser.userName = ksu.userName
         keystoneUser.id = ksu.id
