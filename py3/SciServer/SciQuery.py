@@ -740,7 +740,10 @@ class SciQuery:
 
     @staticmethod
     def get_user() -> Authentication.KeystoneUser:
-        return Authentication.getKeystoneUserWithToken(SciQuery.get_token())
+        token = SciQuery.get_token()
+        user = Authentication.getKeystoneUserWithToken(token)
+        user.token = token
+        return user
 
     def set(self,
             rdb_compute_domain: Union[str, int, dict, RDBComputeDomain] = None,
