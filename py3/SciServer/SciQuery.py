@@ -722,6 +722,7 @@ class SciQuery:
         self.user = SciQuery.get_user()
         self.verbose = verbose
         self.hard_fail = hard_fail
+        self.poll_time = 1.0
         self._file_service = None
         self._results_base_path = None
         self._outputs = None
@@ -1114,7 +1115,6 @@ class SciQuery:
                       results_base_path: str = None,
                       rdb_compute_domain: Union[str, int, dict, RDBComputeDomain] = None,
                       job_alias: str = "",
-                      poll_time: float = 1.0,
                       file_service: str = None) -> pd.DataFrame:
         """
         Returns the query result (as a Pandas data frame) of a sql query submitted as a job to a
@@ -1133,7 +1133,6 @@ class SciQuery:
         RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
         If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally used.
         :param job_alias: alias (string) of job, defined by the user.
-        :param poll_time: time (float) in seconds between consecutive requests for updates in the jobs status.
         :param file_service: a File Service defines an available file system where query result sets can be written
         into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
         If set to None, then the currently set value of file_service in the SciQuery object is internally used.
@@ -1146,8 +1145,9 @@ class SciQuery:
                                        results_base_path=results_base_path,
                                        job_alias=job_alias,
                                        file_service=file_service)
-
-        job = self.wait_for_job(job_id, verbose=False, poll_time=poll_time)
+        if self.verbose:
+            print("Query was submitted as a job with id = " + job_id)
+        job = self.wait_for_job(job_id, verbose=False, poll_time=self.poll_time)
         if job.status > 32:
             messages = ". ".join(job.message_list)
             if (job.status == 64):
@@ -1242,7 +1242,6 @@ class SciQuery:
 
         .. seealso:: SciQuery.get_job_status, SciQuery.getJobDescription
         """
-        #return Jobs.waitForJob(jobId=jobId, verbose=verbose, pollTime=poll_time)
         min_poll_time = 0.1 # in seconds
         while True:
             if verbose:
