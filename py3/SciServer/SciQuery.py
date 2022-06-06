@@ -429,7 +429,7 @@ class RDBJob:
         data_dict = json.loads(self.get_output_as_string(output))
         return data_dict.get("Result")
 
-    def get_dataframe_from_output(self, output: Union[Output, int] = 0, result_index: int = 0) -> list:
+    def get_dataframe_from_output(self, output: Union[Output, int] = 0, result_index: int = 0) -> pd.DataFrame:
         out = self._get_output_from_index(output) if isinstance(output, int) else output
         if out.output_type == OutputType.FILE_JSON:
             result = self.get_json_output(out)[result_index]
@@ -692,7 +692,9 @@ class SciQuery:
                  results_base_path: str = None,
                  outputs: Outputs = None,
                  verbose: bool = True,
-                 hard_fail: bool = False):
+                 hard_fail: bool = False,
+                 poll_time: float = 1.0
+                 ):
         """
         Creates instance of SciQuery class.
 
@@ -717,6 +719,7 @@ class SciQuery:
         :param hard_fail: Boolean parameter. If True, exceptions will be raised in case of errors during instantiation.
         If False, then no exceptions are raised, and warnings might be showed instead
         (depending on the value of the verbose parameter).
+        :param poll_time: time (float) in seconds between consecutive requests for updates in the jobs status.
         """
 
         self.user = SciQuery.get_user()
@@ -753,7 +756,9 @@ class SciQuery:
             results_base_path: str = None,
             outputs: Outputs = None,
             verbose: bool = None,
-            hard_fail: bool = None):
+            hard_fail: bool = None,
+            poll_time: float = None
+            ):
         """
         Sets or refreshes the parameters in the SciQuery object, all at once.
 
@@ -776,10 +781,12 @@ class SciQuery:
         :param hard_fail: Boolean parameter. If True, exceptions will be raised in case of errors during instantiation.
         If False, then no exceptions are raised, and warnings might be showed instead
         (depending on the value of the verbose parameter).
+        :param poll_time: time (float) in seconds between consecutive requests for updates in the jobs status.
         """
 
         self.verbose = verbose if verbose else self.verbose
         self.hard_fail = hard_fail if hard_fail else self.hard_fail
+        self.poll_time = poll_time if poll_time else self.poll_time
 
         # set or refresh current _rdb_compute_domains
         try:
@@ -1147,12 +1154,12 @@ class SciQuery:
                                        file_service=file_service)
         if self.verbose:
             print("Query was submitted as a job with id = " + job_id)
-        job = self.wait_for_job(job_id, verbose=False, poll_time=self.poll_time)
+        job = self.wait_for_job(job_id, verbose=False)
         if job.status > 32:
             messages = ". ".join(job.message_list)
-            if (job.status == 64):
+            if job.status == 64:
                 raise Exception("Query ended with an error. " + messages)
-            if (job.status == 128):
+            if job.status == 128:
                 raise Exception("Query was cancelled. " + messages)
 
         df = job.get_dataframe_from_output(0)
@@ -1225,34 +1232,29 @@ class SciQuery:
         else:
             raise NameError("Invalid type for input parameter 'job'.")
 
-    def wait_for_job(self, job_id, verbose = False, poll_time=1.0):
+    def wait_for_job(self, job_id, verbose = False):
         """
         Queries the job status regularly and waits until the job is completed.
 
         :param job_id: id of job (integer)
         :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, it
         will suppress the printing of messages on the screen.
-        :param poll_time: idle time interval (integer, in seconds) before querying again for the job status. Minimum
-        value allowed is 0.1 seconds.
-        :return: After the job is finished, returns a dictionary object containing the job status.
+        :return: After the job is finished, returns an object of class RDBJob, containing the job definition.
         :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that
         purpose).
         Throws an exception if the HTTP request to the JOBM API returns an error.
-        :example: jobStatus = SciQuery.wait_for_job(jobId)
-
-        .. seealso:: SciQuery.get_job_status, SciQuery.getJobDescription
         """
-        min_poll_time = 0.1 # in seconds
+        t = max(0.1, self.poll_time)
+        wait_message = "Waiting"
         while True:
-            if verbose:
-                print("Waiting...")
             job_desc = Jobs.getJobDescription(job_id)
             if job_desc.get("status") >= 32:
-                if verbose:
-                    print("Done!")
                 return RDBJob(job_desc)
             else:
-                time.sleep(max(min_poll_time, poll_time))
+                if verbose:
+                    wait_message += "."
+                    print(wait_message, end="\r")
+                time.sleep(t)
 
     ### METADATA
 
