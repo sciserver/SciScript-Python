@@ -725,7 +725,7 @@ class SciQuery:
         self.user = SciQuery.get_user()
         self.verbose = verbose
         self.hard_fail = hard_fail
-        self.poll_time = 1.0
+        self.poll_time = poll_time
         self._file_service = None
         self._results_base_path = None
         self._outputs = None
@@ -733,7 +733,7 @@ class SciQuery:
         self._rdb_compute_domain = None
         self._database = None
         self.refresh_date = None
-        self.set(rdb_compute_domain, database, file_service, results_base_path, outputs, verbose, hard_fail)
+        self.set(rdb_compute_domain, database, file_service, results_base_path, outputs, verbose, hard_fail, poll_time)
 
     @staticmethod
     def get_token() -> str:
@@ -864,9 +864,6 @@ class SciQuery:
         of an RDBComputeDomain object.
         :return: an object of class RDBComputeDomains, or a list of dictionaries, each of them containing the attributes
         of an RDBComputeDomain object.
-        :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that
-        purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
-        :example: rdb_compute_domains = SciQuery.get_rdb_compute_domains();
         """
         token = SciQuery.get_user().token
 
@@ -880,8 +877,8 @@ class SciQuery:
         res = requests.get(url, headers=headers, stream=True)
         if res.status_code != 200:
             raise Exception(
-                "Error when getting RDB Compute Domains from JOBM API.\nHttp Response from JOBM API returned"
-                " status code " + str(res.status_code) + ":\n" + res.content.decode())
+                "Error when getting RDB Compute Domains from the SciQuery API.\nHttp Response from the SciQuery API "
+                "returned status code " + str(res.status_code) + ":\n" + res.content.decode())
         else:
             arr = json.loads(res.content.decode())
             if result_format == 'class':
@@ -1205,10 +1202,11 @@ class SciQuery:
     @staticmethod
     def get_job_status(job_id):
         """
-        Gets a dictionary with the job status as an integer value, together with its semantic meaning. The integer value is
-        a power of 2, that is, 1:PENDING, 2:QUEUED, 4:ACCEPTED, 8:STARTED, 16:FINISHED, 32:SUCCESS, 64:ERROR, 128:CANCELED
+        Gets a dictionary with the job status as an integer value, together with its semantic meaning. The integer value
+        is a power of 2, that is,
+        1:PENDING, 2:QUEUED, 4:ACCEPTED, 8:STARTED, 16:FINISHED, 32:SUCCESS, 64:ERROR, 128:CANCELED
 
-        :param job_id: Id of job (integer).
+        :param job_id: Id of job (string).
         :return: dictionary with the integer value of the job status, as well as its semantic meaning.
         """
         return Jobs.getJobStatus(job_id)
@@ -1218,12 +1216,7 @@ class SciQuery:
         """
         Cancels the execution of a job.
 
-        :param job_id: Id of the job (integer)
-        :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if
-        the HTTP request to the JOBM API returns an error.
-        :example: SciQuery.cancelJob(jobId);
-
-        .. seealso:: SciQuery.get_job_status, SciQuery.getJobDescription
+        :param job: id of the job (string), or object of class RDBJob.
         """
         if isinstance(job, str):
             Jobs.cancelJob(job)
@@ -1232,7 +1225,7 @@ class SciQuery:
         else:
             raise NameError("Invalid type for input parameter 'job'.")
 
-    def wait_for_job(self, job_id, verbose = False):
+    def wait_for_job(self, job_id, verbose=False):
         """
         Queries the job status regularly and waits until the job is completed.
 
@@ -1244,7 +1237,7 @@ class SciQuery:
         purpose).
         Throws an exception if the HTTP request to the JOBM API returns an error.
         """
-        t = max(0.1, self.poll_time)
+        t = max(0.5, self.poll_time)
         wait_message = "Waiting"
         while True:
             job_desc = Jobs.getJobDescription(job_id)
@@ -1256,7 +1249,7 @@ class SciQuery:
                     print(wait_message, end="\r")
                 time.sleep(t)
 
-    ### METADATA
+    # METADATA -------------------------------------------------------------------------------------------------
 
     def get_rdb_compute_domains_metadata(self, do_include_databases=False):
         """
@@ -1326,7 +1319,7 @@ class SciQuery:
         else:
             task_name = "SciScript-Python.Sciquery.get_metadata_" + metadata_type
 
-        url = Config.SciqueryURL + "/api/metadata/{0}/{1}/".format(rdb_compute_domain._racm_id, database.name);
+        url = Config.SciqueryURL + "/api/metadata/{0}/{1}/".format(rdb_compute_domain._racm_id, database.name)
         if metadata_type == _MetadataType.TABLES:
             url += "tables"
         elif metadata_type == _MetadataType.VIEWS:
