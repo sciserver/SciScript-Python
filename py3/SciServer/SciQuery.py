@@ -6,7 +6,7 @@ import cachetools.func
 from collections.abc import Iterable
 from datetime import datetime
 import warnings
-from pathlib import Path
+from pathlib import PurePosixPath
 from typing import Union, List
 import time
 
@@ -105,7 +105,7 @@ class FileOutput(Output):
         if not name:
             raise NameError("Input parameter name cannot be empty or None")
         name = name.rstrip("/")
-        file_path = Path(name)
+        file_path = PurePosixPath(name)
         if name == file_path.name: # means no path included in 'name' input parameter
             self.file_base_path = None
             self.file = name
@@ -113,7 +113,7 @@ class FileOutput(Output):
             self.file_service_path = None
         else:
             if not name.startswith(Config.ComputeWorkDir):
-                file_path = Path(Config.ComputeWorkDir + name) # in case it is relative path
+                file_path = PurePosixPath(Config.ComputeWorkDir + name) # in case it is relative path
             self.file_base_path = str(file_path.parent)
             self.file_base_path = self.file_base_path if self.file_base_path.endswith("/") \
                 else self.file_base_path + "/"
@@ -157,9 +157,9 @@ class FileOutput(Output):
         if user_volume:
             if not user_volume_owner_name:
                 user_volume_owner_name = SciQuery.get_user().userName
-            path = str(Path(Config.ComputeWorkDir, top_volume, user_volume_owner_name, user_volume, relative_path))
+            path = str(PurePosixPath(Config.ComputeWorkDir, top_volume, user_volume_owner_name, user_volume, relative_path))
         else:
-            path = str(Path(Config.ComputeWorkDir, top_volume, relative_path))
+            path = str(PurePosixPath(Config.ComputeWorkDir, top_volume, relative_path))
         return path if path.endswith("/") else path + "/"
 
     @staticmethod
@@ -440,7 +440,7 @@ class RDBJob:
         elif out.output_type == OutputType.DATABASE_TABLE:
             sq = SciQuery(rdb_compute_domain=out.rdb_compute_domain_name, database=out.database)
             query = f"select * from {out.table};"
-            df = sq.execute_query(query)
+            df = sq.execute_query(query, write_job_id=False)
         else:
             raise Exception(f"Output type {out.output_type} not supported")
         return df
@@ -1119,7 +1119,8 @@ class SciQuery:
                       results_base_path: str = None,
                       rdb_compute_domain: Union[str, int, dict, RDBComputeDomain] = None,
                       job_alias: str = "",
-                      file_service: str = None) -> pd.DataFrame:
+                      file_service: str = None,
+                      write_job_id = True) -> pd.DataFrame:
         """
         Returns the query result (as a Pandas data frame) of a sql query submitted as a job to a
         relational database (RDB) compute domain.
@@ -1140,6 +1141,10 @@ class SciQuery:
         :param file_service: a File Service defines an available file system where query result sets can be written
         into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
         If set to None, then the currently set value of file_service in the SciQuery object is internally used.
+        :param write_job_id: if True, the job id will be written on the screen, just before returning the result.
+        The job id won;t be written if write_job_id = False.
+        into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
+        If set to None, then the currently set value of file_service in the SciQuery object is internally used.
         :return: Pandas data frame containing the result of the query.
         """
         output = FileOutput("result1.json", OutputType.FILE_JSON, 1)
@@ -1149,7 +1154,7 @@ class SciQuery:
                                        results_base_path=results_base_path,
                                        job_alias=job_alias,
                                        file_service=file_service)
-        if self.verbose:
+        if write_job_id:
             print("Query was submitted as a job with id = " + job_id)
         job = self.wait_for_job(job_id, verbose=False)
         if job.status > 32:
