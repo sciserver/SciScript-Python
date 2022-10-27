@@ -18,7 +18,7 @@ def getDockerComputeDomains():
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
     :example: dockerComputeDomains = Jobs.getDockerComputeDomains();
 
-    .. seealso:: Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getRDBComputeDomains, Jobs.cancelJob
+    .. seealso:: Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.cancelJob
     """
     token = Authentication.getToken()
     if token is not None and token != "":
@@ -72,7 +72,7 @@ def getDockerComputeDomainFromName(dockerComputeDomainName, dockerComputeDomains
     :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
     :example: dockerComputeDomain = Jobs.getDockerComputeDomainFromName('dockerComputeDomainAtJHU');
 
-    .. seealso:: Jobs.getDockerComputeDomains, Jobs.getRDBComputeDomains, Jobs.getRDBComputeDomainFromName
+    .. seealso:: Jobs.getDockerComputeDomains
     """
     if dockerComputeDomainName is None:
         raise Exception("dockerComputeDomainName is not defined.")
@@ -89,83 +89,6 @@ def getDockerComputeDomainFromName(dockerComputeDomainName, dockerComputeDomains
 
         raise Exception("DockerComputeDomain of name '" + dockerComputeDomainName + "' is not available or does not exist.");
 
-
-def getRDBComputeDomains():
-    """
-    Gets a list of all registered Relational Database (RDB) compute domains that the user has access to.
-
-    :return: a list of dictionaries, each one containing the definition of an RDB compute domain.
-    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
-    :example: rdbComputeDomains = Jobs.getRDBComputeDomains();
-
-    .. seealso:: Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains, Jobs.cancelJob
-    """
-    token = Authentication.getToken()
-    if token is not None and token != "":
-
-        if Config.isSciServerComputeEnvironment():
-            taskName = "Compute.SciScript-Python.Jobs.getRDBComputeDomains"
-        else:
-            taskName = "SciScript-Python.Jobs.getRDBComputeDomains"
-
-        url = Config.RacmApiURL + "/jobm/rest/computedomains/rdb?TaskName=" + taskName
-        headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
-        res = requests.get(url, headers=headers, stream=True)
-        if res.status_code != 200:
-            raise Exception("Error when getting RDB Compute Domains from JOBM API.\nHttp Response from JOBM API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
-        else:
-            return json.loads(res.content.decode())
-    else:
-        raise Exception("User token is not defined. First log into SciServer.")
-
-
-def getRDBComputeDomainsNames(rdbComputeDomains=None):
-    """
-    Returns the names of the RDB compute domains available to the user.
-
-    :param rdbComputeDomains: a list of rdbComputeDomain objects (dictionaries), as returned by Jobs.getRDBComputeDomains(). If not set, then an extra internal call to Jobs.getRDBComputeDomains() is made.
-    :return: an array of strings, each being the name of a rdb compute domain available to the user.
-    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the RACM API returns an error.
-    :example: dockerComputeDomainsNames = Files.getDockerComputeDomainsNames();
-
-    .. seealso:: Files.getRDBComputeDomains
-    """
-    if rdbComputeDomains is None:
-        rdbComputeDomains = getRDBComputeDomains();
-
-    rdbComputeDomainsNames = [];
-    for rdbComputeDomain in rdbComputeDomains:
-        rdbComputeDomainsNames.append(rdbComputeDomain.get('name'))
-
-    return rdbComputeDomainsNames;
-
-
-def getRDBComputeDomainFromName(rdbComputeDomainName, rdbComputeDomains = None):
-    """
-    Returns an RDBComputeDomain object, given its registered name.
-
-    :param rdbComputeDomainName: name of the RDBComputeDomainName, as shown within the results of Jobs.getRDBComputeDomains()
-    :param rdbComputeDomains: a list of rdbComputeDomain objects (dictionaries), as returned by Jobs.getRDBComputeDomains(). If not set, then an extra internal call to Jobs.getRDBComputeDomains() is made.
-    :return: an RDBComputeDomain object (dictionary) that defines an RDB compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
-    :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that purpose). Throws an exception if the HTTP request to the JOBM API returns an error.
-    :example: rdbComputeDomain = Jobs.getRDBComputeDomainFromName('rdbComputeDomainAtJHU');
-
-    .. seealso:: Jobs.getDockerComputeDomains, Jobs.getRDBComputeDomains, Jobs.getDockerComputeDomainFromName
-    """
-    if rdbComputeDomainName is None:
-        raise Exception("rdbComputeDomainName is not defined.")
-    else:
-        if rdbComputeDomains is None:
-            rdbComputeDomains = getRDBComputeDomains();
-
-        if rdbComputeDomains.__len__() > 0:
-            for rdbComputeDomain in rdbComputeDomains:
-                if rdbComputeDomainName == rdbComputeDomain.get('name'):
-                    return rdbComputeDomain;
-        else:
-            raise Exception("There are no RDBComputeDomains available for the user.");
-
-        raise Exception("RDBComputeDomain of name '" + rdbComputeDomainName + "' is not available or does not exist.");
 
 
 def getJobsList(top=10, open=None, start=None, end=None, type='all'):
@@ -510,86 +433,6 @@ def submitShellCommandJob(shellCommand, dockerComputeDomain = None, dockerImageN
             return (json.loads(res.content.decode())).get('id')
     else:
         raise Exception("User token is not defined. First log into SciServer.")
-
-def submitRDBQueryJob(sqlQuery, rdbComputeDomain=None, databaseContextName = None, resultsName='queryResults', resultsFolderPath="", jobAlias = ""):
-    """
-    Submits a sql query for execution (as an asynchronous job) inside a relational database (RDB) compute domain.
-
-    :param sqlQuery: sql query (string)
-    :param rdbComputeDomain: object (dictionary) that defines a relational database (RDB) compute domain. A list of these kind of objects available to the user is returned by the function Jobs.getRDBComputeDomains().
-    :param databaseContextName: database context name (string) on which the sql query is executed.
-    :param resultsName: name (string) of the table or file (without file type ending) that contains the query result. In case the sql query has multiple statements, should be set to a list of names (e.g., ['result1','result2']).
-    :param resultsFolderPath: full path to results folder (string) where query output tables are written into. E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If not set, then a default folder will be set automatically.
-    :param jobAlias: alias (string) of job, defined by the user.
-    :return: a dictionary containing the definition of the submitted job.
-    :raises: Throws an exception if the HTTP request to the Authentication URL returns an error. Throws an exception if the HTTP request to the JOBM API returns an error, or if the volumes defined by the user are not available in the Docker compute domain.
-    :example: job = Jobs.submitRDBQueryJob('select 1';,None, None, 'myQueryResults', 'myNewJob')
-
-    .. seealso:: Jobs.submitNotebookJob, Jobs.submitShellCommandJob, Jobs.getJobStatus, Jobs.getDockerComputeDomains, Jobs.cancelJob
-    """
-
-    token = Authentication.getToken()
-    if token is not None and token != "":
-
-        if Config.isSciServerComputeEnvironment():
-            taskName = "Compute.SciScript-Python.Jobs.submitRDBQueryJob"
-        else:
-            taskName = "SciScript-Python.Jobs.submitRDBQueryJob"
-
-        if rdbComputeDomain is None:
-            rdbComputeDomains = getRDBComputeDomains();
-            if rdbComputeDomains .__len__() > 0:
-                rdbComputeDomain = rdbComputeDomains[0];
-            else:
-                raise Exception("There are no rdbComputeDomains available for the user.");
-
-        if databaseContextName is None:
-            databaseContexts = rdbComputeDomain.get('databaseContexts');
-            if databaseContexts.__len__() > 0:
-                databaseContextName = databaseContexts[0].get('name')
-            else:
-                raise Exception("rbdComputeDomain has no database contexts available for the user.");
-
-        targets = [];
-        if type(resultsName) == str:
-            targets.append({'location': resultsName, 'type': 'FILE_CSV', 'resultNumber': 1});
-        elif type(resultsName) == list:
-            if len(set(resultsName)) != len(resultsName):
-                raise Exception("Elements of parameter 'resultsName' must be unique");
-
-            for i in range(len(resultsName)):
-                if type(resultsName[i]) == str:
-                    targets.append({'location': resultsName[i], 'type': 'FILE_CSV', 'resultNumber': i+1});
-                else:
-                    raise Exception("Elements of array 'resultsName' are not strings");
-
-        else:
-            raise Exception("Type of parameter 'resultsName' is not supported");
-
-
-        rdbDomainId = rdbComputeDomain.get('id');
-
-        dockerJobModel = {
-            "inputSql": sqlQuery,
-            "submitterDID": jobAlias,
-            "databaseContextName": databaseContextName,
-            "rdbDomainId": rdbDomainId,
-            "targets": targets,
-            "resultsFolderURI":resultsFolderPath
-        }
-
-        data = json.dumps(dockerJobModel).encode()
-        url = Config.RacmApiURL + "/jobm/rest/jobs/rdb?TaskName="+taskName;
-        headers = {'X-Auth-Token': token, "Content-Type": "application/json"}
-        res = requests.post(url, data=data, headers=headers, stream=True)
-
-        if res.status_code != 200:
-            raise Exception("Error when submitting a job to the JOBM API.\nHttp Response from JOBM API returned status code " + str(res.status_code) + ":\n" + res.content.decode());
-        else:
-            return (json.loads(res.content.decode())).get('id')
-    else:
-        raise Exception("User token is not defined. First log into SciServer.")
-
 
 def cancelJob(jobId):
     """
