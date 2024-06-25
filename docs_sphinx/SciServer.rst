@@ -14,6 +14,14 @@ SciServer.CasJobs module
     :undoc-members:
     :show-inheritance:
 
+SciServer.SciQuery module
+-------------------------
+
+.. automodule:: SciServer.SciQuery
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 SciServer.Config module
 -----------------------
 
