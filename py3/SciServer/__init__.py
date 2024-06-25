@@ -9,7 +9,10 @@ Some SciServer tools you can access with this package:\n
 \t\tAlthough some tools accept anonymous access, you can use Authentication.login to login and access the tools and your own data and environment (after registering in the Login Portal). If you are running this package in a Jupyter Notebook in the SciServer-Compute environment, the use of Authentication.login is not necessary since it's done automatically.
 
 * `CasJobs <https://skyserver.sdss.org/CasJobs/>`_: Database storage and querying.
-\t\tYou can have access big databases, as well as save your data tables in your own database called 'MyDB'. The user can run synchronous or asynchronous SQL queries and get the result back as an R data-frame (using CasJobs.executeQuery or CasJobs.submitJob, respectively). Uploading of CSV files or R data-frames into a database table can be done using CasJobs.uploadCSVToTable and CasJobs.uploadDataFrameToTable, respectively.
+\t\tYou can have access big databases, as well as saving your data tables in your own database called 'MyDB'. The user can run synchronous or asynchronous SQL queries and get the result back as a Pandas data-frame (using CasJobs.executeQuery or CasJobs.submitJob, respectively). Uploading of CSV files or data-frames into a database table can be done using CasJobs.uploadCSVToTable and CasJobs.uploadDataFrameToTable, respectively.
+
+* `SciQuery`: Advanced database storage and querying.
+\t\tSciQuery expands the capabilities of CasJobs, as it is designed to work with databases loaded in several database management systems beyond MS SQL Server, such as PostgreSQL and MySQL. Query result tables can also be directly written as JSON or CSV files in the SciServer filesystem.
 
 * `SciDrive <https://www.scidrive.org/>`_: Drag-and-drop file storage and sharing.
 \t\tYou can create directories in SciDrive using SciDrive.createContainer, upload a file to SciDrive using SciDrive.upload, and share its URL with your collaborators by using SciDrive.publicUrl.
@@ -41,7 +44,7 @@ Some SciServer tools you can access with this package:\n
 
 **Authors**: Gerard Lemson <glemson1@jhu.edu>, Manuchehr Taghizadeh-Popp <mtaghiza@jhu.edu>
 
-**Version**: sciserver-v2.1.0
+**Version**: sciserver-v2.2.0
 
 
 """

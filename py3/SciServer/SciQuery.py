@@ -35,14 +35,14 @@ def _get_file_service(file_service: str = None):
 
 
 class Output:
-    """
-    Base class for output objects
-    """
+
     def __init__(self,
                  name: str = "output.json",
                  output_type: str = OutputType.FILE_JSON,
                  statement_indexes: Union[int, List[int]] = 1):
-
+        """
+        Base class for output objects, including files or database tables.
+        """
         if type(name) != str:
             raise TypeError("Invalid type for input parameter 'name'.")
         if type(output_type) != str:
@@ -58,8 +58,9 @@ class Output:
         """
         Sets the index(es) of the sql statement(s) within the input query, whose result-set(s) is(are) going to be
         written into this Output.
+
         :param statement_indexes: integer or list of integers, which are the indices (starting with 1) of the sql
-        statements within the input query, whose resultsets are going to be written into this Output.
+            statements within the input query, whose resultsets are going to be written into this Output.
         """
         if not isinstance(statement_indexes, Iterable):
             statement_indexes = [statement_indexes]
@@ -77,9 +78,6 @@ class Output:
 
 
 class FileOutput(Output):
-    """
-    Defines the output of a database query into a file.
-    """
 
     def __init__(self,
                  name: str = "output.json",
@@ -87,11 +85,13 @@ class FileOutput(Output):
                  statement_indexes: Union[int, List[int]] = 1,
                  file_service: str = None):
         """
+        Defines the output of a database query into a file.
+
         :param name: name of the file (string), such as "result.json"
         :param output_type: type (string) of the file containing the query result(s) (e.g., "FILE_JSON").
-        As set of possible values is given by the static members of class 'SciQuery.OutputTargetType'
+            As set of possible values is given by the static members of class 'SciQuery.OutputTargetType'
         :param statement_indexes:  list of integers or integer. Each integer value denotes the index or position (>=1)
-        of the sql statements within the input query, whose resultset is going to be written into this OutputTarget
+            of the sql statements within the input query, whose resultset is going to be written into this OutputTarget
         :param file_service: string denoting name or identifier of file service where the output file is written into.
         """
         if file_service:
@@ -125,6 +125,9 @@ class FileOutput(Output):
         super().__init__(name, output_type, statement_indexes)
 
     def get_path(self) -> str:
+        """
+        Get file output path on SciServer's FileSystem
+        """
         if self.path:
             return self.path
         else:
@@ -134,7 +137,7 @@ class FileOutput(Output):
     @classmethod
     def get_default(cls):
         """
-        Gets an Output object filled with default values: JSON output file where only the 1st SQL statement of
+        Gets a feault FileOutput object filled with default values: JSON output file where only the 1st SQL statement of
         the query is written in it.
         """
         return cls("result.json", OutputType.FILE_JSON, 1)
@@ -145,6 +148,16 @@ class FileOutput(Output):
                              user_volume_owner_name: str = "",
                              relative_path: str = "sciqueryjobs",
                              add_date_ending: bool = False) -> str:
+        """
+        Builds the base path for an output file located in the SciServer filesystem.
+
+        :param top_volume: name (str) of top volume in SciServer's filesystem, such as "Temporary" or "Storage".
+        :param user_volume: name (str) of user volume in SciServer's filesystem.
+        :param user_volume_owner_name: name (str) of user volume owner in SciServer's filesystem.
+        :param relative_path: relative path (str) after <top_volume>/<user_volume_owner_name>/<user_volume>/
+        :param add_date_ending: if True, then the relative path is built from the current date.
+        :return: path string
+        """
         if not top_volume:
             raise NameError("Input parameter top_volume cannot be empty or None")
 
@@ -164,6 +177,9 @@ class FileOutput(Output):
 
     @staticmethod
     def find_file_service(file_service: Union[str, dict] = None) -> dict:
+        """
+        Gets FileService info
+        """
         if isinstance(file_service, dict):
             file_service = file_service.get("identifier")
         return _get_file_service(file_service)
@@ -177,9 +193,6 @@ class FileOutput(Output):
 
 
 class DatabaseTableOutput(Output):
-    """
-    Defines the output of a database query into a database table
-    """
 
     def __init__(self,
                  table: str = "resultTable",
@@ -189,15 +202,17 @@ class DatabaseTableOutput(Output):
                  schema: str = ""):
 
         """
+        Defines the output of a database query into a database table.
+
         :param table: name of the output database table (string), such as "resultTable"
         :param database: name of the database (string) where the output table in created. If it is owned explicitly by
-        a user, then it should follow the pattern "mydb:<username>"
+            a user, then it should follow the pattern "mydb:<username>"
         :param statement_indexes:  list of integers or integer. Each integer value denotes the index or position (>=1)
         :param rdb_compute_domain: name (string) of the relational database (RDB) compute domain that contains the
-        database, or object of class RDBComputeDomain corresponding to it.
-        Name of such domains available to the user is returned by the function Jobs.getRDBComputeDomainNames().
+            database, or object of class RDBComputeDomain corresponding to it.
+            Name of such domains available to the user is returned by the function Jobs.getRDBComputeDomainNames().
         :param schema: database schema (string)
-        of the sql statements within the input query, whose resultset is going to be written into this OutputTarget
+            of the sql statements within the input query, whose resultset is going to be written into this OutputTarget
         """
         if type(table) != str or type(schema) != str:
             raise TypeError("Input parameter(s) 'table' or 'schema' should be of type string.")
@@ -242,11 +257,11 @@ class DatabaseTableOutput(Output):
 
 
 class Outputs(list):
-    """
-    Contains a list of output objects, defining database query resultset outputs.
-    """
 
     def __init__(self, *outputs):
+        """
+        Contains a list of output objects, defining database query result outputs.
+        """
         super().__init__()
         for output in outputs:
             outs = output if isinstance(output, Iterable) else [output]
@@ -254,12 +269,18 @@ class Outputs(list):
                 self.append(out)
 
     def append(self, obj):
+        """
+        Appends an Output object to this list.
+        """
         if isinstance(obj, Output):
             super().append(obj)
         else:
             raise NameError("Input object is not a subclass of the 'Output' class.")
 
     def get_target_list(self, file_base_path: str = None, file_service: str = None):
+        """
+        Gets list of output targets.
+        """
         targets = []
         fs = FileOutput.find_file_service(file_service)
         for output in self:
@@ -285,18 +306,21 @@ class Outputs(list):
 
     @staticmethod
     def get_default():
+        """
+        Gets an OutputList with one element, consisting of a JSON FileOutput object.
+        """
         return Outputs(FileOutput(name="result.json", output_type=OutputType.FILE_JSON, statement_indexes = [1]))
 
 
 class RDBJob:
-    """
-    Contains the definition of a job consisting on a query run in a Relational Database (RDB)
-    """
+
     _JOB_STATUS_MAP = {1: "PENDING", 2: "QUEUED", 4: "ACCEPTED", 8: "STARTED", 16: "FINISHED", 32: "SUCCESS",
                        64: "ERROR", 128: "CANCELED"}
 
     def __init__(self, job):
         """
+        Contains the definition of a job consisting on a query run in a Relational Database (RDB).
+
         :param job: can be the job ID (string), or a dictionary containing all the attributes of an RDBJob object.
         """
         if type(job) != dict:
@@ -337,6 +361,9 @@ class RDBJob:
         self.get_job_status = self._get_job_status_string
 
     def get_metadata(self, result_format="pandas") -> pd.DataFrame:
+        """
+        Gets this RDBJob's metadata as a Pandas DataFrame.
+        """
         data = []
         column_names = []
         if result_format == "pandas":
@@ -355,16 +382,28 @@ class RDBJob:
 
     @staticmethod
     def get_job_status(status: int) -> str:
+        """
+        Gets job status string from its integer representation.
+        """
         return RDBJob._JOB_STATUS_MAP.get(status)
 
     @staticmethod
     def get_job(job_id: int):
+        """
+        Gets RDBJob object from its Id.
+        """
         return RDBJob(Jobs.getJobDescription(job_id))
 
     def cancel(self):
+        """
+        Cancels this RDBJob.
+        """
         Jobs.cancelJob(self.id)
 
     def refresh(self):
+        """
+        Refreshes metadata and info of this RDBJob.
+        """
         self.__init__(Jobs.getJobDescription(self.id))
 
     def _get_job_status_string(self) -> str:
@@ -400,12 +439,18 @@ class RDBJob:
         return self.outputs[ind]
 
     def get_output_path(self, output: Union[Output, int] = 0) -> str:
+        """
+        Gets output path on SciServer's filesystem, if output type is a file.
+        """
         out = self._get_output_from_index(output) if isinstance(output, int) else output
         if out.output_type == OutputType.DATABASE_TABLE:
             raise TypeError("Output is not a file but a database")
         return out.get_path()
 
     def get_output_as_string(self, output: Union[Output, int, str] = None):
+        """
+        Gets content of output file in SciServer's filesystem as a string.
+        """
         if not isinstance(output, str):
             out = self._get_output_from_index(output) if isinstance(output, int) else output
             file_path = self.get_output_path(out)
@@ -426,10 +471,16 @@ class RDBJob:
         return data
 
     def get_json_output(self, output: Union[Output, int, str] = 0) -> dict:
+        """
+        Gets content of output file in SciServer's filesystem as a dictionary.
+        """
         data_dict = json.loads(self.get_output_as_string(output))
         return data_dict.get("Result")
 
     def get_dataframe_from_output(self, output: Union[Output, int] = 0, result_index: int = 0) -> pd.DataFrame:
+        """
+        Gets query output as a Pandas DatFrame.
+        """
         out = self._get_output_from_index(output) if isinstance(output, int) else output
         if out.output_type == OutputType.FILE_JSON:
             result = self.get_json_output(out)[result_index]
@@ -456,17 +507,16 @@ class RDBJob:
 
 
 class Database:
-    """
-    Defines a database context where users can run sql queries.
-    """
 
     def __init__(self, rdb_compute_domain: Union[str, int, dict], database: Union[str, int, dict]):
         """
+        Defines a database context where users can run sql queries.
+
         :param rdb_compute_domain: Parameter that identifies the relation database domain or environment that
-        contains the database. Could be either its name (string), ID (integer), or a dictionary containing
-        the attributes of the domain.
+            contains the database. Could be either its name (string), ID (integer), or a dictionary containing
+            the attributes of the domain.
         :param database: defines the database. Can be either the database name (string), ID (integer), or a dictionary
-        containing all the attributes of an object of class Database.
+            containing all the attributes of an object of class Database.
         """
         if type(database) not in [str, int, dict]:
             raise TypeError("Invalid type for input parameter 'database'.")
@@ -502,6 +552,9 @@ class Database:
         self.rdb_compute_domain_id = domain.get('id')
 
     def get_metadata(self) -> pd.DataFrame:
+        """
+        Gets Database metadata.
+        """
         data = []
         column_names = ['database_name', 'database_description', 'database_vendor', 'database_id',
                         'rdb_compute_domain_name', 'rdb_compute_domain_id']
@@ -521,16 +574,14 @@ class Database:
 
 
 class RDBComputeDomain:
-    """
-    Defines a domain or environment with databases that users are able to query.
-    """
 
     def __init__(self, rdb_compute_domain: Union[str, int, dict]):
         """
         Creates an instance of an RDBComputeDomain, which defines a domain or environment with databases that users.
         are able to query.
+
         :param rdb_compute_domain: Parameter that identifies the domain. Could be either its name (string),
-        ID (integer), or a dictionary containing all the attributes of the domain.
+            ID (integer), or a dictionary containing all the attributes of the domain.
         """
         if type(rdb_compute_domain) not in [str, int, dict]:
             raise TypeError("Invalid type for input parameter 'rdb_compute_domain'.")
@@ -564,15 +615,19 @@ class RDBComputeDomain:
 
     def get_database_names(self) -> list:
         """
-        Gets a list of the names of databases in an RDBComputeDomain
+        Gets a list of the names of databases in an RDBComputeDomain.
 
         :return: list of database names (strings)
         :example: dbnames = SciQuery.get_database_names(rdbComputeDomainName);
+
         .. seealso:: SciQuery.get_databases_metadata
         """
         return [db.name for db in self.databases]
 
     def get_database(self, database: Union[str, int, dict, Database]) -> Database:
+        """
+        Gets Database
+        """
         if type(database) == str:
             dbs = [db for db in self.databases if db.name == database]
         elif type(database) == int:
@@ -589,6 +644,9 @@ class RDBComputeDomain:
             return dbs[0]
 
     def get_default_database(self) -> Database:
+        """
+        Gets default database.
+        """
         dbs = [db for db in self.databases if db.name == SciQuery.get_mydb_name()]
         if len(dbs) > 0:
             return dbs[0]
@@ -598,6 +656,9 @@ class RDBComputeDomain:
             raise Exception("No default database available.")
 
     def get_metadata(self, do_include_databases: bool = False) -> pd.DataFrame:
+        """
+        Gets metadata of this RDBComputeDomain.
+        """
 
         column_names = ['rdb_compute_domain_name', 'rdb_compute_domain_description', 'rdb_compute_domain_id']
         data = [[self.name, self.description, self.id]]
@@ -622,6 +683,7 @@ class RDBComputeDomain:
         Gets metadata of the databases in this RDBComputeDomain.
 
         :return: pandas dataframe with associated metadata.
+
         .. seealso:: SciQuery.get_database_names
         """
         dfs = [db.get_metadata() for db in self.databases]
@@ -637,13 +699,14 @@ class RDBComputeDomain:
 
 
 class RDBComputeDomains(list):
-    """
-    Defines a list of RDBComputeDomains, which are domains or environments with databases that users are able to query.
-    """
+
     def __init__(self, rdb_compute_domains: Union[Iterable, RDBComputeDomain]):
         """
+        Defines a list of RDBComputeDomains, which are domains or environments with databases that users are able to
+        query.
+
         :param rdb_compute_domains: Parameter that identifies a list of RDBComputeDomain objects.
-        Could be either single RDBComputeDomain object, or an iterable containing multiple RDBComputeDomain objects.
+            Could be either single RDBComputeDomain object, or an iterable containing multiple RDBComputeDomain objects.
         """
         super().__init__()
         domains = rdb_compute_domains if isinstance(rdb_compute_domains, Iterable) else [rdb_compute_domains]
@@ -654,6 +717,9 @@ class RDBComputeDomains(list):
                 raise NameError("Input object is not of class RDBComputeDomain.")
 
     def get_rdb_compute_domain(self, rdb_compute_domain: Union[str, int, dict, RDBComputeDomain]) -> RDBComputeDomain:
+        """
+        Gets RDBComputeDomain from this list
+        """
         if type(rdb_compute_domain) == str:
             domains = [d for d in self if d.name == rdb_compute_domain]
         elif type(rdb_compute_domain) == int:
@@ -671,6 +737,9 @@ class RDBComputeDomains(list):
             return domains[0]
 
     def get_default_rdb_compute_domain(self) -> RDBComputeDomain:
+        """
+        Gets default RDBComputeDomain from this list.
+        """
         domains = [domain for domain in self if len(domain.databases) > 0]
         if len(domains) > 0:
             doms = [dom for dom in domains if dom.get_default_database().name == SciQuery.get_mydb_name()]
@@ -682,9 +751,7 @@ class RDBComputeDomains(list):
 
 
 class SciQuery:
-    """
-    Instance of the SciQuery app for querying relational databases.
-    """
+
     def __init__(self,
                  rdb_compute_domain: Union[str, int, dict, RDBComputeDomain] = None,
                  database: Union[str, int, dict, Database] = None,
@@ -696,29 +763,30 @@ class SciQuery:
                  poll_time: float = 1.0
                  ):
         """
-        Creates instance of SciQuery class.
+        Created an instance of the SciQuery app for querying relational databases.
 
         :param rdb_compute_domain: defines a domain or environment of multiple databases where users can run queries.
-        Can be either the domain's name (string), ID (integer), an object of class RDBComputeDomain, or a dictionary
-        containing all the attributes of an object of class RDBComputeDomain. If set to None, a default value will be
-        assigned to it.
+            Can be either the domain's name (string), ID (integer), an object of class RDBComputeDomain, or a dictionary
+            containing all the attributes of an object of class RDBComputeDomain. If set to None, a default value will
+            be assigned to it.
         :param database: defines the database where the queries are executed in.
-        Can be either the database name (string), ID (integer), an object of class Database, or a dictionary containing
-        all the attributes of an object of class Database. If set to None, a default value will be assigned to it.
+            Can be either the database name (string), ID (integer), an object of class Database, or a dictionary
+            containing all the attributes of an object of class Database. If set to None, a default value will be
+            assigned to it.
         :param file_service: a File Service defines an available file system where query result sets can be written
-        into. This parameter can be it name or identifier (string), or a dictionary defining a file service.
-        If set to None, a default value will be assigned to it.
+            into. This parameter can be it name or identifier (string), or a dictionary defining a file service.
+            If set to None, a default value will be assigned to it.
         :param results_base_path: base path (string) of the directory where the query results are written into.
-        Can be constructed by using FileOutput.build_file_base_path(). If set to None, a default value will be assigned
-        to it at the moment of running a sql query.
+            Can be constructed by using FileOutput.build_file_base_path(). If set to None, a default value will be
+            assigned to it at the moment of running a sql query.
         :param outputs: Defines the query(ies) output(s). Can be an object derived from the Output base class (such as
-        FileOutput or DatabaseTableOutput), or a list of those. If set to None, a default value (json file output)
-        will be assigned to it.
+            FileOutput or DatabaseTableOutput), or a list of those. If set to None, a default value (json file output)
+            will be assigned to it.
         :param verbose: Boolean parameter. If True, warning messages will be written in case of errors, in the case when
-        the hard_fail parameter is set to False. If False, nothing will be written.
+            the hard_fail parameter is set to False. If False, nothing will be written.
         :param hard_fail: Boolean parameter. If True, exceptions will be raised in case of errors during instantiation.
-        If False, then no exceptions are raised, and warnings might be showed instead
-        (depending on the value of the verbose parameter).
+            If False, then no exceptions are raised, and warnings might be showed instead
+            (depending on the value of the verbose parameter).
         :param poll_time: time (float) in seconds between consecutive requests for updates in the jobs status.
         """
 
@@ -737,6 +805,9 @@ class SciQuery:
 
     @staticmethod
     def get_token() -> str:
+        """
+        Gets user's auth token.
+        """
         token = Authentication.getToken()
         if token is None or token == "":
             raise Exception("User not has not logged into SciServer. Use 'Authentication.login'.")
@@ -744,6 +815,9 @@ class SciQuery:
 
     @staticmethod
     def get_user() -> Authentication.KeystoneUser:
+        """
+        Gets logged Keystone user info.
+        """
         token = SciQuery.get_token()
         user = Authentication.getKeystoneUserWithToken(token)
         user.token = token
@@ -763,24 +837,26 @@ class SciQuery:
         Sets or refreshes the parameters in the SciQuery object, all at once.
 
         :param rdb_compute_domain: defines a domain or environment of multiple databases where users can run queries.
-        Can be either the domain's name (string), ID (integer), an object of class RDBComputeDomain, or a dictionary
-        containing all the attributes of an object of class RDBComputeDomain. If set to None, the current value
-        is refreshed.
+            Can be either the domain's name (string), ID (integer), an object of class RDBComputeDomain, or a dictionary
+            containing all the attributes of an object of class RDBComputeDomain. If set to None, the current value
+            is refreshed.
         :param database: defines the database where the queries are executed in.
-        Can be either the database name (string), ID (integer), an object of class Database, or a dictionary containing
-        all the attributes of an object of class Database. If set to None, the current value is refreshed.
+            Can be either the database name (string), ID (integer), an object of class Database, or a dictionary
+            containing all the attributes of an object of class Database. If set to None, the current value is
+            refreshed.
         :param file_service: a File Service defines an available file system where query result sets can be written
-        into. This parameter can be it name or identifier (string), or a dictionary defining a file service.
-        If set to None, the current value is refreshed.
+            into. This parameter can be it name or identifier (string), or a dictionary defining a file service.
+            If set to None, the current value is refreshed.
         :param results_base_path: base path (string) of the directory where the query results are written into.
-        Can be constructed by using FileOutput.build_file_base_path().
+            Can be constructed by using FileOutput.build_file_base_path().
         :param outputs: Defines the query(ies) output(s). Can be a list of Output objects,
-        or a single object of class Outputs. If set to None, a default value (json file output) will be assigned to it.
+            or a single object of class Outputs. If set to None, a default value (json file output) will be assigned to
+            it.
         :param verbose: Boolean parameter. If True, warning messages will be written in case of errors, in the case when
-        the hard_fail parameter is set to False. If False, nothing will be written.
+            the hard_fail parameter is set to False. If False, nothing will be written.
         :param hard_fail: Boolean parameter. If True, exceptions will be raised in case of errors during instantiation.
-        If False, then no exceptions are raised, and warnings might be showed instead
-        (depending on the value of the verbose parameter).
+            If False, then no exceptions are raised, and warnings might be showed instead
+            (depending on the value of the verbose parameter).
         :param poll_time: time (float) in seconds between consecutive requests for updates in the jobs status.
         """
 
@@ -846,10 +922,16 @@ class SciQuery:
             warnings.warn(message)
 
     def refresh(self):
+        """
+        Refreshes SciQuery instance.
+        """
         self.set(verbose=self.verbose, hard_fail=self.hard_fail)
 
     @staticmethod
     def get_mydb_name(owner_name: str = None) -> str:
+        """
+        Returns name of mydb based on the owner's name.
+        """
         if not owner_name:
             owner_name = SciQuery.get_user().userName
         return "mydb:" + owner_name
@@ -860,10 +942,10 @@ class SciQuery:
         Gets a list of all registered Relational Database (RDB) compute domains that the user has access to.
 
         :param result_format: If set to "class", then the returned value will be of class RDBComputeDomains.
-        If set to "dict", then the return value will be a list of dictionaries, each of them containing the attributes
-        of an RDBComputeDomain object.
-        :return: an object of class RDBComputeDomains, or a list of dictionaries, each of them containing the attributes
-        of an RDBComputeDomain object.
+            If set to "dict", then the return value will be a list of dictionaries, each of them containing the
+            attributes of an RDBComputeDomain object.
+        :return: an object of class RDBComputeDomains, or a list of dictionaries, each of them containing the
+            attributes of an RDBComputeDomain object.
         """
         token = SciQuery.get_user().token
 
@@ -890,6 +972,9 @@ class SciQuery:
 
     @property
     def rdb_compute_domains(self) -> RDBComputeDomains:
+        """
+        Property defining the RDBComputeDomains available in this SciQuery instance.
+        """
         return self._rdb_compute_domains
 
     @rdb_compute_domains.setter
@@ -902,6 +987,9 @@ class SciQuery:
 
     @property
     def rdb_compute_domain(self) -> RDBComputeDomain:
+        """
+        Property defining the selected RDBComputeDomain in this SciQuery instance.
+        """
         return self._rdb_compute_domain
 
     @rdb_compute_domain.setter
@@ -917,9 +1005,9 @@ class SciQuery:
         which is set in the SciQuery instance.
 
         :param rdb_compute_domain: defines a domain or environment of multiple databases where users can run queries.
-        Can be either the domain's name (string), ID (integer), an object of class RDBComputeDomain, or a dictionary
-        containing all the attributes of an object of class RDBComputeDomain. If set to None, then the currently set
-        value of rdb_compute_domain in the SciQuery object is returned.
+            Can be either the domain's name (string), ID (integer), an object of class RDBComputeDomain, or a dictionary
+            containing all the attributes of an object of class RDBComputeDomain. If set to None, then the currently set
+            value of rdb_compute_domain in the SciQuery object is returned.
         :return: Object of class RDBComputeDomain.
         """
         if rdb_compute_domain is None:
@@ -927,12 +1015,18 @@ class SciQuery:
         return self.rdb_compute_domains.get_rdb_compute_domain(rdb_compute_domain)
 
     def get_default_rdb_compute_domain(self):
+        """
+        Gets default RDBComputeDomain.
+        """
         return self.rdb_compute_domains.get_default_rdb_compute_domain()
 
     # database ---------------------------------------------------
 
     @property
     def database(self) -> Database:
+        """
+        Property defining the selected database in this SciQuery instance.
+        """
         return self._database
 
     @database.setter
@@ -948,15 +1042,15 @@ class SciQuery:
         Returns an object of class Database, either defined by the input name or identifiers, or that
         which is set in the SciQuery instance.
 
-
         :param database: identifies the database, which this function returns as an object of class Database.
-        Can be either the database name (string), ID (integer), an object of class Database, or a dictionary containing
-        all the attributes of an object of class Database. If set to None, then the currently set value of database in
-        the SciQuery object is returned.
+            Can be either the database name (string), ID (integer), an object of class Database, or a dictionary
+            containing all the attributes of an object of class Database. If set to None, then the currently set value
+            of database in the SciQuery object is returned.
         :param rdb_compute_domain: defines a domain or environment of multiple databases where users can run queries,
-        and that contains the database. Can be either the domain's name (string), ID (integer), an object of class
-        RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
-        If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally used.
+            and that contains the database. Can be either the domain's name (string), ID (integer), an object of class
+            RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
+            If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally
+            used.
         :return: Object of class Database
         """
         if database is None:
@@ -964,6 +1058,9 @@ class SciQuery:
         return self.get_rdb_compute_domain(rdb_compute_domain).get_database(database)
 
     def get_default_database(self, rdb_compute_domain: Union[str, int, dict, RDBComputeDomain] = None) -> Database:
+        """
+        Gets default database.
+        """
         domain = self.get_default_rdb_compute_domain() if rdb_compute_domain is None \
             else self.get_rdb_compute_domain(rdb_compute_domain)
         return domain.get_default_database()
@@ -972,6 +1069,9 @@ class SciQuery:
 
     @property
     def file_service(self) -> dict:
+        """
+        Property defining the selected FileService available in this SciQuery instance.
+        """
         return self._file_service
 
     @file_service.setter
@@ -983,10 +1083,10 @@ class SciQuery:
     def get_file_service(self, file_service: Union[str, dict] = None) -> dict:
         """
         Returns the definition of a file service as a dictionary, either defined by the input name or identifiers,
-        or that which is set in the SciQuery instance.
+            or that which is set in the SciQuery instance.
 
         :param file_service: name or identifier (string) of a file service, or the dictionary with its definition.
-        If set to None, then the currently set value of file_service in the SciQuery object is returned.
+            If set to None, then the currently set value of file_service in the SciQuery object is returned.
         :return: dictionary with the definition of a file service.
         """
         if file_service is None:
@@ -994,12 +1094,18 @@ class SciQuery:
         return FileOutput.find_file_service(file_service)
 
     def get_default_file_service(self) -> dict:
+        """
+        Gets default FiLeService
+        """
         return FileOutput.find_file_service()
 
     # results_base_path ---------------------------------------------------
 
     @property
     def results_base_path(self) -> str:
+        """
+        Property defining the file output base path in SciServer's filesystem for this SciQuery instance.
+        """
         return self._results_base_path
 
     @results_base_path.setter
@@ -1009,15 +1115,24 @@ class SciQuery:
         self._results_base_path = results_base_path
 
     def get_results_base_path(self) -> str:
+        """
+        Gets results base path on SciServer's filesystem.
+        """
         return self._results_base_path
 
     def get_default_results_base_path(self, add_date_ending=True) -> str:
+        """
+        Gets default results base path on SciServer's filesystem.
+        """
         return FileOutput.build_file_base_path(add_date_ending=add_date_ending)
 
     # outputs -------------------------------------------------------------
 
     @property
     def outputs(self) -> Outputs:
+        """
+        Property defining a list of query result Output objects.
+        """
         return self._outputs
 
     @outputs.setter
@@ -1032,7 +1147,7 @@ class SciQuery:
         which is set in the SciQuery instance.
 
         :param outputs: object of class Outputs, or iterable of output objects. If set to None, then the currently
-        set value of outputs in the SciQuery object is returned.
+            set value of outputs in the SciQuery object is returned.
         :return: object of class Outputs.
         """
         if outputs is None:
@@ -1040,6 +1155,9 @@ class SciQuery:
         return Outputs(outputs)
 
     def get_default_outputs(self) -> Outputs:
+        """
+        Gets default query outputs.
+        """
         return Outputs.get_default()
 
     # ---------------------------------------------------------------------------------------------
@@ -1059,22 +1177,24 @@ class SciQuery:
 
         :param sql_query: sql query (string)
         :param database: defines the database where the sql query is executed in.
-        Can be either the database name (string), ID (integer), an object of class Database, or a dictionary containing
-        all the attributes of an object of class Database. If set to None, then the current value of the database field
-        in this SciQuery instance will be used.
+            Can be either the database name (string), ID (integer), an object of class Database, or a dictionary
+            containing all the attributes of an object of class Database. If set to None, then the current value of
+            the database field in this SciQuery instance will be used.
         :param outputs: Defines the query(ies) output(s). Can be an object derived from the Output base class (such as
-        FileOutput or DatabaseTableOutput), or a list of those. If set to None, then the current value of the outputs
-        field in this SciQuery instance will be used.
+            FileOutput or DatabaseTableOutput), or a list of those. If set to None, then the current value of the
+            outputs field in this SciQuery instance will be used.
         :param results_base_path: full path to results folder (string) where query output tables are written into.
-        E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If set to None, then its current value
-        in this SciQuery instance will be used. If that value is None, then a default folder will be set automatically.
+            E.g.: /home/idies/workspace/rootVolume/username/userVolume/jobsFolder . If set to None, then its current
+            value in this SciQuery instance will be used. If that value is None, then a default folder will be set
+            automatically.
         :param rdb_compute_domain: defines a domain or environment of multiple databases where users can run queries,
-        and that contains the database. Can be either the domain's name (string), ID (integer), an object of class
-        RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
-        If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally used.
+            and that contains the database. Can be either the domain's name (string), ID (integer), an object of class
+            RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
+            If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally
+            used.
         :param file_service: a File Service defines an available file system where query result sets can be written
-        into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
-        If set to None, then the currently set value of file_service in the SciQuery object is internally used.
+            into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
+            If set to None, then the currently set value of file_service in the SciQuery object is internally used.
         :param job_alias: alias (string) of job, defined by the user.
         :return: the ID (string) that labels the job.
         """
@@ -1127,24 +1247,26 @@ class SciQuery:
 
         :param sql_query: sql query (string)
         :param database: defines the database where the sql query is executed in.
-        Can be either the database name (string), ID (integer), an object of class Database, or a dictionary containing
-        all the attributes of an object of class Database. If set to None, then the current value of the database field
-        in this SciQuery instance will be used.
+            Can be either the database name (string), ID (integer), an object of class Database, or a dictionary
+            containing all the attributes of an object of class Database. If set to None, then the current value of
+            the database field in this SciQuery instance will be used.
         :param results_base_path: full path to results folder (string) where query output tables are written into.
-        E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If set to None, then its current value in
-        this SciQuery instance will be used. If that value is None, then a default folder will be set automatically.
+            E.g.: /home/idies/workspace/rootVOlume/username/userVolume/jobsFolder . If set to None, then its current
+            value in this SciQuery instance will be used. If that value is None, then a default folder will be set
+            automatically.
         :param rdb_compute_domain: defines a domain or environment of multiple databases where users can run queries,
-        and that contains the database. Can be either the domain's name (string), ID (integer), an object of class
-        RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
-        If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally used.
+            and that contains the database. Can be either the domain's name (string), ID (integer), an object of class
+            RDBComputeDomain, or a dictionary containing all the attributes of an object of class RDBComputeDomain.
+            If set to None, then the currently set value of rdb_compute_domain in the SciQuery object is internally used.
         :param job_alias: alias (string) of job, defined by the user.
         :param file_service: a File Service defines an available file system where query result sets can be written
-        into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
-        If set to None, then the currently set value of file_service in the SciQuery object is internally used.
+            into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
+            If set to None, then the currently set value of file_service in the SciQuery object is internally used.
         :param write_job_id: if True, the job id will be written on the screen, just before returning the result.
-        The job id won;t be written if write_job_id = False.
-        into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
-        If set to None, then the currently set value of file_service in the SciQuery object is internally used.
+            The job id won;t be written if write_job_id = False.
+            into. This parameter can be its name or identifier (string), or a dictionary defining a file service.
+            If set to None, then the currently set value of file_service in the SciQuery object is internally used.
+
         :return: Pandas data frame containing the result of the query.
         """
         output = FileOutput("result1.json", OutputType.FILE_JSON, 1)
@@ -1175,14 +1297,14 @@ class SciQuery:
 
         :param top: top number of jobs (integer) returned. If top=None, then all jobs are returned.
         :param open: If set to 'True', then only returns jobs that have not finished executing and wrapped up
-        (status <= FINISHED). If set to 'False' then only returns jobs that are still running. If set to 'None',
-        then returns both finished and unfinished jobs.
+            (status <= FINISHED). If set to 'False' then only returns jobs that are still running. If set to 'None',
+            then returns both finished and unfinished jobs.
         :param start: The earliest date (inclusive) to search for jobs, in string format yyyy-MM-dd hh:mm:ss.SSS.
-        If set to 'None', then there is no lower bound on date.
+            If set to 'None', then there is no lower bound on date.
         :param end: The latest date (inclusive) to search for jobs, in string format yyyy-MM-dd hh:mm:ss.SSS.
-        If set to 'None', then there is no upper bound on date.
+            If set to 'None', then there is no upper bound on date.
         :param result_format: string defining the return format. "pandas" for a pandas dataframe and "list"
-        for a list of RDBJob objects.
+            for a list of RDBJob objects.
         :return: pandas dataframe, or list of RDBJob objects or, each containing the definition of a submitted job.
         """
         job_dict_list = Jobs.getJobsList(top=top, open=open, start=start, end=end, type='rdb')
@@ -1236,11 +1358,11 @@ class SciQuery:
 
         :param job_id: id of job (integer)
         :param verbose: if True, will print "wait" messages on the screen while the job is still running. If False, it
-        will suppress the printing of messages on the screen.
+            will suppress the printing of messages on the screen.
         :return: After the job is finished, returns an object of class RDBJob, containing the job definition.
         :raises: Throws an exception if the user is not logged into SciServer (use Authentication.login for that
-        purpose).
-        Throws an exception if the HTTP request to the JOBM API returns an error.
+            purpose).
+            Throws an exception if the HTTP request to the JOBM API returns an error.
         """
         t = max(0.5, self.poll_time)
         wait_message = "Waiting"
@@ -1261,7 +1383,7 @@ class SciQuery:
         Gets metadata related to all relational database (RDB) compute domains (RDBComputeDomains) available.
 
         :param do_include_databases: Boolean parameter. If True, it will return metadata related to all available
-        databases in each RDBComputeDomain as well.
+            databases in each RDBComputeDomain as well.
         :return: pandas dataframe containing associated metadata.
         """
         dfs = []
@@ -1281,6 +1403,9 @@ class SciQuery:
         return [d.name for d in self.rdb_compute_domains]
 
     def get_rdb_compute_domain_metadata(self, rdb_compute_domain=None, do_include_databases=False):
+        """
+        Gets metadata of an rdb_compute_domain.
+        """
         return self.get_rdb_compute_domain(rdb_compute_domain).get_metadata(do_include_databases)
 
     def get_databases_metadata(self, rdb_compute_domain=None):
@@ -1295,13 +1420,16 @@ class SciQuery:
             return rdb_compute_domain.get_databases_metadata()
 
     def get_database_metadata(self, database=None, rdb_compute_domain=None):
+        """
+        Gets database metadata.
+        """
         rdb_compute_domain = self.get_rdb_compute_domain(rdb_compute_domain)
         database = self.get_database(database, rdb_compute_domain)
         return database.get_metadata()
 
     def get_database_names(self, rdb_compute_domain=None):
         """
-        Gets a list of the names of databases in an RDBComputeDomain
+        Gets a list of the names of the databases in this RDBComputeDomain.
 
         :return: array of database names (strings)
         """

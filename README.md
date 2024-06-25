@@ -12,6 +12,8 @@ Some SciServer tools you can access with this package:
 
  * [CasJobs](http://skyserver.sdss.org/CasJobs): Database storage and querying.
 
+* SciQuery: Advanced Database storage and querying.
+
  * [SciDrive](http://www.scidrive.org/): Drag-and-drop file storage and sharing.
 
  * [SkyServer](http://skyserver.sdss.org/): Access to the SDSS astronomical survey.
@@ -36,6 +38,8 @@ Authors: Gerard Lemson, Manuchehr Taghizadeh-Popp.
 2.1.- Open `./py2/SciServer/Config.py` and `./py3/SciServer/Config.py`, and edit the API URLs and parameters to match those of the SciServer tools and installation, according to the instructions and descriptions found therein.
 
 ## 3) Installation:
+
+First, add required packages with `pip install -r requirements.txt`
 
 There are 2 possibilities: automatic or manual installation.
 
