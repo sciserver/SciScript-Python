@@ -36,9 +36,9 @@ def sqlSearch(sql, dataRelease=None):
     url = url + 'cmd=' + sql + '&'
 
     if Config.isSciServerComputeEnvironment():
-        url = url + "TaskName=Compute.SciScript-Python.SkyServer.sqlSearch&"
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.sqlSearch"
     else:
-        url = url + "TaskName=SciScript-Python.SkyServer.sqlSearch&"
+        url = url + "TaskName=SciScript-Python.SkyServer.sqlSearch"
 
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
@@ -113,9 +113,9 @@ def getJpegImgCutout(ra, dec, scale=0.7, width=512, height=512, opt="", query=""
     url = url + 'query=' + query + '&'
 
     if Config.isSciServerComputeEnvironment():
-        url = url + "TaskName=Compute.SciScript-Python.SkyServer.getJpegImgCutout&"
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.getJpegImgCutout"
     else:
-        url = url + "TaskName=SciScript-Python.SkyServer.getJpegImgCutout&"
+        url = url + "TaskName=SciScript-Python.SkyServer.getJpegImgCutout"
 
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
@@ -171,9 +171,9 @@ def radialSearch(ra, dec, radius=1, coordType="equatorial", whichPhotometry="opt
     url = url + 'limit=' + limit + '&'
 
     if Config.isSciServerComputeEnvironment():
-        url = url + "TaskName=Compute.SciScript-Python.SkyServer.radialSearch&"
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.radialSearch"
     else:
-        url = url + "TaskName=SciScript-Python.SkyServer.radialSearch&"
+        url = url + "TaskName=SciScript-Python.SkyServer.radialSearch"
 
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
@@ -230,9 +230,9 @@ def rectangularSearch(min_ra, max_ra, min_dec, max_dec, coordType="equatorial", 
     url = url + 'limit=' + limit + '&'
 
     if Config.isSciServerComputeEnvironment():
-        url = url + "TaskName=Compute.SciScript-Python.SkyServer.rectangularSearch&"
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.rectangularSearch"
     else:
-        url = url + "TaskName=SciScript-Python.SkyServer.rectangularSearch&"
+        url = url + "TaskName=SciScript-Python.SkyServer.rectangularSearch"
 
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
@@ -318,9 +318,9 @@ def objectSearch(objId=None, specObjId=None, apogee_id=None, apstar_id=None, ra=
         url = url + 'obj=' + str(obj) + '&';
 
     if Config.isSciServerComputeEnvironment():
-        url = url + "TaskName=Compute.SciScript-Python.SkyServer.objectSearch&"
+        url = url + "TaskName=Compute.SciScript-Python.SkyServer.objectSearch"
     else:
-        url = url + "TaskName=SciScript-Python.SkyServer.objectSearch&"
+        url = url + "TaskName=SciScript-Python.SkyServer.objectSearch"
 
     #url = urllib.quote_plus(url)
     acceptHeader = "text/plain"
